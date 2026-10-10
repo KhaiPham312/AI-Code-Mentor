@@ -1,42 +1,63 @@
 import React, { useState } from 'react';
 import { ExecutionResult } from '../../types/exercise';
-import { Terminal, CheckCircle2, XCircle, AlertTriangle, Loader2, Bot, Play } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, Loader2, Bot, Play, Copy, Check, FileCode } from 'lucide-react';
 
 interface TerminalPanelProps {
   result: ExecutionResult | null;
   isRunning: boolean;
   onAskAIAboutError?: (errorText: string) => void;
+  theme?: 'dark' | 'light';
 }
 
 export const TerminalPanel: React.FC<TerminalPanelProps> = ({
   result,
   isRunning,
-  onAskAIAboutError
+  onAskAIAboutError,
+  theme,
 }) => {
-  const [activeTab, setActiveTab] = useState<'tests' | 'console'>('tests');
+  const [activeTab, setActiveTab] = useState<'tests' | 'compiler' | 'console'>('tests');
   const [selectedTestCaseIdx, setSelectedTestCaseIdx] = useState(0);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const isDark = theme
+    ? theme === 'dark'
+    : (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
+
+  const handleCopy = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(idx);
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const hasCompilerError = result?.status === 'error' || Boolean(result?.errorMessage);
 
   return (
-    <div className="flex flex-col h-full bg-[#14141e] text-slate-200">
-      {/* Terminal Header */}
-      <div className="h-10 px-4 bg-[#0e0e15] border-t border-b border-slate-800 flex items-center justify-between select-none">
-        <div className="flex items-center space-x-2">
+    <div
+      className={`flex flex-col h-full select-none transition-colors ${
+        isDark ? 'bg-[#0d1117] text-slate-200' : 'bg-white text-neutral-900'
+      }`}
+    >
+      {/* 1. TERMINAL HEADER: HackerRank Test Cases Tab Bar */}
+      <div className="h-10 px-3 bg-slate-100 dark:bg-[#161b22] border-t border-b border-slate-200 dark:border-slate-800 flex items-center justify-between transition-colors">
+        <div className="flex items-center space-x-1 sm:space-x-2">
+          {/* Test Cases Results Tab */}
           <button
+            type="button"
             onClick={() => setActiveTab('tests')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition flex items-center gap-1.5 ${
               activeTab === 'tests'
-                ? 'bg-slate-800 text-white border border-slate-700'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-white dark:bg-[#21262d] text-neutral-950 dark:text-white border border-slate-300 dark:border-slate-700 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/40'
             }`}
           >
-            <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
-            <span>Kết quả Test Cases</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
+            <span>Test Cases</span>
             {result && result.results.length > 0 && (
               <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
                   result.passedTests === result.totalTests
-                    ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                    : 'bg-rose-950 text-rose-400 border border-rose-800'
+                    ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800'
+                    : 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-800'
                 }`}
               >
                 {result.passedTests}/{result.totalTests}
@@ -44,172 +65,217 @@ export const TerminalPanel: React.FC<TerminalPanelProps> = ({
             )}
           </button>
 
+          {/* Compiler Message Tab (shows red badge if error) */}
+          {hasCompilerError && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('compiler')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition flex items-center gap-1.5 ${
+                activeTab === 'compiler'
+                  ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-800 shadow-sm'
+                  : 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30'
+              }`}
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
+              <span>Compiler Message</span>
+            </button>
+          )}
+
+          {/* Raw Console Tab */}
           <button
+            type="button"
             onClick={() => setActiveTab('console')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition flex items-center gap-1.5 ${
               activeTab === 'console'
-                ? 'bg-slate-800 text-white border border-slate-700'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-white dark:bg-[#21262d] text-neutral-950 dark:text-white border border-slate-300 dark:border-slate-700 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/40'
             }`}
           >
-            <Terminal className="w-3.5 h-3.5 text-amber-400" />
-            <span>Console Output</span>
+            <FileCode className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+            <span>Raw Console</span>
           </button>
         </div>
 
-        {/* Status indicator / ask AI button */}
+        {/* Right Status Indicator */}
         <div className="flex items-center space-x-3 text-xs">
           {isRunning ? (
-            <div className="flex items-center space-x-2 text-blue-400">
+            <div className="flex items-center space-x-1.5 text-emerald-600 dark:text-emerald-400">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Đang thực thi code...</span>
+              <span className="hidden sm:inline">Executing test cases...</span>
             </div>
           ) : result ? (
-            <div className="flex items-center space-x-3">
-              <span className="text-[11px] text-slate-400 font-mono">
-                {result.executionTimeMs}ms
+            <div className="flex items-center space-x-2">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                {result.executionTimeMs} ms
               </span>
-
-              {/* Nếu có lỗi, hiện nút hỏi AI nổi bật */}
-              {(result.status === 'error' || result.passedTests < result.totalTests) && onAskAIAboutError && (
-                <button
-                  onClick={() =>
-                    onAskAIAboutError(
-                      result.errorMessage || result.stdout || 'Chưa vượt qua test case'
-                    )
-                  }
-                  className="px-2.5 py-1 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white rounded text-xs font-medium transition shadow-sm flex items-center gap-1.5 animate-pulse"
-                >
-                  <Bot className="w-3.5 h-3.5" />
-                  <span>Hỏi AI về lỗi này</span>
-                </button>
-              )}
+              {(result.status === 'error' || result.passedTests < result.totalTests) &&
+                onAskAIAboutError && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onAskAIAboutError(
+                        result.errorMessage || result.stdout || 'Chưa vượt qua test case'
+                      )
+                    }
+                    className="px-2.5 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded text-xs font-semibold transition shadow-sm flex items-center gap-1.5"
+                  >
+                    <Bot className="w-3.5 h-3.5" />
+                    <span>Hỏi AI gợi ý</span>
+                  </button>
+                )}
             </div>
           ) : (
-            <span className="text-slate-400 text-xs">Sẵn sàng chạy thử</span>
+            <span className="text-slate-500 dark:text-slate-400 text-[11px]">Ready to run</span>
           )}
         </div>
       </div>
 
-      {/* Terminal Content */}
-      <div className="flex-1 overflow-y-auto p-4 text-xs font-mono">
+      {/* 2. TERMINAL BODY */}
+      <div className="flex-1 overflow-y-auto p-4 text-xs font-mono select-text bg-white dark:bg-[#0d1117] transition-colors">
         {isRunning ? (
-          <div className="h-full flex flex-col items-center justify-center space-y-3 text-slate-400">
-            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-            <p>Hệ thống Sandbox đang biên dịch và chạy kiểm thử mã nguồn...</p>
+          <div className="h-full flex flex-col items-center justify-center space-y-3 text-slate-500 dark:text-slate-400">
+            <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+            <p className="text-xs">Hệ thống Sandbox đang biên dịch và chạy kiểm thử...</p>
           </div>
         ) : !result ? (
-          <div className="h-full flex flex-col items-center justify-center space-y-2 text-slate-400">
-            <Play className="w-7 h-7 text-slate-600" />
-            <p>Bấm nút <strong>"Chạy thử"</strong> hoặc nhấn <kbd className="bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">Ctrl + Enter</kbd> để kiểm tra mã nguồn.</p>
+          <div className="h-full flex flex-col items-center justify-center space-y-2 text-slate-500 dark:text-slate-400">
+            <Play className="w-6 h-6 text-slate-400 dark:text-slate-600" />
+            <p className="text-xs text-neutral-700 dark:text-slate-400">
+              Nhấn <strong className="text-neutral-900 dark:text-slate-200">"Chạy thử (Run Code)"</strong> hoặc phím <kbd className="bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded text-neutral-900 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-sans">Ctrl + Enter</kbd> để kiểm tra mã nguồn.
+            </p>
+          </div>
+        ) : activeTab === 'compiler' || (hasCompilerError && activeTab !== 'console' && result.results.length === 0) ? (
+          /* Compiler Error View */
+          <div className="p-4 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-300 space-y-2">
+            <div className="flex items-center gap-2 font-bold text-rose-800 dark:text-rose-200">
+              <AlertTriangle className="w-4 h-4 text-rose-500 dark:text-rose-400" />
+              <span>Compilation & Runtime Error</span>
+            </div>
+            <pre className="text-xs text-rose-700 dark:text-rose-300 whitespace-pre-wrap font-mono leading-relaxed bg-white dark:bg-[#0e0e15] p-3 rounded border border-rose-200 dark:border-rose-950">
+              {result.errorMessage || result.stdout}
+            </pre>
           </div>
         ) : activeTab === 'tests' ? (
-          /* Test Cases Result View */
+          /* HackerRank Exact Test Cases View */
           <div className="space-y-4">
-            {/* Error Banner nếu có Runtime/Syntax Error */}
-            {result.errorMessage && (
-              <div className="p-3.5 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-300 flex items-start space-x-3">
-                <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-                <div className="flex-1 space-y-1">
-                  <div className="font-semibold text-rose-200">
-                    Phát hiện lỗi khi thực thi mã nguồn:
-                  </div>
-                  <pre className="text-xs text-rose-300 whitespace-pre-wrap font-mono">
-                    {result.errorMessage}
-                  </pre>
-                </div>
-              </div>
-            )}
-
-            {/* Test Case Selection Tabs */}
+            {/* HackerRank-style horizontal sub-tabs: Test case 0, Test case 1... */}
             {result.results.length > 0 ? (
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 border-b border-slate-800 pb-2">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto">
                   {result.results.map((tc, idx) => (
                     <button
                       key={tc.testCaseId}
+                      type="button"
                       onClick={() => setSelectedTestCaseIdx(idx)}
-                      className={`px-3 py-1 rounded text-xs font-medium flex items-center space-x-1.5 transition ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
                         selectedTestCaseIdx === idx
-                          ? 'bg-slate-800 text-white border border-slate-700'
-                          : 'bg-slate-900/60 text-slate-400 hover:text-slate-200'
+                          ? 'bg-white dark:bg-[#21262d] text-neutral-950 dark:text-white border border-slate-300 dark:border-slate-600 shadow-sm'
+                          : 'bg-slate-100 dark:bg-[#161b22] text-slate-600 dark:text-slate-400 hover:text-neutral-900 dark:hover:text-slate-200 border border-slate-200 dark:border-transparent'
                       }`}
                     >
                       {tc.passed ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
                       ) : (
-                        <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                        <XCircle className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
                       )}
-                      <span>Case {idx + 1}</span>
+                      <span>Test case {idx}</span>
                     </button>
                   ))}
                 </div>
 
-                {/* Selected Test Case Details */}
+                {/* Selected Test Case Card (HackerRank 1:1 format) */}
                 {result.results[selectedTestCaseIdx] && (
-                  <div className="space-y-3 bg-[#0e0e15] p-4 rounded-lg border border-slate-800">
+                  <div className="space-y-3 bg-slate-50 dark:bg-[#161b22] p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+                    {/* Status Badge */}
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800/80">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-2.5 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
+                            result.results[selectedTestCaseIdx].passed
+                              ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30'
+                              : 'bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30'
+                          }`}
+                        >
+                          {result.results[selectedTestCaseIdx].passed ? 'Success' : 'Wrong Answer'}
+                        </span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                          Execution time: {result.results[selectedTestCaseIdx].executionTimeMs} ms
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopy(
+                            result.results[selectedTestCaseIdx].input,
+                            selectedTestCaseIdx
+                          )
+                        }
+                        className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+                      >
+                        {copiedIndex === selectedTestCaseIdx ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Copy Input</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Input */}
                     <div>
-                      <span className="text-slate-400 block text-[11px] mb-1">
-                        Dữ liệu đầu vào (Input):
+                      <span className="text-neutral-800 dark:text-slate-400 block text-[11px] font-semibold mb-1">
+                        Input
                       </span>
-                      <pre className="p-2.5 rounded bg-slate-900 text-slate-200 font-mono">
+                      <pre className="p-3 rounded-lg bg-white dark:bg-[#0d1117] text-neutral-900 dark:text-slate-200 font-mono border border-slate-200 dark:border-slate-800/80 overflow-x-auto shadow-inner">
                         {result.results[selectedTestCaseIdx].input}
                       </pre>
                     </div>
 
+                    {/* Your Output vs Expected Output */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
-                        <span className="text-slate-400 block text-[11px] mb-1">
-                          Kết quả mong đợi (Expected Output):
-                        </span>
-                        <pre className="p-2.5 rounded bg-slate-900 text-emerald-400 font-mono">
-                          {result.results[selectedTestCaseIdx].expectedOutput}
-                        </pre>
-                      </div>
-
-                      <div>
-                        <span className="text-slate-400 block text-[11px] mb-1">
-                          Kết quả chương trình trả về (Actual Output):
+                        <span className="text-neutral-800 dark:text-slate-400 block text-[11px] font-semibold mb-1">
+                          Your Output
                         </span>
                         <pre
-                          className={`p-2.5 rounded bg-slate-900 font-mono ${
+                          className={`p-3 rounded-lg bg-white dark:bg-[#0d1117] font-mono border overflow-x-auto shadow-inner ${
                             result.results[selectedTestCaseIdx].passed
-                              ? 'text-emerald-400'
-                              : 'text-rose-400'
+                              ? 'text-emerald-700 dark:text-emerald-400 border-slate-200 dark:border-slate-800/80'
+                              : 'text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-900/60'
                           }`}
                         >
                           {result.results[selectedTestCaseIdx].actualOutput}
                         </pre>
                       </div>
-                    </div>
 
-                    <div className="text-[11px] text-slate-400 flex items-center justify-between pt-1">
-                      <span>
-                        Thời gian chạy case: {result.results[selectedTestCaseIdx].executionTimeMs}ms
-                      </span>
-                      <span
-                        className={`font-semibold ${
-                          result.results[selectedTestCaseIdx].passed
-                            ? 'text-emerald-400'
-                            : 'text-rose-400'
-                        }`}
-                      >
-                        {result.results[selectedTestCaseIdx].passed ? 'PASSED ✔' : 'FAILED ✖'}
-                      </span>
+                      <div>
+                        <span className="text-neutral-800 dark:text-slate-400 block text-[11px] font-semibold mb-1">
+                          Expected Output
+                        </span>
+                        <pre className="p-3 rounded-lg bg-white dark:bg-[#0d1117] text-emerald-700 dark:text-emerald-400 font-mono border border-slate-200 dark:border-slate-800/80 overflow-x-auto shadow-inner">
+                          {result.results[selectedTestCaseIdx].expectedOutput}
+                        </pre>
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
-            ) : !result.errorMessage ? (
-              <div className="text-slate-400 text-center py-6">
+            ) : (
+              <div className="text-slate-500 dark:text-slate-400 text-center py-6">
                 Chưa có dữ liệu test cases trả về.
               </div>
-            ) : null}
+            )}
           </div>
         ) : (
-          /* Raw Console View */
+          /* Raw Console Output */
           <div className="h-full">
-            <pre className="p-3 bg-[#0e0e15] rounded-lg border border-slate-800 text-slate-300 font-mono whitespace-pre-wrap leading-5 min-h-[140px]">
+            <pre className="p-3.5 bg-slate-50 dark:bg-[#161b22] rounded-lg border border-slate-200 dark:border-slate-800 text-neutral-900 dark:text-slate-300 font-mono whitespace-pre-wrap leading-relaxed min-h-[140px]">
               {result.stdout || 'Không có dữ liệu xuất ra màn hình (stdout rỗng).'}
             </pre>
           </div>

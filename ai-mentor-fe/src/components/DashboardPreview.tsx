@@ -5,75 +5,49 @@ import { Language, ThemeMode } from './dashboard/dashboardI18n';
 import { DashboardNavbar } from './dashboard/DashboardNavbar';
 import { DashboardHero } from './dashboard/DashboardHero';
 import { SkillPreparationKits } from './dashboard/SkillPreparationKits';
-import { ChallengeCatalog } from './dashboard/ChallengeCatalog';
+import { PracticeSkillsGrid } from './dashboard/PracticeSkillsGrid';
+import { CourseDetailView } from './dashboard/CourseDetailView';
 import { LeaderboardModal } from './dashboard/LeaderboardModal';
+import { FloatingAIMentorChat } from './common/FloatingAIMentorChat';
 
 interface DashboardPreviewProps {
   user: User;
   onLogout: () => void;
   onOpenIDE?: (exerciseId: number) => void;
+  onOpenSettings?: (tab?: 'profile' | 'password' | 'appearance') => void;
+  onOpenSubmissions?: () => void;
+  initialTrackId?: string | null;
+  currentLang: Language;
+  onLanguageChange: (lang: Language) => void;
+  currentTheme: ThemeMode;
+  onThemeToggle: () => void;
 }
 
 export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
   user,
   onLogout,
   onOpenIDE,
+  onOpenSettings,
+  onOpenSubmissions,
+  initialTrackId = null,
+  currentLang,
+  onLanguageChange,
+  currentTheme,
+  onThemeToggle,
 }) => {
-  // 1. Language state (Synced with localStorage)
-  const [currentLang, setCurrentLang] = useState<Language>(() => {
-    try {
-      const saved = localStorage.getItem('ai_mentor_lang');
-      if (saved === 'eng' || saved === 'vie') return saved;
-    } catch {
-      // Fallback
-    }
-    return 'vie';
-  });
-
-  // 2. Theme state (Synced with localStorage & document.documentElement class)
-  const [currentTheme, setCurrentTheme] = useState<ThemeMode>(() => {
-    try {
-      const saved = localStorage.getItem('ai_mentor_theme');
-      if (saved === 'light' || saved === 'dark') return saved;
-    } catch {
-      // Fallback
-    }
-    return 'dark';
-  });
-
-  // Sync theme class on HTML element
-  useEffect(() => {
-    const root = document.documentElement;
-    if (currentTheme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    try {
-      localStorage.setItem('ai_mentor_theme', currentTheme);
-    } catch {
-      // Ignore
-    }
-  }, [currentTheme]);
-
-  const handleLanguageChange = (lang: Language) => {
-    setCurrentLang(lang);
-    try {
-      localStorage.setItem('ai_mentor_lang', lang);
-    } catch {
-      // Ignore
-    }
-  };
-
-  const handleThemeToggle = () => {
-    setCurrentTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
-  // 3. Navigation & Modal states
-  const [activeNavTab, setActiveNavTab] = useState<'practice' | 'kits' | 'leaderboard'>('practice');
+  // Navigation & Track states
+  const [activeNavTab, setActiveNavTab] = useState<
+    'practice' | 'kits' | 'leaderboard' | 'ai-mentor'
+  >('practice');
+  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(initialTrackId);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
-  // 4. Exercise Data
+  // Sync if initialTrackId changes
+  useEffect(() => {
+    setSelectedTrackId(initialTrackId);
+  }, [initialTrackId]);
+
+  // Exercise Data
   const exercises = getExercises();
   const solvedCount = exercises.filter((ex) => ex.status === 'solved').length;
   const totalCount = exercises.length;
@@ -84,18 +58,37 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
     }
   };
 
-  const handleNavTabChange = (tab: 'practice' | 'kits' | 'leaderboard') => {
+  const handleNavTabChange = (
+    tab: 'practice' | 'kits' | 'leaderboard' | 'ai-mentor'
+  ) => {
     setActiveNavTab(tab);
     if (tab === 'leaderboard') {
       setIsLeaderboardOpen(true);
-    } else {
-      // Smooth scroll to target section
-      const targetId = tab === 'kits' ? 'section-kits' : 'section-catalog';
-      const el = document.getElementById(targetId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
+    } else if (tab === 'ai-mentor') {
+      // Handled by floating chat
+      setActiveNavTab('practice');
+    } else if (tab === 'practice') {
+      setSelectedTrackId(null);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (tab === 'kits') {
+      setSelectedTrackId(null);
+      setTimeout(() => {
+        const el = document.getElementById('section-kits');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 50);
     }
+  };
+
+  const handleSelectTrack = (trackId: string) => {
+    setSelectedTrackId(trackId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBackToSkills = () => {
+    setSelectedTrackId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -104,47 +97,90 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
       <DashboardNavbar
         user={user}
         currentLang={currentLang}
-        onLanguageChange={handleLanguageChange}
+        onLanguageChange={onLanguageChange}
         currentTheme={currentTheme}
-        onThemeToggle={handleThemeToggle}
+        onThemeToggle={onThemeToggle}
         onLogout={onLogout}
         onOpenIDE={() => handleLaunchIDE(1)}
+        onOpenSubmissions={onOpenSubmissions}
         activeNavTab={activeNavTab}
         onNavTabChange={handleNavTabChange}
+        onOpenSettings={(tab) => {
+          if (onOpenSettings) {
+            onOpenSettings(tab);
+          }
+        }}
+        onOpenAIMentor={() => {
+          // Triggers floating chat bubble
+        }}
       />
 
       {/* 2. MAIN DASHBOARD CONTENT */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
-        {/* WELCOME HERO & QUICK STATS */}
-        <DashboardHero
-          user={user}
-          currentLang={currentLang}
-          onOpenIDE={() => handleLaunchIDE(1)}
-          solvedCount={solvedCount}
-          totalCount={totalCount}
-          streakDays={5}
-          aiInteractions={42}
-        />
-
-        {/* SECTION A: SKILL PREPARATION KITS */}
-        <div id="section-kits" className="scroll-mt-20">
-          <SkillPreparationKits
-            currentLang={currentLang}
-            onSelectKit={(kitId) => {
-              const kitTargetId = kitId === 'dsa' ? 2 : kitId === 'oop' ? 7 : 6;
-              handleLaunchIDE(kitTargetId);
-            }}
-          />
-        </div>
-
-        {/* SECTION B: PRACTICE CHALLENGES CATALOG */}
-        <div id="section-catalog" className="scroll-mt-20">
-          <ChallengeCatalog
+        {selectedTrackId ? (
+          /* COURSE DETAIL VIEW (PROBLEM SETS) */
+          <CourseDetailView
+            trackId={selectedTrackId}
             exercises={exercises}
             currentLang={currentLang}
+            onBack={handleBackToSkills}
             onOpenIDE={handleLaunchIDE}
           />
-        </div>
+        ) : (
+          /* MAIN PRACTICE SKILLS DASHBOARD */
+          <>
+            {/* WELCOME HERO & QUICK STATS */}
+            <DashboardHero
+              user={user}
+              currentLang={currentLang}
+              onOpenIDE={() => handleLaunchIDE(1)}
+              solvedCount={solvedCount}
+              totalCount={totalCount}
+              streakDays={5}
+              aiInteractions={42}
+            />
+
+            {/* SECTION A: SKILL PREPARATION KITS (ALL 6 TRACKS SUPPORTED) */}
+            <div id="section-kits" className="scroll-mt-20">
+              <SkillPreparationKits
+                currentLang={currentLang}
+                onSelectKit={(kitId) => {
+                  switch (kitId) {
+                    case 'dsa':
+                      handleSelectTrack('data-structures');
+                      break;
+                    case 'oop':
+                      handleSelectTrack('python');
+                      break;
+                    case 'cpp-core':
+                      handleSelectTrack('cpp');
+                      break;
+                    case 'fullstack':
+                      handleSelectTrack('react');
+                      break;
+                    case 'sql-db':
+                      handleSelectTrack('sql');
+                      break;
+                    case 'exam':
+                      handleSelectTrack('algorithms');
+                      break;
+                    default:
+                      handleSelectTrack('algorithms');
+                  }
+                }}
+              />
+            </div>
+
+            {/* SECTION B: PRACTICE SKILLS GRID (3-COLUMN HACKERRANK LAYOUT) */}
+            <div id="section-skills" className="scroll-mt-20">
+              <PracticeSkillsGrid
+                currentLang={currentLang}
+                exercises={exercises}
+                onSelectTrack={handleSelectTrack}
+              />
+            </div>
+          </>
+        )}
       </main>
 
       {/* 3. LEADERBOARD MODAL */}
@@ -157,7 +193,10 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
         currentLang={currentLang}
       />
 
-      {/* 4. CLEAN FOOTER */}
+      {/* 4. FLOATING AI SOCRATIC MENTOR WIDGET */}
+      <FloatingAIMentorChat theme={currentTheme} />
+
+      {/* 5. CLEAN FOOTER */}
       <footer className="mt-auto border-t py-6 border-slate-200 dark:border-gray-800 bg-white dark:bg-[#0b0f17] text-xs text-slate-500 dark:text-slate-400 select-none">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
@@ -177,7 +216,7 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
               <span>Hệ thống trực tuyến 100%</span>
             </span>
             <span>•</span>
-            <span>Phiên bản 2.4.0</span>
+            <span>Phiên bản 2.5.0</span>
           </div>
         </div>
       </footer>

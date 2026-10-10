@@ -7,12 +7,22 @@ export interface StoredAccount {
   password: string;
 }
 
+export function getCleanDisplayName(name: string): string {
+  return (name || '').replace(/\s*\([^)]*\)/g, '').trim();
+}
+
+export function getFirstName(name: string): string {
+  const clean = getCleanDisplayName(name);
+  const parts = clean.split(' ').filter(Boolean);
+  return parts.length > 0 ? parts[parts.length - 1] : clean;
+}
+
 export const DEFAULT_ACCOUNTS: StoredAccount[] = [
   {
     password: '123456',
     user: {
       id: 'sv-725105001',
-      name: 'Nguyễn Văn Minh (Sinh viên)',
+      name: 'Nguyễn Văn Minh',
       username: 'student',
       email: 'student@hnue.edu.vn',
       role: 'student',
@@ -24,7 +34,7 @@ export const DEFAULT_ACCOUNTS: StoredAccount[] = [
     password: '123456',
     user: {
       id: 'gv-hnue-009',
-      name: 'TS. Phạm Văn Khải (Giảng viên)',
+      name: 'TS. Phạm Văn Khải',
       username: 'teacher',
       email: 'teacher@hnue.edu.vn',
       role: 'teacher',
@@ -46,7 +56,15 @@ export function getStoredAccounts(): StoredAccount[] {
       localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(DEFAULT_ACCOUNTS));
       return [...DEFAULT_ACCOUNTS];
     }
-    return parsed;
+    // Sanitize user names from any legacy suffixes
+    const sanitized = parsed.map((acc: StoredAccount) => ({
+      ...acc,
+      user: {
+        ...acc.user,
+        name: getCleanDisplayName(acc.user.name),
+      },
+    }));
+    return sanitized;
   } catch {
     return [...DEFAULT_ACCOUNTS];
   }
@@ -189,6 +207,29 @@ export async function mockSSOLogin(): Promise<{ token: string; user: User }> {
   };
 }
 
+// Change password service
+export async function changeUserPassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; message: string }> {
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  const accounts = getStoredAccounts();
+  const accIndex = accounts.findIndex((a) => a.user.id === userId);
+  if (accIndex === -1) {
+    throw new Error('Không tìm thấy thông tin người dùng trên hệ thống!');
+  }
+  if (accounts[accIndex].password !== currentPassword) {
+    throw new Error('Mật khẩu hiện tại không chính xác!');
+  }
+  if (newPassword.length < 6) {
+    throw new Error('Mật khẩu mới phải có tối thiểu 6 ký tự!');
+  }
+  accounts[accIndex].password = newPassword;
+  saveStoredAccounts(accounts);
+  return { success: true, message: 'Đổi mật khẩu thành công!' };
+}
+
 // Backward compatibility helper
 export const MOCK_ACCOUNTS: Record<string, { password: string; user: User }> = {
   student: DEFAULT_ACCOUNTS[0],
@@ -196,3 +237,4 @@ export const MOCK_ACCOUNTS: Record<string, { password: string; user: User }> = {
   'student@hnue.edu.vn': DEFAULT_ACCOUNTS[0],
   'teacher@hnue.edu.vn': DEFAULT_ACCOUNTS[1],
 };
+

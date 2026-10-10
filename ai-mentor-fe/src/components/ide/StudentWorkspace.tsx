@@ -1,47 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { User } from '../../types/auth';
 import { Exercise, ExecutionResult, SubmissionRecord } from '../../types/exercise';
-import { AIMessage, QuickPrompt, SocraticIntent } from '../../types/ai';
 import {
   MOCK_EXERCISES,
   getExerciseById,
   runStudentCode,
   submitStudentCode,
-  getSubmissionsForExercise
+  getSubmissionsForExercise,
 } from '../../services/mockExerciseService';
-import {
-  INITIAL_AI_MESSAGES,
-  generateSocraticResponse
-} from '../../services/mockAIService';
 import { CodeEditor } from './CodeEditor';
 import { ProblemDescription } from './ProblemDescription';
 import { TerminalPanel } from './TerminalPanel';
-import { AIMentorPanel } from './AIMentorPanel';
+import { FloatingAIMentorChat } from '../common/FloatingAIMentorChat';
 import {
   Play,
   ArrowLeft,
-  ChevronDown,
-  Bot,
-  PanelLeftClose,
-  PanelLeftOpen,
-  PanelRightClose,
-  PanelRightOpen,
   Check,
-  CheckCircle2
+  CheckCircle2,
+  Maximize2,
+  Minimize2,
+  GripVertical,
+  GripHorizontal,
+  Sun,
+  Moon,
 } from 'lucide-react';
+import { ThemeMode } from '../dashboard/dashboardI18n';
 
 interface StudentWorkspaceProps {
   user: User;
-  onBackToDashboard: () => void;
+  onBackToDashboard: (trackId?: string) => void;
   initialExerciseId?: number;
+  currentTheme?: ThemeMode;
+  onThemeToggle?: () => void;
 }
 
 export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
-  user,
+  user: _user,
   onBackToDashboard,
-  initialExerciseId = 1
+  initialExerciseId = 1,
+  currentTheme = 'dark',
+  onThemeToggle,
 }) => {
-  // 1. Quản lý trạng thái bài tập hiện tại
+  // 1. Current Exercise State
   const [currentExercise, setCurrentExercise] = useState<Exercise>(
     getExerciseById(initialExerciseId) || MOCK_EXERCISES[0]
   );
@@ -50,22 +50,26 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
     getSubmissionsForExercise(currentExercise.id)
   );
 
-  // 2. Trạng thái thực thi code & terminal
+  // 2. Execution & Submission States
   const [isRunning, setIsRunning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
   const [submitSuccessNotice, setSubmitSuccessNotice] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // 3. Trạng thái AI Mentor Socratic
-  const [aiMessages, setAiMessages] = useState<AIMessage[]>(INITIAL_AI_MESSAGES);
-  const [isAiGenerating, setIsAiGenerating] = useState(false);
+  // 3. 2-Pane Resizable Layout States (Standard HackerRank)
+  // Left: Problem Description (42%) | Right: Code Editor (top) + Terminal (bottom)
+  const [leftWidth, setLeftWidth] = useState(42); // 42%
+  const [editorHeight, setEditorHeight] = useState(60); // 60% top, 40% bottom drawer
 
-  // 4. Quản lý hiển thị / ẩn panel (Thu gọn để tập trung viết code)
-  const [showLeftPanel, setShowLeftPanel] = useState(true);
-  const [showRightPanel, setShowRightPanel] = useState(true);
+  // Dragging states
+  const [isDraggingVertical, setIsDraggingVertical] = useState(false);
+  const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
 
-  // Chuyển bài tập khác
-  const handleSelectExercise = (exerciseId: number) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Switch Exercise helper
+  const _handleSelectExercise = (exerciseId: number) => {
     const selected = getExerciseById(exerciseId);
     if (!selected) return;
 
@@ -75,15 +79,20 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
     setSubmissions(getSubmissionsForExercise(selected.id));
     setSubmitSuccessNotice(null);
   };
+  void _handleSelectExercise;
 
-  // Khôi phục boilerplate
+  // Reset boilerplate
   const handleResetBoilerplate = () => {
-    if (window.confirm('Bạn có chắc muốn khôi phục lại mã nguồn ban đầu? Các thay đổi chưa lưu sẽ bị mất.')) {
+    if (
+      window.confirm(
+        'Bạn có chắc muốn khôi phục lại mã nguồn ban đầu? Các thay đổi chưa lưu sẽ bị mất.'
+      )
+    ) {
       setCode(currentExercise.boilerplateCode);
     }
   };
 
-  // Chạy thử code (Run Code Sandbox)
+  // Run Code (Sample Test Cases)
   const handleRunCode = async () => {
     if (isRunning || isSubmitting) return;
     setIsRunning(true);
@@ -95,240 +104,268 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
     } catch {
       setExecutionResult({
         status: 'error',
-        errorMessage: 'Lỗi không xác định khi kết nối tới Sandbox.',
-        executionTimeMs: 0,
-        results: [],
+        totalTests: currentExercise.sampleTestCases.length,
         passedTests: 0,
-        totalTests: currentExercise.sampleTestCases.length
+        executionTimeMs: 0,
+        errorMessage: 'Đã xảy ra sự cố trong quá trình khởi tạo môi trường biên dịch.',
+        results: [],
       });
     } finally {
       setIsRunning(false);
     }
   };
 
-  // Nộp bài chính thức (Submit Code)
+  // Submit Code (Official Evaluation)
   const handleSubmitCode = async () => {
-    if (isSubmitting || isRunning) return;
+    if (isRunning || isSubmitting) return;
     setIsSubmitting(true);
     setSubmitSuccessNotice(null);
 
     try {
-      const record = await submitStudentCode(currentExercise, code);
-      setSubmissions(prev => [record, ...prev]);
+      const subRecord = await submitStudentCode(currentExercise, code);
+      setSubmissions(getSubmissionsForExercise(currentExercise.id));
 
-      if (record.status === 'passed') {
-        setSubmitSuccessNotice(`🎉 Chúc mừng! Bạn đã giải thành công toàn bộ ${record.totalTests} test cases!`);
+      const isAllPassed = subRecord.status === 'passed';
+      setExecutionResult({
+        status: subRecord.status,
+        executionTimeMs: subRecord.executionTimeMs,
+        passedTests: subRecord.passedTests,
+        totalTests: subRecord.totalTests,
+        results: currentExercise.sampleTestCases.map((tc, idx) => ({
+          testCaseId: tc.id,
+          input: tc.input,
+          expectedOutput: tc.expectedOutput,
+          actualOutput: tc.expectedOutput,
+          passed: isAllPassed || idx < subRecord.passedTests,
+          executionTimeMs: 14 + idx * 5,
+        })),
+        stdout: `[SUBMISSION SCORING] ${subRecord.passedTests}/${subRecord.totalTests} test cases passed. Status: ${subRecord.status.toUpperCase()}`,
+      });
+
+      if (isAllPassed) {
+        setSubmitSuccessNotice(
+          `🎉 Chúc mừng! Bạn đã giải thành công bài tập "${currentExercise.title}" (+${currentExercise.score || 100} điểm).`
+        );
       } else {
-        setSubmitSuccessNotice(`⚠️ Bài nộp đạt ${record.passedTests}/${record.totalTests} test cases. Hãy tối ưu lại code nhé!`);
+        setSubmitSuccessNotice(
+          `Kết quả nộp bài: Đạt ${subRecord.passedTests}/${subRecord.totalTests} test cases. Hãy kiểm tra lại các trường hợp biên!`
+        );
       }
     } catch {
-      alert('Gửi bài nộp thất bại. Vui lòng thử lại!');
+      setExecutionResult({
+        status: 'error',
+        totalTests: currentExercise.sampleTestCases.length + currentExercise.hiddenTestCaseCount,
+        passedTests: 0,
+        executionTimeMs: 0,
+        errorMessage: 'Không thể kết nối đến máy chủ chấm bài HackerRank Sandbox.',
+        results: [],
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Gửi tin nhắn tới AI Mentor
-  const handleSendMessage = async (
-    content: string,
-    intent: SocraticIntent = 'free_chat'
-  ) => {
-    if (isAiGenerating) return;
+  // Fullscreen toggle
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+        setIsFullscreen(false);
+      }
+    }
+  };
 
-    // 1. Thêm tin nhắn của User
-    const userMsg: AIMessage = {
-      id: `usr-${Date.now()}`,
-      role: 'user',
-      content,
-      timestamp: 'Vừa xong',
-      intent
-    };
-    setAiMessages(prev => [...prev, userMsg]);
-    setIsAiGenerating(true);
+  // Resizing mouse listeners
+  const handleMouseDownVerticalDivider = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingVertical(true);
+  };
 
-    // 2. Chuẩn bị tin nhắn phản hồi của AI (streaming)
-    const aiMsgId = `ai-${Date.now()}`;
-    const placeholderAiMsg: AIMessage = {
-      id: aiMsgId,
-      role: 'assistant',
-      content: '',
-      timestamp: 'Đang phản hồi...',
-      isStreaming: true
-    };
-    setAiMessages(prev => [...prev, placeholderAiMsg]);
+  const handleMouseDownHorizontalDivider = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingHorizontal(true);
+  };
 
-    try {
-      const terminalErr =
-        executionResult?.status === 'error' || executionResult?.status === 'failed'
-          ? executionResult.errorMessage || executionResult.stdout
-          : undefined;
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
 
-      await generateSocraticResponse(
-        intent,
-        content,
-        code,
-        terminalErr,
-        (currentText) => {
-          setAiMessages(prev =>
-            prev.map(m => (m.id === aiMsgId ? { ...m, content: currentText } : m))
-          );
+      if (isDraggingVertical) {
+        const newLeftWidth = ((e.clientX - rect.left) / rect.width) * 100;
+        if (newLeftWidth >= 22 && newLeftWidth <= 68) {
+          setLeftWidth(newLeftWidth);
         }
-      );
-    } catch {
-      setAiMessages(prev =>
-        prev.map(m =>
-          m.id === aiMsgId
-            ? { ...m, content: 'Đã có lỗi xảy ra trong quá trình phản hồi của AI Mentor.' }
-            : m
-        )
-      );
-    } finally {
-      setIsAiGenerating(false);
-      setAiMessages(prev =>
-        prev.map(m => (m.id === aiMsgId ? { ...m, isStreaming: false, timestamp: 'Vừa xong' } : m))
-      );
-    }
-  };
+      }
 
-  // Xử lý nút Prompt gợi ý nhanh
-  const handleQuickPrompt = (prompt: QuickPrompt) => {
-    let customText = prompt.title;
-    if (prompt.id === 'explain_error') {
-      customText = `Em đang gặp lỗi: "${executionResult?.errorMessage || 'Chưa vượt qua test case'}". Thầy/AI giải thích nguyên nhân và gợi mở hướng xử lý cho em với ạ!`;
-    } else if (prompt.id === 'hint_next_step') {
-      customText = 'Em đang viết đến đoạn này thì bị bí ý tưởng, AI có thể gợi mở bước tiếp theo cho em không?';
-    } else if (prompt.id === 'analyze_complexity') {
-      customText = 'Nhờ AI phân tích độ phức tạp thời gian và không gian bộ nhớ của thuật toán này giúp em.';
-    } else if (prompt.id === 'suggest_test_cases') {
-      customText = 'Có những trường hợp kiểm thử biên (edge cases) nào dễ gây lỗi cho bài này không ạ?';
-    }
+      if (isDraggingHorizontal) {
+        const newHeight = ((e.clientY - rect.top) / rect.height) * 100;
+        if (newHeight >= 25 && newHeight <= 80) {
+          setEditorHeight(newHeight);
+        }
+      }
+    },
+    [isDraggingVertical, isDraggingHorizontal]
+  );
 
-    if (!showRightPanel) {
-      setShowRightPanel(true);
+  const handleMouseUp = useCallback(() => {
+    setIsDraggingVertical(false);
+    setIsDraggingHorizontal(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDraggingVertical || isDraggingHorizontal) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = isDraggingHorizontal ? 'row-resize' : 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     }
 
-    handleSendMessage(customText, prompt.id);
-  };
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isDraggingVertical, isDraggingHorizontal, handleMouseMove, handleMouseUp]);
 
-  // Hỏi AI trực tiếp từ nút bấm ở Terminal
-  const handleAskAIAboutError = (errorText: string) => {
-    if (!showRightPanel) {
-      setShowRightPanel(true);
-    }
-    handleSendMessage(
-      `Mã nguồn của em chạy ra lỗi: ${errorText}. AI hãy giải thích bản chất lỗi và cho em câu hỏi gợi mở để tự sửa nhé!`,
-      'explain_error'
-    );
-  };
+  const primaryTrack = currentExercise.trackIds?.[0] || 'python';
 
   return (
-    <div className="h-screen w-screen bg-[#0e0e17] text-slate-100 flex flex-col overflow-hidden">
-      {/* ================= TOP NAVBAR ================= */}
-      <header className="h-14 bg-[#11111b] border-b border-slate-800 px-4 flex items-center justify-between z-10 shrink-0 select-none">
-        {/* Left: Logo & Exercise Picker */}
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={onBackToDashboard}
-            className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs transition border border-slate-700/60"
-            title="Quay lại danh sách bài tập"
+    <div
+      className={`h-screen w-screen flex flex-col overflow-hidden select-none antialiased ${
+        currentTheme === 'dark' ? 'dark bg-[#0e141e] text-slate-100' : 'bg-slate-50 text-neutral-900'
+      }`}
+    >
+      {/* ================= 1. HACKERRANK 1:1 SITE HEADER (TINH GỌN) ================= */}
+      <header className="h-14 bg-white dark:bg-[#161b22] border-b border-slate-200 dark:border-slate-800 px-3 sm:px-5 flex items-center justify-between z-20 shrink-0 text-slate-900 dark:text-white transition-colors">
+        {/* LEFT: Logo + Breadcrumbs (AI CODE MENTOR | Prepare > Track > Problem) */}
+        <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
+          {/* Logo */}
+          <div
+            onClick={() => onBackToDashboard()}
+            className="flex items-center gap-2 cursor-pointer flex-shrink-0"
+            title="Quay lại danh mục luyện tập"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Dashboard</span>
-          </button>
-
-          <div className="h-5 w-px bg-slate-800 hidden md:block"></div>
-
-          {/* Exercise Dropdown Selector */}
-          <div className="relative group">
-            <select
-              value={currentExercise.id}
-              onChange={(e) => handleSelectExercise(Number(e.target.value))}
-              className="appearance-none bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-1.5 pr-8 cursor-pointer focus:outline-none focus:border-blue-500 font-medium"
-            >
-              {MOCK_EXERCISES.map((ex) => (
-                <option key={ex.id} value={ex.id} className="bg-slate-900 text-white">
-                  {ex.title} ({ex.difficulty.toUpperCase()})
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+            <div className="w-8 h-8 rounded bg-[#1BA94C] flex items-center justify-center font-bold text-white shadow-sm flex-shrink-0">
+              <span className="font-mono text-lg font-extrabold tracking-tighter">H</span>
+            </div>
+            <span className="hidden lg:inline text-xs font-bold tracking-tight text-slate-900 dark:text-white uppercase font-sans">
+              AI Code Mentor
+            </span>
           </div>
+
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block flex-shrink-0" />
+
+          {/* Clean Breadcrumb Navigation: AI CODE MENTOR | Prepare > [Topic] > [Problem] */}
+          <nav
+            aria-label="Breadcrumb"
+            className="flex items-center space-x-1.5 text-xs text-slate-600 dark:text-slate-400 truncate"
+          >
+            <span
+              onClick={() => onBackToDashboard()}
+              className="hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer font-semibold transition-colors"
+            >
+              Prepare
+            </span>
+            <span>&gt;</span>
+            <span
+              onClick={() => onBackToDashboard(primaryTrack)}
+              className="hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer font-medium transition-colors truncate max-w-[120px] sm:max-w-[160px]"
+              title={`Xem danh sách bài tập của khóa: ${currentExercise.category}`}
+            >
+              {currentExercise.category}
+            </span>
+            <span>&gt;</span>
+            <span className="text-slate-950 dark:text-slate-100 font-bold truncate max-w-[160px] sm:max-w-[280px] lg:max-w-[360px]">
+              {currentExercise.title}
+            </span>
+          </nav>
         </div>
 
-        {/* Center: Run & Submit Actions */}
-        <div className="flex items-center space-x-2.5">
+        {/* RIGHT: Run Code, Submit Code, Theme Toggle, Fullscreen & Back */}
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Run Code Button */}
           <button
+            type="button"
             onClick={handleRunCode}
             disabled={isRunning || isSubmitting}
-            title="Chạy thử code với Sample Test Cases (Ctrl + Enter)"
-            className="flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600/80 text-xs font-semibold transition active:scale-95 disabled:opacity-50"
+            title="Chạy thử code với Sample Test Cases"
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#21262d] dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-600/80 text-xs font-semibold transition active:scale-95 disabled:opacity-50"
           >
-            <Play className={`w-3.5 h-3.5 text-emerald-400 fill-emerald-400 ${isRunning ? 'animate-spin' : ''}`} />
-            <span>{isRunning ? 'Đang chạy...' : 'Chạy thử'}</span>
+            <Play
+              className={`w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 fill-emerald-600 dark:fill-emerald-400 ${
+                isRunning ? 'animate-spin' : ''
+              }`}
+            />
+            <span className="hidden sm:inline">{isRunning ? 'Running...' : 'Run Code'}</span>
           </button>
 
+          {/* Submit Code Button (HackerRank Green) */}
           <button
+            type="button"
             onClick={handleSubmitCode}
             disabled={isRunning || isSubmitting}
             title="Nộp bài chính thức để chấm điểm toàn bộ test cases"
-            className="flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition active:scale-95 shadow-sm shadow-emerald-900/40 disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-[#1BA94C] hover:bg-[#15893d] text-white text-xs font-semibold transition active:scale-95 shadow-sm shadow-emerald-900/40 disabled:opacity-50"
           >
             <Check className="w-4 h-4" />
-            <span>{isSubmitting ? 'Đang chấm...' : 'Nộp bài'}</span>
+            <span>{isSubmitting ? 'Scoring...' : 'Submit Code'}</span>
           </button>
-        </div>
 
-        {/* Right: Layout Panel Toggles & User info */}
-        <div className="flex items-center space-x-2">
-          {/* Toggle Left (Problem) */}
+          <div className="h-5 w-px bg-slate-200 dark:bg-slate-800" />
+
+          {/* Theme Toggle Button */}
+          {onThemeToggle && (
+            <button
+              type="button"
+              onClick={onThemeToggle}
+              title={currentTheme === 'dark' ? 'Chuyển sang Theme Sáng' : 'Chuyển sang Theme Tối'}
+              className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              {currentTheme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+            </button>
+          )}
+
+          {/* Fullscreen Toggle */}
           <button
-            onClick={() => setShowLeftPanel(!showLeftPanel)}
-            title={showLeftPanel ? 'Thu gọn đề bài' : 'Mở rộng đề bài'}
-            className={`p-1.5 rounded-lg text-xs border transition ${
-              showLeftPanel
-                ? 'bg-blue-600/20 border-blue-500/40 text-blue-300'
-                : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
-            }`}
+            type="button"
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
+            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            {showLeftPanel ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
 
-          {/* Toggle Right (AI Mentor) */}
+          {/* Back to Dashboard */}
           <button
-            onClick={() => setShowRightPanel(!showRightPanel)}
-            title={showRightPanel ? 'Thu gọn AI Mentor' : 'Mở AI Mentor'}
-            className={`p-1.5 rounded-lg text-xs border transition flex items-center gap-1 ${
-              showRightPanel
-                ? 'bg-indigo-600/20 border-indigo-500/40 text-indigo-300'
-                : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
-            }`}
+            type="button"
+            onClick={() => onBackToDashboard()}
+            title="Quay lại Dashboard"
+            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <Bot className="w-4 h-4" />
-            {showRightPanel ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
+            <ArrowLeft className="w-4 h-4" />
           </button>
-
-          <div className="h-5 w-px bg-slate-800 hidden md:block"></div>
-
-          {/* User Avatar */}
-          <div className="hidden lg:flex items-center space-x-2 text-xs">
-            <div className="w-6 h-6 rounded-full bg-blue-700 flex items-center justify-center font-bold text-[10px]">
-              {user.name.charAt(0)}
-            </div>
-            <span className="text-slate-300 font-medium truncate max-w-[120px]">
-              {user.name}
-            </span>
-          </div>
         </div>
       </header>
 
-      {/* Thông báo kết quả nộp bài (nếu có) */}
+      {/* Submission Success Notice Banner */}
       {submitSuccessNotice && (
-        <div className="px-4 py-2 bg-gradient-to-r from-emerald-950/80 via-slate-900 to-slate-900 border-b border-emerald-800 text-xs text-emerald-300 flex items-center justify-between shrink-0">
+        <div className="px-4 py-2 bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-900 border-b border-emerald-800 text-xs text-emerald-300 flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             <span>{submitSuccessNotice}</span>
           </div>
           <button
+            type="button"
             onClick={() => setSubmitSuccessNotice(null)}
             className="text-slate-400 hover:text-white font-mono text-xs"
           >
@@ -337,59 +374,76 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
         </div>
       )}
 
-      {/* ================= WORKSPACE BODY ================= */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* PANEL 1: PROBLEM DESCRIPTION (LEFT) */}
-        {showLeftPanel && (
-          <div className="w-[32%] min-w-[300px] max-w-[480px] h-full shrink-0 flex flex-col">
-            <ProblemDescription
-              exercise={currentExercise}
-              submissions={submissions}
-            />
-          </div>
-        )}
+      {/* ================= 2. 2-PANE RESIZABLE WORKSPACE (HACKERRANK 1:1) ================= */}
+      <div ref={containerRef} className="flex-1 flex overflow-hidden relative">
+        {/* PANE 1: PROBLEM DESCRIPTION (LEFT) */}
+        <div
+          style={{ width: `${leftWidth}%` }}
+          className="h-full shrink-0 flex flex-col overflow-hidden min-w-[280px] max-w-[70%]"
+        >
+          <ProblemDescription exercise={currentExercise} submissions={submissions} theme={currentTheme} />
+        </div>
 
-        {/* PANEL 2 & 3: CODE EDITOR + TERMINAL (CENTER) */}
-        <div className="flex-1 flex flex-col h-full overflow-hidden min-w-[360px]">
+        {/* VERTICAL DRAGGABLE RESIZER HANDLE (Between Left Problem & Right Editor) */}
+        <div
+          onMouseDown={handleMouseDownVerticalDivider}
+          className={`w-2 hover:w-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-[#1BA94C] dark:hover:bg-[#1BA94C] transition-all cursor-col-resize flex items-center justify-center group z-10 ${
+            isDraggingVertical ? 'bg-[#1BA94C]' : ''
+          }`}
+          title="Kéo thả để điều chỉnh độ rộng Đề bài / Code Editor"
+        >
+          <GripVertical className="w-3 h-3 text-slate-400 dark:text-slate-500 group-hover:text-white" />
+        </div>
+
+        {/* PANE 2: RIGHT SIDE (CODE EDITOR + CONSOLE DRAWER) */}
+        <div className="flex-1 flex flex-col h-full overflow-hidden min-w-[340px]">
           {/* Top: Code Editor */}
-          <div className="flex-1 h-3/5 overflow-hidden">
+          <div style={{ height: `${editorHeight}%` }} className="overflow-hidden">
             <CodeEditor
               code={code}
               onChange={setCode}
               onRun={handleRunCode}
-              language={currentExercise.language}
+              exerciseLanguage={currentExercise.language}
               onResetBoilerplate={handleResetBoilerplate}
+              systemTheme={currentTheme}
+              onThemeToggle={onThemeToggle}
             />
           </div>
 
-          {/* Bottom: Terminal & Test Cases */}
-          <div className="h-2/5 min-h-[180px] overflow-hidden">
+          {/* HORIZONTAL DRAGGABLE RESIZER HANDLE */}
+          <div
+            onMouseDown={handleMouseDownHorizontalDivider}
+            className={`h-2 hover:h-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-[#1BA94C] dark:hover:bg-[#1BA94C] transition-all cursor-row-resize flex items-center justify-center group z-10 ${
+              isDraggingHorizontal ? 'bg-[#1BA94C]' : ''
+            }`}
+            title="Kéo thả để điều chỉnh chiều cao Terminal"
+          >
+            <GripHorizontal className="w-3 h-3 text-slate-400 dark:text-slate-500 group-hover:text-white" />
+          </div>
+
+          {/* Bottom: Terminal & Test Cases Drawer */}
+          <div style={{ height: `${100 - editorHeight}%` }} className="overflow-hidden min-h-[160px]">
             <TerminalPanel
               result={executionResult}
               isRunning={isRunning}
-              onAskAIAboutError={handleAskAIAboutError}
+              theme={currentTheme}
             />
           </div>
         </div>
-
-        {/* PANEL 4: AI CODE MENTOR SIDE-PANEL (RIGHT) */}
-        {showRightPanel && (
-          <div className="w-[32%] min-w-[320px] max-w-[480px] h-full shrink-0 flex flex-col">
-            <AIMentorPanel
-              messages={aiMessages}
-              isGenerating={isAiGenerating}
-              onSendMessage={handleSendMessage}
-              onQuickPrompt={handleQuickPrompt}
-              onClearHistory={() => setAiMessages(INITIAL_AI_MESSAGES)}
-              hasTerminalError={
-                executionResult?.status === 'error' ||
-                (executionResult !== null &&
-                  executionResult.passedTests < executionResult.totalTests)
-              }
-            />
-          </div>
-        )}
       </div>
+
+      {/* ================= 3. FLOATING AI MENTOR CHAT BUBBLE ================= */}
+      <FloatingAIMentorChat
+        exerciseTitle={currentExercise.title}
+        category={currentExercise.category}
+        codeContext={code}
+        errorContext={
+          executionResult?.status === 'error'
+            ? executionResult.errorMessage
+            : undefined
+        }
+        theme={currentTheme}
+      />
     </div>
   );
 };

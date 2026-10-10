@@ -5,7 +5,8 @@ export type SocraticIntent =
   | 'hint_next_step' 
   | 'analyze_complexity' 
   | 'suggest_test_cases' 
-  | 'free_chat';
+  | 'free_chat'
+  | 'greeting';
 
 export interface AIMessage {
   id: string;

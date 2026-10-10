@@ -9,6 +9,7 @@ export interface User {
   avatar?: string;
   studentId?: string;
   classGroup?: string;
+  bio?: string;
 }
 
 export interface AuthState {

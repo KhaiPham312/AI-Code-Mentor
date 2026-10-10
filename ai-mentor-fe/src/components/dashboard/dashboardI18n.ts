@@ -29,6 +29,23 @@ export const dashboardTranslations = {
     openIDEBtn: 'Mở Web IDE',
     resumeLastProblem: 'Tiếp tục bài tập',
 
+    // Practice Skills Grid
+    practiceSkillsTitle: 'Kỹ năng luyện tập',
+    practiceSkillsSub: 'Chọn chủ đề hoặc ngôn ngữ lập trình để bắt đầu giải các bài tập từ cơ bản đến nâng cao.',
+    skillsAvailable: 'kỹ năng sẵn sàng',
+
+    // Course Detail View
+    backToSkills: 'Quay lại danh mục kỹ năng',
+    courseProgress: 'Tiến độ khóa học',
+    solvedLabel: 'Đã giải',
+    allDifficulties: 'Tất cả độ khó',
+    allStatuses: 'Tất cả trạng thái',
+    sortDifficultyAsc: 'Độ khó: Dễ → Khó',
+    startSolving: 'Bắt đầu làm',
+    continueSolving: 'Tiếp tục giải',
+    solveAgain: 'Làm lại',
+    emptyTrackExercises: 'Chưa có bài tập nào thuộc bộ lọc này.',
+
     // Kits
     kitsSectionTitle: 'Lộ trình kỹ năng trọng tâm',
     kitsSectionSub: 'Lộ trình đào tạo bài bản chuẩn HackerRank giúp bạn vững tư duy giải thuật và sẵn sàng cho các kỳ thi học thuật.',
@@ -116,6 +133,23 @@ export const dashboardTranslations = {
     statAISub: '42 questions guided',
     openIDEBtn: 'Open Web IDE',
     resumeLastProblem: 'Resume Problem',
+
+    // Practice Skills Grid
+    practiceSkillsTitle: 'Practice Skills',
+    practiceSkillsSub: 'Select a programming language or skill domain to explore challenges from beginner to advanced.',
+    skillsAvailable: 'skills available',
+
+    // Course Detail View
+    backToSkills: 'Back to Skills',
+    courseProgress: 'Course Progress',
+    solvedLabel: 'Solved',
+    allDifficulties: 'All Difficulties',
+    allStatuses: 'All Statuses',
+    sortDifficultyAsc: 'Difficulty: Easy → Hard',
+    startSolving: 'Solve Challenge',
+    continueSolving: 'Continue',
+    solveAgain: 'Solve Again',
+    emptyTrackExercises: 'No challenges match the selected filters.',
 
     // Kits
     kitsSectionTitle: 'Skill Preparation Kits',

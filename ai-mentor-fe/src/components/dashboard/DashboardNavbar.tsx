@@ -5,13 +5,16 @@ import {
   Sun,
   Moon,
   LogOut,
-  Terminal,
   Trophy,
   BookOpen,
   Code2,
   ChevronDown,
   Sparkles,
+  User as UserIcon,
+  Settings as SettingsIcon,
+  History,
 } from 'lucide-react';
+import gsap from 'gsap';
 
 interface DashboardNavbarProps {
   user: User;
@@ -20,9 +23,12 @@ interface DashboardNavbarProps {
   currentTheme: ThemeMode;
   onThemeToggle: () => void;
   onLogout: () => void;
-  onOpenIDE: () => void;
-  activeNavTab: 'practice' | 'kits' | 'leaderboard';
-  onNavTabChange: (tab: 'practice' | 'kits' | 'leaderboard') => void;
+  onOpenIDE?: () => void;
+  onOpenSubmissions?: () => void;
+  activeNavTab: 'practice' | 'kits' | 'leaderboard' | 'ai-mentor';
+  onNavTabChange: (tab: 'practice' | 'kits' | 'leaderboard' | 'ai-mentor') => void;
+  onOpenSettings: (tab?: 'profile' | 'password' | 'appearance') => void;
+  onOpenAIMentor?: () => void;
 }
 
 export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
@@ -32,13 +38,17 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   currentTheme,
   onThemeToggle,
   onLogout,
-  onOpenIDE,
+  onOpenIDE = () => {},
+  onOpenSubmissions,
   activeNavTab,
   onNavTabChange,
+  onOpenSettings,
 }) => {
   const t = dashboardTranslations[currentLang];
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const cleanName = (user.name || '').replace(/\s*\([^)]*\)/g, '').trim() || user.name;
+  const dropdownMenuRef = useRef<HTMLDivElement | null>(null);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -51,10 +61,20 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // GSAP animation when profile dropdown toggles
+  useEffect(() => {
+    if (isProfileOpen && dropdownMenuRef.current) {
+      gsap.fromTo(
+        dropdownMenuRef.current,
+        { opacity: 0, y: -8, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.2, ease: 'power2.out' }
+      );
+    }
+  }, [isProfileOpen]);
+
   const navItems = [
     { id: 'practice' as const, label: t.navPractice, icon: Code2 },
     { id: 'kits' as const, label: t.navKits, icon: BookOpen },
-    { id: 'ide' as const, label: t.navIDE, icon: Terminal, isAction: true },
     { id: 'leaderboard' as const, label: t.navLeaderboard, icon: Trophy },
   ];
 
@@ -62,7 +82,10 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
     <header className="sticky top-0 z-40 w-full h-16 border-b transition-colors duration-200 select-none bg-white/95 dark:bg-[#0b0f17]/95 backdrop-blur-md border-slate-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
         {/* LEFT: BRANDING & HNUE SUBTITLE */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavTabChange('practice')}>
+        <div
+          className="flex items-center gap-3 cursor-pointer"
+          onClick={() => onNavTabChange('practice')}
+        >
           <div className="w-9 h-9 rounded-md bg-[#1BA94C] flex items-center justify-center font-bold text-white shadow-md shadow-emerald-900/20 flex-shrink-0 transition-transform hover:scale-105 active:scale-95">
             <span className="font-mono text-xl font-extrabold tracking-tighter">H</span>
           </div>
@@ -70,9 +93,6 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white uppercase font-sans">
                 {t.brandTitle}
-              </span>
-              <span className="hidden xl:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-[#00EA64] border border-emerald-500/20">
-                PRO
               </span>
             </div>
             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-[200px] sm:max-w-none">
@@ -85,31 +105,24 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         <nav className="hidden md:flex items-center space-x-1" aria-label="Main Navigation">
           {navItems.map((item) => {
             const Icon = item.icon;
-            if (item.isAction) {
-              return (
-                <button
-                  key={item.id}
-                  onClick={onOpenIDE}
-                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all duration-150 text-slate-700 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800/60"
-                >
-                  <Icon className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            }
-
             const isActive = activeNavTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => onNavTabChange(item.id as 'practice' | 'kits' | 'leaderboard')}
+                onClick={() =>
+                  onNavTabChange(item.id as 'practice' | 'kits' | 'leaderboard' | 'ai-mentor')
+                }
                 className={`relative flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all duration-150 ${
                   isActive
                     ? 'text-[#1BA94C] dark:text-[#00EA64] bg-emerald-50 dark:bg-emerald-950/30'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#1BA94C] dark:text-[#00EA64]' : 'text-slate-400'}`} />
+                <Icon
+                  className={`w-3.5 h-3.5 ${
+                    isActive ? 'text-[#1BA94C] dark:text-[#00EA64]' : 'text-slate-400'
+                  }`}
+                />
                 <span>{item.label}</span>
                 {isActive && (
                   <span className="absolute bottom-[-13px] left-3 right-3 h-[2px] bg-[#1BA94C] dark:bg-[#00EA64] rounded-full" />
@@ -160,7 +173,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             title={currentTheme === 'dark' ? t.lightTheme : t.darkTheme}
           >
             {currentTheme === 'dark' ? (
-              <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
+              <Sun className="w-4 h-4 text-amber-400" />
             ) : (
               <Moon className="w-4 h-4 text-slate-700" />
             )}
@@ -176,14 +189,14 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             >
               <div className="relative">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-white font-bold text-xs flex items-center justify-center shadow-sm">
-                  {user.name.charAt(0)}
+                  {cleanName.charAt(0)}
                 </div>
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#00EA64] ring-2 ring-white dark:ring-[#0b0f17]" />
               </div>
 
               <div className="text-left hidden sm:block">
                 <div className="text-xs font-bold text-slate-900 dark:text-white max-w-[130px] truncate leading-tight">
-                  {user.name}
+                  {cleanName}
                 </div>
                 <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono tracking-tight">
                   {user.classGroup || 'K72 CNTT A'}
@@ -197,50 +210,93 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               />
             </button>
 
-            {/* Dropdown Menu */}
+            {/* HackerRank-style Profile Dropdown Menu */}
             {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-lg bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-xl py-1.5 text-xs text-slate-700 dark:text-slate-200 z-50 animate-fadeIn">
-                <div className="px-3.5 py-2.5 border-b border-slate-100 dark:border-gray-800/80">
-                  <p className="font-semibold text-slate-900 dark:text-white truncate">{user.name}</p>
+              <div
+                ref={dropdownMenuRef}
+                className="absolute right-0 mt-2 w-60 rounded-xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-2xl py-1.5 text-xs text-slate-700 dark:text-slate-200 z-50 overflow-hidden"
+              >
+                {/* User Header */}
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-gray-800/80 bg-slate-50/50 dark:bg-[#0e1420]/50">
+                  <p className="font-bold text-slate-900 dark:text-white truncate text-xs">
+                    {cleanName}
+                  </p>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate font-mono mt-0.5">
                     {user.email}
                   </p>
-                  <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-[#00EA64] border border-emerald-200 dark:border-emerald-800/50">
                     <Sparkles className="w-3 h-3 text-[#00EA64]" />
                     <span>{t.studentRoleTag}</span>
                   </div>
                 </div>
 
+                {/* HackerRank Menu List: Exactly 4 options + Logout */}
                 <div className="py-1">
+                  {/* 1. Profile */}
                   <button
                     type="button"
                     onClick={() => {
                       setIsProfileOpen(false);
-                      onOpenIDE();
+                      onOpenSettings('profile');
                     }}
-                    className="w-full text-left px-3.5 py-2 flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+                    className="w-full text-left px-4 py-2 flex items-center gap-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
                   >
-                    <Terminal className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>{t.openIDEBtn}</span>
+                    <UserIcon className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{currentLang === 'vie' ? 'Hồ sơ cá nhân' : 'Profile'}</span>
                   </button>
+
+                  {/* 2. Leaderboard */}
                   <button
                     type="button"
                     onClick={() => {
                       setIsProfileOpen(false);
                       onNavTabChange('leaderboard');
                     }}
-                    className="w-full text-left px-3.5 py-2 flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+                    className="w-full text-left px-4 py-2 flex items-center gap-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
                   >
                     <Trophy className="w-3.5 h-3.5 text-amber-500" />
                     <span>{t.navLeaderboard}</span>
                   </button>
+
+                  {/* 3. Settings (Đổi mật khẩu) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      onOpenSettings('password');
+                    }}
+                    className="w-full text-left px-4 py-2 flex items-center gap-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+                  >
+                    <SettingsIcon className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                      {currentLang === 'vie' ? 'Cài đặt (Đổi mật khẩu)' : 'Settings (Password)'}
+                    </span>
+                  </button>
+
+                  {/* 4. Submissions History */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      if (onOpenSubmissions) {
+                        onOpenSubmissions();
+                      } else {
+                        onOpenIDE();
+                      }
+                    }}
+                    className="w-full text-left px-4 py-2 flex items-center gap-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+                  >
+                    <History className="w-3.5 h-3.5 text-purple-500" />
+                    <span>{currentLang === 'vie' ? 'Lịch sử nộp bài' : 'Submissions'}</span>
+                  </button>
                 </div>
 
+                {/* Logout Divider & Button */}
                 <div className="border-t border-slate-100 dark:border-gray-800/80 pt-1">
                   <button
                     type="button"
                     onClick={onLogout}
-                    className="w-full text-left px-3.5 py-2 flex items-center gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    className="w-full text-left px-4 py-2 flex items-center gap-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors font-semibold"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     <span>{t.logout}</span>
