@@ -186,9 +186,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
   };
 
   return (
-    <div className="w-full max-w-[460px] mx-auto px-6 transition-all duration-200">
+    <div className={`w-full ${authMode === 'register' ? 'max-w-[420px]' : 'max-w-[450px]'} mx-auto px-4 sm:px-6 transition-all duration-200`}>
       {/* MOBILE / TABLET LOGO (Khi ẩn cột trái) */}
-      <div className="flex lg:hidden items-center gap-2 mb-4">
+      <div className="flex lg:hidden items-center gap-2 mb-3">
         <div className="w-8 h-8 rounded-md bg-[#1BA94C] flex items-center justify-center font-bold text-white shadow-sm">
           <span className="font-mono text-lg font-extrabold select-none">H</span>
         </div>
@@ -198,16 +198,18 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
       </div>
 
       {/* HEADER SECTION (Top-aligned, HackerRank style) */}
-      <div className="mb-5 space-y-1 select-none text-left">
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-sans">
+      <div className={`select-none text-left ${authMode === 'register' ? 'mb-2 space-y-0.5' : 'mb-5 space-y-1'}`}>
+        <h2 className={`${authMode === 'register' ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'} font-bold text-slate-900 tracking-tight font-sans`}>
           {authMode === 'login' ? t.loginWelcome : t.registerWelcome}
         </h2>
-        <p className="text-sm font-semibold text-slate-800">
+        <p className="text-xs sm:text-sm font-semibold text-slate-700">
           {authMode === 'login' ? t.loginSub : t.registerSub}
         </p>
-        <p className="text-xs sm:text-sm text-slate-500 font-normal">
-          {authMode === 'login' ? t.loginDesc : t.registerDesc}
-        </p>
+        {authMode === 'login' && (
+          <p className="text-xs sm:text-sm text-slate-500 font-normal">
+            {t.loginDesc}
+          </p>
+        )}
       </div>
 
       {/* GENERAL ERROR BANNER */}
@@ -215,7 +217,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
         <div
           role="alert"
           id="auth-general-error"
-          className="mb-3.5 p-3 bg-red-50 border-l-4 border-red-500 rounded-r-md flex items-start gap-2 text-red-700 text-xs sm:text-sm animate-shake"
+          className="mb-2 p-2 bg-red-50 border-l-4 border-red-500 rounded-r-md flex items-start gap-2 text-red-700 text-xs animate-shake"
         >
           <ExclamationCircleIcon className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
           <div className="font-medium leading-snug">{generalError}</div>
@@ -226,7 +228,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
       {toastSuccess && (
         <div
           role="status"
-          className="mb-3.5 p-3 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-md flex items-center justify-between gap-2 text-emerald-800 text-xs sm:text-sm shadow-sm animate-fadeIn"
+          className="mb-2 p-2 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-md flex items-center justify-between gap-2 text-emerald-800 text-xs shadow-sm animate-fadeIn"
         >
           <div className="flex items-center gap-2">
             <CheckCircleIcon className="w-4 h-4 text-emerald-600 flex-shrink-0" aria-hidden="true" />
@@ -243,8 +245,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
         </div>
       )}
 
-      {/* MAIN AUTH FORM (Rộng rãi, thoáng mắt space-y-4) */}
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+      {/* MAIN AUTH FORM (Fit 100vh Zero-Scroll) */}
+      <form onSubmit={handleSubmit} noValidate className={authMode === 'register' ? 'space-y-2' : 'space-y-4'}>
         {/* ================= REGISTER FIELDS (4 trường + Vai trò) ================= */}
         {authMode === 'register' && (
           <>
@@ -252,7 +254,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
             <div>
               <label
                 htmlFor="fullname-input"
-                className="block text-xs font-semibold text-slate-700 mb-1.5 select-none"
+                className="block text-[11px] font-semibold text-slate-700 mb-0.5 select-none"
               >
                 {t.fullNameLabel} <span className="text-red-500">*</span>
               </label>
@@ -271,14 +273,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
                 aria-required="true"
                 aria-invalid={Boolean(fieldErrors.fullName)}
                 aria-describedby={fieldErrors.fullName ? 'fullname-error' : undefined}
-                className={`w-full h-11 px-3.5 bg-white border rounded-md text-[15px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none ${
+                className={`w-full h-9 px-3 bg-white border rounded-md text-sm text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none ${
                   fieldErrors.fullName
                     ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500/20'
                     : 'border-slate-300 focus:border-[#1BA94C] focus:ring-1 focus:ring-[#1BA94C]/25'
                 }`}
               />
               {fieldErrors.fullName && (
-                <p id="fullname-error" className="text-[11px] text-red-500 mt-1 flex items-center gap-1 font-medium">
+                <p id="fullname-error" className="text-[10px] text-red-500 mt-0.5 flex items-center gap-1 font-medium">
                   <ExclamationCircleIcon className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
                   <span>{fieldErrors.fullName}</span>
                 </p>
@@ -289,7 +291,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
             <div>
               <label
                 htmlFor="email-input"
-                className="block text-xs font-semibold text-slate-700 mb-1.5 select-none"
+                className="block text-[11px] font-semibold text-slate-700 mb-0.5 select-none"
               >
                 {t.emailLabel} <span className="text-red-500">*</span>
               </label>
@@ -308,14 +310,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
                 aria-required="true"
                 aria-invalid={Boolean(fieldErrors.email)}
                 aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-                className={`w-full h-11 px-3.5 bg-white border rounded-md text-[15px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none ${
+                className={`w-full h-9 px-3 bg-white border rounded-md text-sm text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none ${
                   fieldErrors.email
                     ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500/20'
                     : 'border-slate-300 focus:border-[#1BA94C] focus:ring-1 focus:ring-[#1BA94C]/25'
                 }`}
               />
               {fieldErrors.email && (
-                <p id="email-error" className="text-[11px] text-red-500 mt-1 flex items-center gap-1 font-medium">
+                <p id="email-error" className="text-[10px] text-red-500 mt-0.5 flex items-center gap-1 font-medium">
                   <ExclamationCircleIcon className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
                   <span>{fieldErrors.email}</span>
                 </p>
@@ -367,7 +369,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
         <div>
           <label
             htmlFor="password-input"
-            className="block text-xs font-semibold text-slate-700 mb-1.5 select-none"
+            className={`block font-semibold text-slate-700 select-none ${
+              authMode === 'register' ? 'text-[11px] mb-0.5' : 'text-xs mb-1'
+            }`}
           >
             {t.passwordLabel} <span className="text-red-500">*</span>
           </label>
@@ -387,7 +391,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
               aria-required="true"
               aria-invalid={Boolean(fieldErrors.password)}
               aria-describedby={fieldErrors.password ? 'password-error' : undefined}
-              className={`w-full h-11 pl-3.5 pr-11 bg-white border rounded-md text-[15px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none ${
+              className={`w-full ${authMode === 'register' ? 'h-9 text-sm' : 'h-11 text-[15px]'} pl-3.5 pr-11 bg-white border rounded-md text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none ${
                 fieldErrors.password
                   ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500/20'
                   : 'border-slate-300 focus:border-[#1BA94C] focus:ring-1 focus:ring-[#1BA94C]/25'
@@ -407,7 +411,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
             </button>
           </div>
           {fieldErrors.password && (
-            <p id="password-error" className="text-[11px] text-red-500 mt-1 flex items-center gap-1 font-medium">
+            <p id="password-error" className="text-[10px] text-red-500 mt-0.5 flex items-center gap-1 font-medium">
               <ExclamationCircleIcon className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
               <span>{fieldErrors.password}</span>
             </p>
@@ -446,7 +450,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
             <div>
               <label
                 htmlFor="confirm-password-input"
-                className="block text-xs font-semibold text-slate-700 mb-1.5 select-none"
+                className="block text-[11px] font-semibold text-slate-700 mb-0.5 select-none"
               >
                 {t.confirmPasswordLabel} <span className="text-red-500">*</span>
               </label>
@@ -466,7 +470,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
                   aria-required="true"
                   aria-invalid={Boolean(fieldErrors.confirmPassword)}
                   aria-describedby={fieldErrors.confirmPassword ? 'confirm-password-error' : undefined}
-                  className={`w-full h-11 pl-3.5 pr-11 bg-white border rounded-md text-[15px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none ${
+                  className={`w-full h-9 pl-3.5 pr-11 bg-white border rounded-md text-sm text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none ${
                     fieldErrors.confirmPassword
                       ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500/20'
                       : 'border-slate-300 focus:border-[#1BA94C] focus:ring-1 focus:ring-[#1BA94C]/25'
@@ -486,7 +490,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
                 </button>
               </div>
               {fieldErrors.confirmPassword && (
-                <p id="confirm-password-error" className="text-[11px] text-red-500 mt-1 flex items-center gap-1 font-medium">
+                <p id="confirm-password-error" className="text-[10px] text-red-500 mt-0.5 flex items-center gap-1 font-medium">
                   <ExclamationCircleIcon className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
                   <span>{fieldErrors.confirmPassword}</span>
                 </p>
@@ -494,15 +498,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
             </div>
 
             {/* ROLE SELECTOR */}
-            <div className="pt-0.5 select-none">
-              <span className="block text-xs font-semibold text-slate-700 mb-1.5">
+            <div className="pt-0 select-none">
+              <span className="block text-[11px] font-semibold text-slate-700 mb-0.5">
                 {t.roleSelectorLabel}
               </span>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setRole('student')}
-                  className={`h-11 px-3 rounded-md text-sm font-semibold border flex items-center justify-center gap-2 transition-all ${
+                  className={`h-8 px-2.5 rounded-md text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
                     role === 'student'
                       ? 'border-[#1BA94C] bg-emerald-50 text-[#1BA94C]'
                       : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
@@ -513,7 +517,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
                 <button
                   type="button"
                   onClick={() => setRole('teacher')}
-                  className={`h-11 px-3 rounded-md text-sm font-semibold border flex items-center justify-center gap-2 transition-all ${
+                  className={`h-8 px-2.5 rounded-md text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
                     role === 'teacher'
                       ? 'border-[#1BA94C] bg-emerald-50 text-[#1BA94C]'
                       : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
@@ -526,12 +530,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
           </>
         )}
 
-        {/* PRIMARY SUBMIT BUTTON (Nâng cấp đầy đặn h-12 48px, text-base font-semibold) */}
+        {/* PRIMARY SUBMIT BUTTON */}
         <button
           type="submit"
           id="btn-auth-submit"
           disabled={isLoading}
-          className="w-full h-12 py-3 mt-2 rounded-md bg-[#1BA94C] hover:bg-[#15893d] active:scale-[0.99] text-white font-semibold text-base tracking-wide transition-all duration-150 flex items-center justify-center gap-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1BA94C] disabled:opacity-60 disabled:cursor-not-allowed select-none"
+          className={`w-full ${authMode === 'register' ? 'h-10 py-2 mt-1 text-sm' : 'h-12 py-3 mt-2 text-base'} rounded-md bg-[#1BA94C] hover:bg-[#15893d] active:scale-[0.99] text-white font-semibold tracking-wide transition-all duration-150 flex items-center justify-center gap-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1BA94C] disabled:opacity-60 disabled:cursor-not-allowed select-none`}
         >
           {isLoading ? (
             <>
@@ -544,8 +548,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
         </button>
       </form>
 
-      {/* FOOTER: TOGGLE AUTH MODES (HackerRank Clean Style - Sau nút Log In chỉ có dòng điều hướng này) */}
-      <div className="mt-5 pt-3.5 border-t border-slate-100 text-center text-xs text-slate-600 select-none">
+      {/* FOOTER: TOGGLE AUTH MODES (HackerRank Clean Style) */}
+      <div className={`${authMode === 'register' ? 'mt-2.5 pt-1.5' : 'mt-5 pt-3.5'} border-t border-slate-100 text-center text-xs text-slate-600 select-none`}>
         {authMode === 'login' ? (
           <>
             <span>{t.dontHaveAccount} </span>

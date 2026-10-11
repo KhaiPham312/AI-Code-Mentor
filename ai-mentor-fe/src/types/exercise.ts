@@ -14,7 +14,7 @@ export interface Exercise {
   title: string;
   difficulty: Difficulty;
   category: string;
-  language: 'python' | 'cpp' | 'java';
+  language: 'python' | 'cpp' | 'c' | 'java' | 'sql' | 'bash' | 'javascript';
   timeLimitMs: number;
   memoryLimitMb: number;
   description: string;
@@ -26,6 +26,7 @@ export interface Exercise {
   hiddenTestCaseCount: number;
   status?: 'solved' | 'in_progress' | 'not_started';
   score?: number;
+  trackIds?: string[];
 }
 
 export interface TestCaseResult {

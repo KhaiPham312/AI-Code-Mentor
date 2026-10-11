@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Loader2
 } from 'lucide-react';
+import { MathMarkdownRenderer } from '../common/MathMarkdownRenderer';
 
 interface AIMentorPanelProps {
   messages: AIMessage[];
@@ -133,8 +134,8 @@ export const AIMentorPanel: React.FC<AIMentorPanelProps> = ({
                   : 'bg-slate-800/90 text-slate-200 rounded-tl-none border border-slate-700/80 shadow-sm'
               }`}
             >
-              <div className="whitespace-pre-line space-y-2">
-                {msg.content}
+              <div className="space-y-2">
+                <MathMarkdownRenderer content={msg.content} />
               </div>
             </div>
           </div>

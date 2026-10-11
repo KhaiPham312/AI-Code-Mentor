@@ -7,7 +7,8 @@ import {
   Clock,
   Circle,
   Bot,
-  Terminal,
+  Play,
+  RotateCcw,
   Filter,
   X,
   Code,
@@ -363,7 +364,11 @@ export const ChallengeCatalog: React.FC<ChallengeCatalogProps> = ({
                         : 'bg-[#1BA94C] hover:bg-[#15893d] text-white shadow-sm'
                     }`}
                   >
-                    <Terminal className="w-3.5 h-3.5" />
+                    {isSolved ? (
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    ) : (
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                    )}
                     <span>
                       {isSolved ? t.redoBtn : isInProgress ? t.continueBtn : t.solveBtn}
                     </span>
