@@ -12,6 +12,7 @@ import {
   mockRegister,
   checkEmailExists,
 } from '../../services/mockAuth';
+import { loginUser, registerUser } from '../../services/authService';
 import { User, UserRole } from '../../types/auth';
 import { Language, translations } from './i18n';
 
@@ -147,14 +148,24 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
 
     try {
       if (authMode === 'register') {
-        // Register new account with auto-generated unique username
-        const result = await mockRegister(fullName, email, password, role);
+        let result: { token?: string; user: User };
+        try {
+          result = await registerUser({
+            fullName,
+            email,
+            password,
+            role,
+          });
+        } catch (beErr: any) {
+          console.warn('Backend register failed, trying mock fallback:', beErr);
+          result = await mockRegister(fullName, email, password, role);
+        }
 
         // Show self-dismissing success toast
         setToastSuccess(
           lang === 'vie'
-            ? `Đăng ký thành công! Tên đăng nhập: ${result.user.username}`
-            : `Account created! Your username: ${result.user.username}`
+            ? `Đăng ký thành công! Tên đăng nhập: ${result.user.username || email}`
+            : `Account created! Your username: ${result.user.username || email}`
         );
 
         // Switch to login form with pre-filled registered username
@@ -167,9 +178,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
           setIsLoading(false);
         }, 1500);
       } else {
-        // Login with username or email
-        const result = await mockLogin(loginIdentifier, password);
-        onLoginSuccess(result.user, result.token);
+        // Login with backend first, fallback to mock
+        let loginResult: { token: string; user: User };
+        try {
+          loginResult = await loginUser(loginIdentifier, password);
+        } catch (beErr: any) {
+          // Nếu backend trả về lỗi tài khoản / mật khẩu cụ thể hoặc kết nối
+          if (beErr?.status === 401 || beErr?.status === 400) {
+            throw beErr;
+          }
+          console.warn('Backend login connection failed, trying mock fallback:', beErr);
+          loginResult = await mockLogin(loginIdentifier, password);
+        }
+
+        onLoginSuccess(loginResult.user, loginResult.token);
       }
     } catch (err: unknown) {
       if (err instanceof Error) {

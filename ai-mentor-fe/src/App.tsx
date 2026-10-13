@@ -7,6 +7,11 @@ import { SettingsPage } from './components/settings/SettingsPage';
 import { SubmissionsPage } from './components/submissions/SubmissionsPage';
 import { User } from './types/auth';
 import { Language, ThemeMode } from './components/dashboard/dashboardI18n';
+import {
+  setAuthToken,
+  clearAuthSession,
+  AUTH_UNAUTHORIZED_EVENT,
+} from './services/apiClient';
 
 export function App() {
   // Current user state with localStorage initialization
@@ -78,7 +83,20 @@ export function App() {
     setCurrentTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  // Listen for 401 Unauthorized globally
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setCurrentUser(null);
+      setCurrentView('dashboard');
+    };
+    window.addEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized);
+    return () => {
+      window.removeEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized);
+    };
+  }, []);
+
   const handleLoginSuccess = (user: User, token: string) => {
+    setAuthToken(token);
     localStorage.setItem('auth_token', token);
     localStorage.setItem('ai_mentor_user', JSON.stringify(user));
     setCurrentUser(user);
@@ -86,6 +104,7 @@ export function App() {
   };
 
   const handleLogout = () => {
+    clearAuthSession();
     localStorage.removeItem('auth_token');
     localStorage.removeItem('ai_mentor_user');
     setCurrentUser(null);

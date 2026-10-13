@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, X, Minus, Sparkles, Lightbulb, AlertTriangle, Cpu, RotateCcw } from 'lucide-react';
 import { AIMessage, SocraticIntent } from '../../types/ai';
 import { generateSocraticResponse } from '../../services/mockAIService';
+import { sendAIMessage } from '../../services/aiMentorService';
 import { MathMarkdownRenderer } from './MathMarkdownRenderer';
 import gsap from 'gsap';
 
@@ -124,25 +125,35 @@ Bạn có muốn mình gợi ý bước tư duy đầu tiên hoặc giải thíc
         }
       }
 
-      const aiResponse = await generateSocraticResponse(
-        intent,
-        text,
-        codeContext || '',
-        errorContext,
-        {
-          title: exerciseTitle,
-          category,
-          code: codeContext,
-          error: errorContext,
-        }
-      );
-
-      const botMsg: AIMessage = {
-        id: `ai-${Date.now()}`,
-        role: 'assistant',
-        content: aiResponse,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
+      let botMsg: AIMessage;
+      try {
+        botMsg = await sendAIMessage({
+          message: text,
+          intent,
+          currentCode: codeContext,
+          terminalError: errorContext,
+        });
+      } catch (beErr) {
+        console.warn('Backend AI chat error, fallback to mock generator:', beErr);
+        const aiResponse = await generateSocraticResponse(
+          intent,
+          text,
+          codeContext || '',
+          errorContext,
+          {
+            title: exerciseTitle,
+            category,
+            code: codeContext,
+            error: errorContext,
+          }
+        );
+        botMsg = {
+          id: `ai-${Date.now()}`,
+          role: 'assistant',
+          content: aiResponse,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+      }
 
       setMessages((prev) => [...prev, botMsg]);
     } catch {

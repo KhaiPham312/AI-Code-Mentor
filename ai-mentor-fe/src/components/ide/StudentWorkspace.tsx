@@ -8,6 +8,12 @@ import {
   submitStudentCode,
   getSubmissionsForExercise,
 } from '../../services/mockExerciseService';
+import {
+  fetchExerciseById,
+  executeStudentCode,
+  submitStudentCodeBackend,
+  fetchSubmissionsForExercise,
+} from '../../services/exerciseService';
 import { CodeEditor } from './CodeEditor';
 import { ProblemDescription } from './ProblemDescription';
 import { TerminalPanel } from './TerminalPanel';
@@ -49,6 +55,35 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
   const [submissions, setSubmissions] = useState<SubmissionRecord[]>(
     getSubmissionsForExercise(currentExercise.id)
   );
+
+  // Sync with Backend on mount or when initialExerciseId changes
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      try {
+        const beEx = await fetchExerciseById(initialExerciseId);
+        if (isMounted && beEx) {
+          setCurrentExercise(beEx);
+          setCode((prev) => (prev === currentExercise.boilerplateCode ? beEx.boilerplateCode : prev));
+        }
+      } catch (err) {
+        console.warn('Fallback to mock exercise data:', err);
+      }
+
+      try {
+        const beSubs = await fetchSubmissionsForExercise(initialExerciseId);
+        if (isMounted && beSubs && beSubs.length > 0) {
+          setSubmissions(beSubs);
+        }
+      } catch {
+        // Fallback to existing mock submissions
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, [initialExerciseId]);
 
   // 2. Execution & Submission States
   const [isRunning, setIsRunning] = useState(false);
@@ -99,7 +134,17 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
     setSubmitSuccessNotice(null);
 
     try {
-      const result = await runStudentCode(currentExercise, code);
+      let result: ExecutionResult;
+      try {
+        result = await executeStudentCode(
+          currentExercise.id,
+          code,
+          currentExercise.language || 'python'
+        );
+      } catch (beErr) {
+        console.warn('Backend run failed, fallback to mock runner:', beErr);
+        result = await runStudentCode(currentExercise, code);
+      }
       setExecutionResult(result);
     } catch {
       setExecutionResult({
@@ -122,8 +167,26 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
     setSubmitSuccessNotice(null);
 
     try {
-      const subRecord = await submitStudentCode(currentExercise, code);
-      setSubmissions(getSubmissionsForExercise(currentExercise.id));
+      let subRecord: SubmissionRecord;
+      try {
+        subRecord = await submitStudentCodeBackend(
+          currentExercise.id,
+          code,
+          currentExercise.language || 'python'
+        );
+      } catch (beErr) {
+        console.warn('Backend submit failed, fallback to mock submit:', beErr);
+        subRecord = await submitStudentCode(currentExercise, code);
+      }
+
+      // Refresh submissions list
+      try {
+        const beSubs = await fetchSubmissionsForExercise(currentExercise.id);
+        if (beSubs.length > 0) setSubmissions(beSubs);
+        else setSubmissions(getSubmissionsForExercise(currentExercise.id));
+      } catch {
+        setSubmissions(getSubmissionsForExercise(currentExercise.id));
+      }
 
       const isAllPassed = subRecord.status === 'passed';
       setExecutionResult({
@@ -157,7 +220,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
         totalTests: currentExercise.sampleTestCases.length + currentExercise.hiddenTestCaseCount,
         passedTests: 0,
         executionTimeMs: 0,
-        errorMessage: 'Không thể kết nối đến máy chủ chấm bài HackerRank Sandbox.',
+        errorMessage: 'Không thể kết nối đến máy chủ chấm bài.',
         results: [],
       });
     } finally {
