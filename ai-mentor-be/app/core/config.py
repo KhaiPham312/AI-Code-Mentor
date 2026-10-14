@@ -42,6 +42,17 @@ class Settings(BaseSettings):
     CODE_EXEC_TIMEOUT_MS: int = 5000
     MAX_OUTPUT_LENGTH_CHARS: int = 10000
 
+    # SMTP / Email Configuration for Password Reset
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_TLS: bool = True
+    EMAILS_FROM_EMAIL: str = "no-reply@hnue.edu.vn"
+    EMAILS_FROM_NAME: str = "AI Code Mentor"
+    FRONTEND_URL: str = "http://localhost:3000"
+    RESET_TOKEN_EXPIRE_MINUTES: int = 60
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

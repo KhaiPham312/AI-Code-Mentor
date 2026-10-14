@@ -296,8 +296,22 @@ export function App() {
     setCurrentView('dashboard');
   };
 
-  // 1. Unauthenticated -> Auth / Login Page
-  if (!currentUser) {
+  // 1. Unauthenticated or explicit Auth Routes (Forgot Password / Reset Password from Gmail)
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const hash = typeof window !== 'undefined' ? window.location.hash : '';
+  const isAuthRoute =
+    pathname === '/auth/reset-password' ||
+    pathname === '/reset-password' ||
+    pathname === '/auth/forgot-password' ||
+    pathname === '/forgot-password' ||
+    pathname === '/login' ||
+    hash.startsWith('#/auth/reset-password') ||
+    hash.startsWith('#/reset-password') ||
+    hash.startsWith('#/auth/forgot-password') ||
+    hash.startsWith('#/forgot-password') ||
+    hash.startsWith('#/login');
+
+  if (!currentUser || isAuthRoute) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 

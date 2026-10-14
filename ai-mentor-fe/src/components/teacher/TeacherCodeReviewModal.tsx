@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { LiveSubmission } from '../../services/mockTeacherData';
+import {
+  LiveSubmission,
+  translateExerciseTitle,
+  translateTimeAgo,
+} from '../../services/mockTeacherData';
 import { Language, ThemeMode } from '../dashboard/dashboardI18n';
 import {
   X,
@@ -116,7 +120,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                   isDark ? 'text-slate-400' : 'text-neutral-500'
                 }`}
               >
-                {submission.studentName} ({submission.studentId}) • {submission.exerciseTitle} • {submission.timeAgo}
+                {submission.studentName} ({submission.studentId}) • {translateExerciseTitle(submission.exerciseTitle, isVie)} • {translateTimeAgo(submission.timeAgo, isVie)}
               </p>
             </div>
           </div>
@@ -181,7 +185,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                   {isVie ? 'Kiểm tra đạo văn' : 'Plagiarism Scan'}
                 </span>
                 <span className="font-bold text-emerald-500 font-sans">
-                  {submission.plagiarismScore}% {isVie ? 'trùng lặp (Tự làm)' : 'similarity'}
+                  {submission.plagiarismScore}% {isVie ? 'trùng lặp (Tự làm)' : 'similarity (Original work)'}
                 </span>
               </div>
             </div>
@@ -266,7 +270,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
           <div className="text-xs text-slate-400">
             {isVie
               ? `Điểm hệ số: ${submission.score} / 10.0`
-              : `Score: ${submission.score} / 10.0`}
+              : `Graded Score: ${submission.score} / 10.0`}
           </div>
 
           <div className="flex items-center space-x-2">

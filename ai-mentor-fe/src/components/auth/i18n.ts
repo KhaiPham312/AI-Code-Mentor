@@ -73,6 +73,33 @@ export const translations = {
     // Success Toast
     registerSuccessToast: 'Đăng ký tài khoản thành công! Đang chuyển đến trang đăng nhập...',
     loginSuccessToast: 'Đăng nhập thành công!',
+
+    // Forgot Password Flow
+    forgotTitle: 'Quên mật khẩu?',
+    forgotDesc: 'Đừng lo! Hãy nhập email hoặc tên đăng nhập của bạn bên dưới, chúng tôi sẽ gửi liên kết hướng dẫn đặt lại mật khẩu.',
+    forgotInputLabel: 'Email hoặc Tên đăng nhập *',
+    forgotInputPlaceholder: 'Nhập email hoặc tên đăng nhập...',
+    forgotSendBtn: 'Gửi liên kết đặt lại',
+    forgotSendingBtn: 'Đang gửi email...',
+    forgotBackTo: 'Quay lại ',
+    forgotLoginWord: 'Đăng nhập',
+    forgotNotFound: 'Không tìm thấy tài khoản với email hoặc tên đăng nhập này!',
+    forgotSuccessSentPart1: 'Liên kết đặt lại mật khẩu đã được gửi tới email ',
+    forgotSuccessSentPart2: '! Vui lòng mở hộp thư Gmail của bạn và nhấn vào nút "Đặt lại mật khẩu" trong thư.',
+
+    // Reset Password Flow
+    resetTitle: 'Đặt lại mật khẩu mới',
+    resetAccountPrefix: 'Tài khoản:',
+    resetNewPassLabel: 'Mật khẩu mới',
+    resetNewPassPlaceholder: 'Tối thiểu 6 ký tự',
+    resetConfirmPassLabel: 'Xác nhận mật khẩu mới',
+    resetConfirmPassPlaceholder: 'Nhập lại mật khẩu mới',
+    resetSubmitBtn: 'Cập nhật mật khẩu',
+    resetUpdatingBtn: 'Đang cập nhật mật khẩu...',
+    resetSuccessToast: 'Cập nhật mật khẩu thành công! Đang chuyển về trang đăng nhập...',
+    resetMismatch: 'Xác nhận mật khẩu mới không trùng khớp.',
+    resetMinLength: 'Mật khẩu mới phải có tối thiểu 6 ký tự.',
+    resetInvalidLink: 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.',
   },
   eng: {
     // Left Brand Sidebar
@@ -146,5 +173,32 @@ export const translations = {
     // Success Toast
     registerSuccessToast: 'Account created successfully! Redirecting to login...',
     loginSuccessToast: 'Logged in successfully!',
+
+    // Forgot Password Flow
+    forgotTitle: 'Forgot Password?',
+    forgotDesc: 'No Problem! Enter your email or username below and we will send you an email with instructions to reset your password.',
+    forgotInputLabel: 'Email or Username *',
+    forgotInputPlaceholder: 'Enter your email or username...',
+    forgotSendBtn: 'Send Reset Link',
+    forgotSendingBtn: 'Sending email...',
+    forgotBackTo: 'Back to ',
+    forgotLoginWord: 'Login',
+    forgotNotFound: 'No account found with this email or username!',
+    forgotSuccessSentPart1: 'Password reset link has been sent to ',
+    forgotSuccessSentPart2: '! Please check your Gmail inbox and click the "Reset Password" button in the email.',
+
+    // Reset Password Flow
+    resetTitle: 'Reset Your Password',
+    resetAccountPrefix: 'Account:',
+    resetNewPassLabel: 'New Password',
+    resetNewPassPlaceholder: 'At least 6 characters',
+    resetConfirmPassLabel: 'Confirm New Password',
+    resetConfirmPassPlaceholder: 'Re-enter new password',
+    resetSubmitBtn: 'Update Password',
+    resetUpdatingBtn: 'Updating password...',
+    resetSuccessToast: 'Password updated successfully! Redirecting to login...',
+    resetMismatch: 'New password confirmation does not match.',
+    resetMinLength: 'New password must be at least 6 characters.',
+    resetInvalidLink: 'Password reset link is invalid or expired.',
   },
 };

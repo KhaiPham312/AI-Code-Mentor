@@ -199,9 +199,11 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                   {/* Heatmap Footer Legend */}
                   <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-gray-800/80 flex flex-wrap items-center justify-between gap-3 text-[11px] text-neutral-600 dark:text-slate-400 font-sans">
                     <div className="flex items-center gap-1.5 font-medium">
-                      <span className="text-neutral-700 dark:text-slate-400">Tiến độ tổng:</span>
+                      <span className="text-neutral-700 dark:text-slate-400">
+                        {currentLang === 'vie' ? 'Tiến độ tổng:' : 'Total Progress:'}
+                      </span>
                       <span className="font-bold text-emerald-600 dark:text-[#00EA64]">
-                        55% hoàn thành lộ trình
+                        {currentLang === 'vie' ? '55% hoàn thành lộ trình' : '55% completed'}
                       </span>
                     </div>
 
@@ -224,10 +226,10 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
               {/* Header Khối */}
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider font-sans">
-                  {currentLang === 'vie' ? 'Mục tiêu & Phân tích hoạt động' : 'Goals & Analytics'}
+                  {currentLang === 'vie' ? 'MỤC TIÊU & PHÂN TÍCH HOẠT ĐỘNG' : 'GOALS & ACTIVITY ANALYTICS'}
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-sans">
-                  Hôm nay
+                  {currentLang === 'vie' ? 'Hôm nay' : 'Today'}
                 </span>
               </div>
 
@@ -238,7 +240,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                     {currentLang === 'vie' ? 'Mục tiêu hôm nay (Daily Goal)' : 'Daily Goal'}
                   </span>
                   <span className="font-bold text-emerald-600 dark:text-emerald-400 font-sans">
-                    2 / 3 bài tập trong ngày
+                    {currentLang === 'vie' ? '2 / 3 bài tập trong ngày' : '2 / 3 problems today'}
                   </span>
                 </div>
 
@@ -256,7 +258,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                     {currentLang === 'vie' ? 'Tiến độ hoàn thành 67%' : '67% completed'}
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-sans">
-                    {currentLang === 'vie' ? 'Còn 1 bài để giữ chuỗi!' : '1 more to keep streak!'}
+                    {currentLang === 'vie' ? 'Còn 1 bài để giữ chuỗi!' : '1 more to keep your streak!'}
                   </span>
                 </div>
               </div>
@@ -265,10 +267,10 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
               <div className="grid grid-cols-3 gap-2">
                 <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#0f1623] border border-slate-200/80 dark:border-gray-800 text-center">
                   <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium font-sans">
-                    {currentLang === 'vie' ? 'Kỷ lục chuỗi' : 'Max Streak'}
+                    {currentLang === 'vie' ? 'Kỷ lục chuỗi' : 'Best Streak'}
                   </div>
                   <div className="text-sm font-bold text-neutral-900 dark:text-white mt-0.5 font-sans">
-                    14 ngày
+                    {currentLang === 'vie' ? '14 ngày' : '14 days'}
                   </div>
                 </div>
 
@@ -283,10 +285,10 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
 
                 <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#0f1623] border border-slate-200/80 dark:border-gray-800 text-center">
                   <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium font-sans">
-                    {currentLang === 'vie' ? 'Thời gian code' : 'Code Time'}
+                    {currentLang === 'vie' ? 'Thời gian code' : 'Coding Time'}
                   </div>
                   <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 font-sans">
-                    18.5 giờ
+                    {currentLang === 'vie' ? '18.5 giờ' : '18.5 hrs'}
                   </div>
                 </div>
               </div>
@@ -301,7 +303,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                     Python (36%)
                   </span>
                   <span className="px-2.5 py-0.5 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-400 font-semibold border border-blue-500/20">
-                    Thuật toán (28%)
+                    {currentLang === 'vie' ? 'Thuật toán (28%)' : 'Algorithms (28%)'}
                   </span>
                   <span className="px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-semibold border border-indigo-500/20">
                     C++ (22%)
@@ -332,7 +334,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
 
             <div>
               <div className="text-2xl font-black text-neutral-950 dark:text-white tracking-tight font-sans">
-                {solvedCount} <span className="text-sm font-semibold text-neutral-500 dark:text-slate-400 font-sans">/ {totalCount} bài</span>
+                {solvedCount} <span className="text-sm font-semibold text-neutral-500 dark:text-slate-400 font-sans">/ {totalCount} {currentLang === 'vie' ? 'bài' : 'problems'}</span>
               </div>
               {/* Progress bar */}
               <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-gray-800 mt-2.5 overflow-hidden">
@@ -356,13 +358,13 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                 </span>
               </div>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20 font-sans">
-                Gợi mở 100%
+                {currentLang === 'vie' ? 'Gợi mở 100%' : '100% Socratic'}
               </span>
             </div>
 
             <div>
               <div className="text-2xl font-black text-neutral-950 dark:text-white tracking-tight font-sans">
-                {aiInteractions} <span className="text-sm font-semibold text-neutral-500 dark:text-slate-400 font-sans">lượt trao đổi</span>
+                {aiInteractions} <span className="text-sm font-semibold text-neutral-500 dark:text-slate-400 font-sans">{currentLang === 'vie' ? 'lượt trao đổi' : 'queries'}</span>
               </div>
               <p className="text-[11px] text-neutral-600 dark:text-slate-400 mt-1.5 font-normal font-sans">
                 {currentLang === 'vie'

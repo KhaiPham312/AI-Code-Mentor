@@ -9,6 +9,13 @@ import {
   LiveSubmission,
   StudentAIAuditLog,
   TeacherAssignment,
+  translateExerciseTitle,
+  translateTimeAgo,
+  translateGradeBracket,
+  translateDayOfWeek,
+  translateRecentActivity,
+  translateAssignmentDesc,
+  translateLogSummary,
 } from '../../services/mockTeacherData';
 import { TeacherAITranscriptDrawer } from './TeacherAITranscriptDrawer';
 import { TeacherCodeReviewModal } from './TeacherCodeReviewModal';
@@ -338,7 +345,11 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               PK
             </div>
             <div className="hidden lg:block text-left text-xs leading-tight">
-              <div className="font-bold truncate">{user.name || 'TS. Phạm Văn Khải'}</div>
+              <div className="font-bold truncate">
+                {isVie
+                  ? (user.name || 'TS. Phạm Văn Khải')
+                  : (user.name ? user.name.replace('TS.', 'Dr.') : 'Dr. Phạm Văn Khải')}
+              </div>
               <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                 {isVie ? 'Bộ môn KHMT' : 'CS Department'}
               </div>
@@ -368,17 +379,21 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       >
         <div className="flex items-center space-x-2 font-sans">
           <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
-          <span className="font-bold">{activeClass.courseName}</span>
+          <span className="font-bold">
+            {isVie ? activeClass.courseName : (activeClass.courseNameEng || activeClass.courseName)}
+          </span>
           <span>•</span>
           <span className="text-slate-500 dark:text-slate-400 font-sans font-medium">{activeClass.code}</span>
           <span>•</span>
-          <span className="text-slate-500 dark:text-slate-400">{activeClass.term}</span>
+          <span className="text-slate-500 dark:text-slate-400">
+            {isVie ? activeClass.term : (activeClass.termEng || activeClass.term)}
+          </span>
         </div>
 
         <div className="flex items-center space-x-3 text-[11px] font-medium font-sans">
           <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>{activeClass.activeStudents} / {activeClass.totalStudents} {isVie ? 'sinh viên online' : 'active students'}</span>
+            <span>{activeClass.activeStudents} / {activeClass.totalStudents} {isVie ? 'sinh viên online' : 'students online'}</span>
           </span>
         </div>
       </div>
@@ -420,19 +435,22 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80">
               <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mb-1.5 flex justify-between font-sans">
                 <span>{isVie ? 'Đăng nhập 7 ngày qua' : '7-Day Activity'}</span>
-                <span className="font-sans font-semibold text-emerald-500">Peak: 68 SV</span>
+                <span className="font-sans font-semibold text-emerald-500">
+                  {isVie ? 'Cao nhất: 68 SV' : 'Peak: 68 students'}
+                </span>
               </div>
               <div className="flex items-end justify-between gap-1.5 h-8">
                 {activeClass.weeklyLogins.map((item, idx) => {
                   const barHeight = Math.max(20, Math.round((item.active / 70) * 100));
+                  const dayName = translateDayOfWeek(item.day, isVie);
                   return (
                     <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
                       <div
                         style={{ height: `${barHeight}%` }}
                         className="w-full rounded-xs bg-indigo-500/70 group-hover:bg-[#00EA64] transition-all cursor-pointer"
-                        title={`${item.day}: ${item.active} sinh viên`}
+                        title={`${dayName}: ${item.active} ${isVie ? 'sinh viên' : 'students'}`}
                       />
-                      <span className="text-[9px] text-slate-400 font-sans">{item.day}</span>
+                      <span className="text-[9px] text-slate-400 font-sans">{dayName}</span>
                     </div>
                   );
                 })}
@@ -472,17 +490,17 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 <div
                   style={{ width: `${(activeClass.maxCompleted / activeClass.totalStudents) * 100}%` }}
                   className="bg-emerald-500 h-full"
-                  title={`Đạt tối đa: ${activeClass.maxCompleted} SV`}
+                  title={`${isVie ? 'Đạt tối đa' : 'Passed'}: ${activeClass.maxCompleted} ${isVie ? 'SV' : 'students'}`}
                 />
                 <div
                   style={{ width: `${(activeClass.inProgress / activeClass.totalStudents) * 100}%` }}
                   className="bg-amber-400 h-full"
-                  title={`Đang làm: ${activeClass.inProgress} SV`}
+                  title={`${isVie ? 'Đang làm' : 'In Progress'}: ${activeClass.inProgress} ${isVie ? 'SV' : 'students'}`}
                 />
                 <div
                   style={{ width: `${(activeClass.notStarted / activeClass.totalStudents) * 100}%` }}
                   className="bg-rose-500/70 h-full"
-                  title={`Chưa nộp: ${activeClass.notStarted} SV`}
+                  title={`${isVie ? 'Chưa nộp' : 'Not Started'}: ${activeClass.notStarted} ${isVie ? 'SV' : 'students'}`}
                 />
               </div>
 
@@ -720,7 +738,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 {activeClass.gradeDistribution.map((grade, idx) => (
                   <div key={idx} className="space-y-1">
                     <div className="flex items-center justify-between text-xs font-medium font-sans">
-                      <span className="font-semibold">{grade.bracket}</span>
+                      <span className="font-semibold">{translateGradeBracket(grade.bracket, isVie)}</span>
                       <span className="text-slate-500 dark:text-slate-400 font-sans">
                         {grade.count} {isVie ? 'sinh viên' : 'students'} ({grade.percentage}%)
                       </span>
@@ -826,7 +844,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             </div>
                           </td>
                           <td className="py-3 px-4 text-indigo-600 dark:text-indigo-400 font-semibold font-sans">
-                            {sub.exerciseTitle}
+                            {translateExerciseTitle(sub.exerciseTitle, isVie)}
                           </td>
                           <td className="py-3 px-4 font-sans text-[11px] text-slate-500">
                             {sub.language}
@@ -864,7 +882,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             {sub.plagiarismScore}%
                           </td>
                           <td className="py-3 px-4 text-right text-slate-500 text-[11px] font-sans">
-                            {sub.timeAgo}
+                            {translateTimeAgo(sub.timeAgo, isVie)}
                           </td>
                           <td className="py-3 px-4 text-center">
                             <button
@@ -932,7 +950,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                               : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
                           }`}
                         >
-                          {ass.difficulty}
+                          {ass.difficulty === 'easy' ? (isVie ? 'Dễ' : 'Easy') : ass.difficulty === 'medium' ? (isVie ? 'Trung bình' : 'Medium') : (isVie ? 'Khó' : 'Hard')}
                         </span>
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-500/10 text-slate-400">
                           {ass.category}
@@ -945,9 +963,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       </span>
                     </div>
 
-                    <h4 className="font-bold text-base leading-snug font-sans">{ass.title}</h4>
+                    <h4 className="font-bold text-base leading-snug font-sans">{translateExerciseTitle(ass.title, isVie)}</h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed font-sans">
-                      {ass.description}
+                      {translateAssignmentDesc(ass.description, isVie)}
                     </p>
                   </div>
 
@@ -1105,7 +1123,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           </td>
 
                           <td className="py-3 px-4 text-indigo-600 dark:text-indigo-400 font-semibold truncate max-w-[150px] font-sans">
-                            {log.exerciseTitle}
+                            {translateExerciseTitle(log.exerciseTitle, isVie)}
                           </td>
 
                           <td className="py-3 px-4">
@@ -1115,12 +1133,25 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           </td>
 
                           <td className="py-3 px-4 max-w-xs font-sans">
-                            <div className="text-slate-700 dark:text-slate-300 italic truncate">
-                              "{log.studentPrompt}"
-                            </div>
-                            <div className="text-emerald-600 dark:text-emerald-400 text-[11px] truncate mt-0.5">
-                              🤖 {log.aiHintSummary}
-                            </div>
+                            {(() => {
+                              const s = translateLogSummary(
+                                log.id,
+                                log.studentPrompt,
+                                log.aiHintSummary,
+                                log.pedagogicalInsight,
+                                isVie
+                              );
+                              return (
+                                <>
+                                  <div className="text-slate-700 dark:text-slate-300 italic truncate">
+                                    "{s.prompt}"
+                                  </div>
+                                  <div className="text-emerald-600 dark:text-emerald-400 text-[11px] truncate mt-0.5">
+                                    🤖 {s.hint}
+                                  </div>
+                                </>
+                              );
+                            })()}
                           </td>
 
                           <td className="py-3 px-4 text-center">
@@ -1138,7 +1169,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           </td>
 
                           <td className="py-3 px-4 text-right text-slate-500 text-[11px] font-sans whitespace-nowrap">
-                            {log.timeAgo}
+                            {translateTimeAgo(log.timeAgo, isVie)}
                           </td>
 
                           <td className="py-3 px-4 text-center">
@@ -1283,7 +1314,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-slate-500 text-[11px] truncate max-w-[200px]">
-                          {st.recentActivity}
+                          {translateRecentActivity(st.recentActivity, isVie)}
                         </td>
                       </tr>
                     ))}

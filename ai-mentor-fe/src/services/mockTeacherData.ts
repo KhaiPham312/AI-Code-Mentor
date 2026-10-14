@@ -4,7 +4,9 @@ export interface ClassGroup {
   nameEng?: string;
   code: string;
   courseName: string;
+  courseNameEng?: string;
   term: string;
+  termEng?: string;
   totalStudents: number;
   activeStudents: number;
   activePercentage: number;
@@ -107,7 +109,9 @@ export const MOCK_CLASS_GROUPS: ClassGroup[] = [
     nameEng: 'Class K71A – Information Technology',
     code: 'COMP201_K71A',
     courseName: 'Cấu trúc dữ liệu (Data Structures)',
+    courseNameEng: 'Data Structures',
     term: 'Học kỳ 1 • 2026-2027',
+    termEng: 'Semester 1 • 2026-2027',
     totalStudents: 68,
     activeStudents: 64,
     activePercentage: 94.1,
@@ -147,7 +151,9 @@ export const MOCK_CLASS_GROUPS: ClassGroup[] = [
     nameEng: 'Class K72A – Computer Science',
     code: 'COMP202_K72A',
     courseName: 'Thuật toán (Algorithms)',
+    courseNameEng: 'Algorithms',
     term: 'Học kỳ 1 • 2026-2027',
+    termEng: 'Semester 1 • 2026-2027',
     totalStudents: 55,
     activeStudents: 53,
     activePercentage: 96.4,
@@ -187,7 +193,9 @@ export const MOCK_CLASS_GROUPS: ClassGroup[] = [
     nameEng: 'Class K73A – Information Technology',
     code: 'COMP104_K73A',
     courseName: 'Lập trình C++ (C++)',
+    courseNameEng: 'C++ Programming',
     term: 'Học kỳ 1 • 2026-2027',
+    termEng: 'Semester 1 • 2026-2027',
     totalStudents: 62,
     activeStudents: 58,
     activePercentage: 93.5,
@@ -227,7 +235,9 @@ export const MOCK_CLASS_GROUPS: ClassGroup[] = [
     nameEng: 'Class K73B – Computer Science',
     code: 'COMP105_K73B',
     courseName: 'Lập trình Python (Python)',
+    courseNameEng: 'Python Programming',
     term: 'Học kỳ 1 • 2026-2027',
+    termEng: 'Semester 1 • 2026-2027',
     totalStudents: 64,
     activeStudents: 59,
     activePercentage: 92.2,
@@ -867,3 +877,298 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     recentActivity: 'Nộp bài hôm qua',
   },
 ];
+
+// ==================== I18N LOCALIZATION MAPPERS & HELPERS ====================
+
+export const EXERCISE_TITLE_MAP: Record<string, string> = {
+  'Tìm số nguyên tố trong mảng': 'Find Prime Numbers in Array',
+  'Kiểm tra tính hợp lệ chuỗi ngoặc': 'Valid Parentheses Check',
+  'Tìm cặp số Two Sum': 'Two Sum Problem',
+  'Sắp xếp mảng bằng QuickSort': 'QuickSort Array Implementation',
+  'Tìm đường đi ngắn nhất Dijkstra': "Dijkstra's Shortest Path",
+  'Cây nhị phân tìm kiếm (BST)': 'Binary Search Tree (BST) Operations',
+  'Sắp xếp mảng QuickSort & MergeSort': 'QuickSort & MergeSort Implementation',
+  'Kiểm tra Đồ thị Hai phía (Bipartite Graph)': 'Bipartite Graph Verification',
+  'Bài 01: Tìm số nguyên tố trong mảng': 'Problem 01: Find Prime Numbers in Array',
+  'Bài 02: Kiểm tra tính hợp lệ chuỗi ngoặc': 'Problem 02: Valid Parentheses Check',
+  'Bài 03: Tìm cặp số Two Sum': 'Problem 03: Two Sum Problem',
+  'Bài 04: Sắp xếp mảng QuickSort & MergeSort': 'Problem 04: QuickSort & MergeSort Implementation',
+  'Bài 05: Kiểm tra Đồ thị Hai phía (Bipartite Graph)': 'Problem 05: Bipartite Graph Verification',
+};
+
+export const TIME_AGO_MAP: Record<string, string> = {
+  'Vừa xong': 'Just now',
+  '1 phút trước': '1 min ago',
+  '3 phút trước': '3 mins ago',
+  '6 phút trước': '6 mins ago',
+  '11 phút trước': '11 mins ago',
+  '12 phút trước': '12 mins ago',
+  '15 phút trước': '15 mins ago',
+  '22 phút trước': '22 mins ago',
+  '28 phút trước': '28 mins ago',
+  '45 phút trước': '45 mins ago',
+  '1 giờ trước': '1 hour ago',
+  '2 giờ trước': '2 hours ago',
+  'Hôm qua': 'Yesterday',
+};
+
+export const GRADE_BRACKET_MAP: Record<string, string> = {
+  '< 5.0 (Yếu)': '< 5.0 (Fail / Poor)',
+  '5.0 - 6.4 (TB)': '5.0 - 6.4 (Average)',
+  '6.5 - 7.9 (Khá)': '6.5 - 7.9 (Good)',
+  '8.0 - 8.9 (Giỏi)': '8.0 - 8.9 (Very Good)',
+  '9.0 - 10.0 (Xuất sắc)': '9.0 - 10.0 (Excellent)',
+};
+
+export const DAY_OF_WEEK_MAP: Record<string, string> = {
+  'T2': 'Mon',
+  'T3': 'Tue',
+  'T4': 'Wed',
+  'T5': 'Thu',
+  'T6': 'Fri',
+  'T7': 'Sat',
+  'CN': 'Sun',
+};
+
+export const ROSTER_ACTIVITY_MAP: Record<string, string> = {
+  'Nộp bài 01 đạt 10/10 (12 phút trước)': 'Submitted Problem 01: 10/10 (12 mins ago)',
+  'Nộp bài 02 đạt 10/10 (28 phút trước)': 'Submitted Problem 02: 10/10 (28 mins ago)',
+  'Nộp bài 03 đạt 10/10 (1 giờ trước)': 'Submitted Problem 03: 10/10 (1 hour ago)',
+  'Bị lỗi TLE Bài 01 (45 phút trước)': 'TLE on Problem 01 (45 mins ago)',
+  'Bế tắc Bài 03, hỏi AI 4 lần chưa giải xong': 'Stuck on Problem 03, 4 AI queries pending',
+  'Sai test case Bài 02 (15 phút trước)': 'Failed test case on Problem 02 (15 mins ago)',
+  'Đã hoàn thành 3/4 bài tập': 'Completed 3/4 assignments',
+  'Nộp bài hôm qua': 'Submitted yesterday',
+};
+
+export const ASSIGNMENT_DESC_MAP: Record<string, string> = {
+  'Viết chương trình tìm tất cả các số nguyên tố trong mảng số nguyên dương N phần tử. Tối ưu thuật toán kiểm tra số nguyên tố.':
+    'Write a program to find all prime numbers in an array of positive integers of length N. Optimize primality testing.',
+  'Sử dụng cấu trúc dữ liệu Ngăn xếp (Stack) để kiểm tra tính hợp lệ của chuỗi chứa các ký tự ngoặc đơn (), ngoặc vuông [], và ngoặc nhọn {}.':
+    'Use a Stack data structure to validate expressions containing parenthesis (), brackets [], and braces {}.',
+  'Cho mảng số nguyên nums và số nguyên target, tìm chỉ số của hai số sao cho tổng của chúng bằng target trong độ phức tạp thời gian O(N).':
+    'Given an integer array nums and target integer, find indices of the two numbers that sum up to target in O(N) time.',
+  'Cài đặt thuật toán chia để trị QuickSort và MergeSort. Đo lường số phép so sánh và thời gian thực thi trên mảng ngẫu nhiên 10^5 phần tử.':
+    'Implement QuickSort and MergeSort divide-and-conquer algorithms. Benchmark comparisons and runtime on 10^5 elements.',
+  'Áp dụng thuật toán tìm kiếm theo chiều rộng (BFS) hoặc DFS để tô màu 2 màu cho các đỉnh của đồ thị vô hướng.':
+    'Apply BFS or DFS traversal to determine if an undirected graph can be 2-colored (Bipartite graph verification).',
+};
+
+export const AI_LOG_SUMMARY_MAP: Record<string, { prompt: string; hint: string; insight: string }> = {
+  '1': {
+    prompt: "I'm encountering an error on line 6 inside the while loop, why is this happening?",
+    hint: 'Socratic guidance on array boundary N - 1 when inspecting arr[i+1], guiding student to adjust loop to i < len(arr) - 1.',
+    insight: 'Student understands adjacent element comparison concept but overlooked boundary index checks when i reaches array end.',
+  },
+  '2': {
+    prompt: 'I used a stack but test case "([)]" still returns True.',
+    hint: 'Prompted about LIFO order of the most recent opening bracket compared to the current closing bracket.',
+    insight: 'Student grasps stack mechanism but missed mapping dictionary verification between opening and closing brackets.',
+  },
+  '3': {
+    prompt: 'My function works for small numbers but times out on large test cases without completing.',
+    hint: 'Suggested checking divisors up to square root of n (isqrt) instead of linear scan to reduce Big-O from O(N) to O(sqrt(N)).',
+    insight: 'Student struggles with Big-O time complexity optimization. Submitted 5 consecutive times retaining O(N) loop.',
+  },
+  '4': {
+    prompt: 'Why is it giving a SyntaxError after the for statement?',
+    hint: 'Pointed out Python block syntax rules requiring a colon after control flow statements.',
+    insight: 'Basic syntax oversight caused by typing fast or transitioning from C++ to Python.',
+  },
+  '5': {
+    prompt: 'When array has duplicate values, my hash map overwrites the previous index.',
+    hint: 'Suggested checking if complement exists before recording current index into hash map.',
+    insight: 'Student pre-built entire dictionary rather than using a one-pass look-up-and-insert approach.',
+  },
+};
+
+export const AI_LOG_TRANSCRIPT_MAP: Record<string, TranscriptMessage[]> = {
+  '1': [
+    {
+      sender: 'student',
+      text: "I'm getting an IndexError: list index out of range on line 2, why is that?",
+      codeSnippet: 'if arr[i] > arr[i+1]:',
+      time: '14:20',
+    },
+    {
+      sender: 'ai',
+      text: "Hello! Let's examine the value of `i` during the last iteration. When `i = len(arr) - 1`, what will `i + 1` evaluate to? Does that index exist in the array?",
+      time: '14:21',
+    },
+    {
+      sender: 'student',
+      text: "Oh! At that point i + 1 equals len(arr), which exceeds the array length!",
+      time: '14:23',
+    },
+    {
+      sender: 'ai',
+      text: "Spot on! So how would you adjust the `range(...)` bounds so that `i + 1` never exceeds the last element?",
+      time: '14:24',
+    },
+    {
+      sender: 'student',
+      text: "I changed it to range(len(arr) - 1) and passed 10/10 test cases now. Thanks bot!",
+      time: '14:26',
+    },
+  ],
+  '2': [
+    {
+      sender: 'student',
+      text: 'I used a stack but test case "([)]" still returns True.',
+      time: '14:02',
+    },
+    {
+      sender: 'ai',
+      text: "When encountering closing bracket `]`, what is the top element of the stack (most recent open bracket)? Does it match the type of `]`?",
+      time: '14:03',
+    },
+    {
+      sender: 'student',
+      text: "The top of the stack is `(`, which does not match `]`!",
+      time: '14:05',
+    },
+    {
+      sender: 'ai',
+      text: "Correct! In nested brackets, the nearest open bracket must close first. You can use a mapping dictionary to check matching pairs.",
+      time: '14:06',
+    },
+    {
+      sender: 'student',
+      text: "Added the mapping dict and all test cases passed!",
+      time: '14:10',
+    },
+  ],
+  '3': [
+    {
+      sender: 'student',
+      text: "I hit Time Limit Exceeded on test case 8, but my algorithm logic seems right?",
+      time: '13:40',
+    },
+    {
+      sender: 'ai',
+      text: "Your logic produces correct outputs, but with n = 1,000,000, `for i in range(2, n)` runs 1 million times. If n is composite, can its smallest factor exceed sqrt(n)?",
+      time: '13:42',
+    },
+    {
+      sender: 'student',
+      text: "Why square root of n? My professor hasn't covered this mathematical property yet.",
+      time: '13:45',
+    },
+    {
+      sender: 'ai',
+      text: "If n = a * b and both a and b were greater than sqrt(n), their product a * b would exceed n (contradiction). Hence at least one factor <= sqrt(n). Try using `math.isqrt(n)`!",
+      time: '13:47',
+    },
+    {
+      sender: 'student',
+      text: "Added math.isqrt but got NameError because I haven't imported math. Fixing it now.",
+      time: '13:52',
+    },
+  ],
+  '4': [
+    {
+      sender: 'student',
+      text: "Why does it report SyntaxError after the for loop?",
+      codeSnippet: 'for i in range(len(nums))',
+      time: '13:10',
+    },
+    {
+      sender: 'ai',
+      text: "In Python, after control flow statements like `for`, `if`, `while`, `def`, which character is required to open a block?",
+      time: '13:11',
+    },
+    {
+      sender: 'student',
+      text: "Ah! I forgot the colon `:`!",
+      time: '13:12',
+    },
+  ],
+  '5': [
+    {
+      sender: 'student',
+      text: "When the array has duplicate values, my hash map overwrites indices. Two Sum has test [3, 3] with target 6.",
+      time: '12:20',
+    },
+    {
+      sender: 'ai',
+      text: "Instead of pre-populating the dictionary for all elements, what happens if you check whether `target - num` is already present while iterating through each element?",
+      time: '12:22',
+    },
+  ],
+};
+
+export function translateExerciseTitle(title: string, isVie: boolean): string {
+  if (isVie) return title;
+  return EXERCISE_TITLE_MAP[title] || title;
+}
+
+export function translateTimeAgo(time: string, isVie: boolean): string {
+  if (isVie) return time;
+  if (TIME_AGO_MAP[time]) return TIME_AGO_MAP[time];
+  const minuteMatch = time.match(/(\d+)\s*phút\s*trước/i);
+  if (minuteMatch) {
+    const mins = minuteMatch[1];
+    return `${mins} min${Number(mins) > 1 ? 's' : ''} ago`;
+  }
+  const hourMatch = time.match(/(\d+)\s*giờ\s*trước/i);
+  if (hourMatch) {
+    const hrs = hourMatch[1];
+    return `${hrs} hour${Number(hrs) > 1 ? 's' : ''} ago`;
+  }
+  if (time.toLowerCase().includes('hôm qua')) return 'Yesterday';
+  if (time.toLowerCase().includes('vừa xong')) return 'Just now';
+  return time;
+}
+
+export function translateGradeBracket(bracket: string, isVie: boolean): string {
+  if (isVie) return bracket;
+  return GRADE_BRACKET_MAP[bracket] || bracket;
+}
+
+export function translateDayOfWeek(day: string, isVie: boolean): string {
+  if (isVie) return day;
+  return DAY_OF_WEEK_MAP[day] || day;
+}
+
+export function translateRecentActivity(act: string, isVie: boolean): string {
+  if (isVie) return act;
+  return ROSTER_ACTIVITY_MAP[act] || act;
+}
+
+export function translateAssignmentDesc(desc: string, isVie: boolean): string {
+  if (isVie) return desc;
+  return ASSIGNMENT_DESC_MAP[desc] || desc;
+}
+
+export function translateLogSummary(
+  id: number | string,
+  fallbackPrompt: string,
+  fallbackHint: string,
+  fallbackInsight: string,
+  isVie: boolean
+) {
+  if (isVie) {
+    return {
+      prompt: fallbackPrompt,
+      hint: fallbackHint,
+      insight: fallbackInsight,
+    };
+  }
+  const mapped = AI_LOG_SUMMARY_MAP[String(id)];
+  return {
+    prompt: mapped ? mapped.prompt : fallbackPrompt,
+    hint: mapped ? mapped.hint : fallbackHint,
+    insight: mapped ? mapped.insight : fallbackInsight,
+  };
+}
+
+export function translateTranscript(
+  id: number | string,
+  messages: TranscriptMessage[],
+  isVie: boolean
+): TranscriptMessage[] {
+  if (isVie) return messages;
+  const mapped = AI_LOG_TRANSCRIPT_MAP[String(id)];
+  return mapped || messages;
+}
+

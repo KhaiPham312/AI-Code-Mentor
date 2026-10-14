@@ -177,7 +177,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               >
                 {isVie
                   ? 'Thiết lập yêu cầu thuật toán, cấu hình AI Mentor & Test Cases'
-                  : 'Define algorithmic requirements, AI Mentor rules & Test Cases'}
+                  : 'Configure algorithm requirements, AI Socratic rules & test cases'}
               </p>
             </div>
           </div>
@@ -200,7 +200,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
           {/* Title */}
           <div>
             <label className="block font-bold mb-1">
-              {isVie ? 'Tiêu đề bài tập:' : 'Assignment Title:'}
+              {isVie ? 'Tiêu đề bài tập:' : 'Problem Title:'}
             </label>
             <input
               type="text"
@@ -220,7 +220,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block font-bold mb-1 font-sans">
-                {isVie ? 'Danh mục chủ đề (Khóa học):' : 'Category (Course):'}
+                {isVie ? 'Danh mục chủ đề (Khóa học):' : 'Topic / Course:'}
               </label>
               <select
                 value={category}
@@ -252,15 +252,15 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
                 }`}
               >
-                <option value="easy">Cơ bản (Easy)</option>
-                <option value="medium">Trung bình (Medium)</option>
-                <option value="hard">Nâng cao (Hard)</option>
+                <option value="easy">{isVie ? 'Cơ bản (Easy)' : 'Easy'}</option>
+                <option value="medium">{isVie ? 'Trung bình (Medium)' : 'Medium'}</option>
+                <option value="hard">{isVie ? 'Nâng cao (Hard)' : 'Hard'}</option>
               </select>
             </div>
 
             <div>
               <label className="block font-bold mb-1 font-sans">
-                {isVie ? 'Lớp áp dụng:' : 'Assigned Class:'}
+                {isVie ? 'Lớp áp dụng:' : 'Target Class:'}
               </label>
               <select
                 value={targetClass}
@@ -271,11 +271,11 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
                 }`}
               >
-                <option value="K71A-CNTT">Lớp K71A - Công nghệ Thông tin (Cấu trúc dữ liệu)</option>
-                <option value="K72A-KHMT">Lớp K72A - Khoa học Máy tính (Thuật toán)</option>
-                <option value="K73A-CNTT">Lớp K73A - Công nghệ Thông tin (Lập trình C++)</option>
-                <option value="K73B-KHMT">Lớp K73B - Khoa học Máy tính (Lập trình Python)</option>
-                <option value="ALL">Tất cả các lớp</option>
+                <option value="K71A-CNTT">{isVie ? 'Lớp K71A – Công nghệ Thông tin (Cấu trúc dữ liệu)' : 'Class K71A – Information Technology (Data Structures)'}</option>
+                <option value="K72A-KHMT">{isVie ? 'Lớp K72A – Khoa học Máy tính (Thuật toán)' : 'Class K72A – Computer Science (Algorithms)'}</option>
+                <option value="K73A-CNTT">{isVie ? 'Lớp K73A – Công nghệ Thông tin (Lập trình C++)' : 'Class K73A – Information Technology (C++ Programming)'}</option>
+                <option value="K73B-KHMT">{isVie ? 'Lớp K73B – Khoa học Máy tính (Lập trình Python)' : 'Class K73B – Computer Science (Python Programming)'}</option>
+                <option value="ALL">{isVie ? 'Tất cả các lớp' : 'All Classes'}</option>
               </select>
             </div>
           </div>
@@ -302,7 +302,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
             <div>
               <label className="block font-bold mb-1 flex items-center gap-1.5 font-sans">
                 <Code className="w-3.5 h-3.5 text-emerald-500" />
-                <span>{isVie ? 'Ngôn ngữ lập trình chính:' : 'Primary Language:'}</span>
+                <span>{isVie ? 'Ngôn ngữ lập trình chính:' : 'Primary Programming Language:'}</span>
               </label>
               <select
                 value={primaryLanguage}
@@ -348,7 +348,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
             }`}
           >
             <span className="font-bold text-[11px] uppercase tracking-wider block text-indigo-400">
-              {isVie ? 'Chính sách giám sát AI & Chống gian lận' : 'AI Policy & Integrity Rules'}
+              {isVie ? 'Chính sách giám sát AI & Chống gian lận' : 'AI SUPERVISION & ANTI-CHEATING POLICY'}
             </span>
 
             <div className="flex items-center justify-between">
@@ -378,7 +378,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
                 <ShieldCheck className="w-4 h-4 text-cyan-500" />
                 <div>
                   <span className="font-semibold block">
-                    {isVie ? 'Kiểm tra đạo văn & độ tương đồng code' : 'Code Similarity & Plagiarism Scan'}
+                    {isVie ? 'Kiểm tra đạo văn & độ tương đồng code' : 'Enable Plagiarism & Code Similarity Check'}
                   </span>
                   <span className="text-[10px] text-slate-400 block">
                     {isVie
@@ -514,7 +514,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               className="px-5 py-2 rounded-lg font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-md shadow-indigo-900/30 flex items-center gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{isVie ? 'Lưu & Phát hành bài tập' : 'Save & Publish Assignment'}</span>
+              <span>{isVie ? 'Lưu & Phát hành bài tập' : 'Publish Assignment'}</span>
             </button>
           </div>
         </form>

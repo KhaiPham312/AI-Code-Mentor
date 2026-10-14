@@ -1,5 +1,11 @@
 import React from 'react';
-import { StudentAIAuditLog } from '../../services/mockTeacherData';
+import {
+  StudentAIAuditLog,
+  translateExerciseTitle,
+  translateTimeAgo,
+  translateLogSummary,
+  translateTranscript,
+} from '../../services/mockTeacherData';
 import { Language, ThemeMode } from '../dashboard/dashboardI18n';
 import {
   X,
@@ -80,7 +86,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
                   isDark ? 'text-slate-400' : 'text-neutral-500'
                 }`}
               >
-                {log.studentName} ({log.studentId}) • {log.timeAgo}
+                {log.studentName} ({log.studentId}) • {translateTimeAgo(log.timeAgo, isVie)}
               </p>
             </div>
           </div>
@@ -117,7 +123,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
                 >
                   {isVie ? 'Bài tập đang thực hành' : 'Current Exercise'}
                 </span>
-                <h4 className="text-sm font-bold mt-0.5">{log.exerciseTitle}</h4>
+                <h4 className="text-sm font-bold mt-0.5">{translateExerciseTitle(log.exerciseTitle, isVie)}</h4>
               </div>
               {onPreviewStudentIDE && (
                 <button
@@ -171,7 +177,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
               <span>{isVie ? 'Phân tích Tư duy Sư phạm (AI Insights)' : 'Pedagogical Evaluation'}</span>
             </div>
             <p className="text-xs leading-relaxed font-sans opacity-95">
-              {log.pedagogicalInsight}
+              {translateLogSummary(log.id, log.studentPrompt, log.aiHintSummary, log.pedagogicalInsight, isVie).insight}
             </p>
           </div>
 
@@ -203,7 +209,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
             </h4>
 
             <div className="space-y-4">
-              {log.transcript.map((msg, idx) => (
+              {translateTranscript(log.id, log.transcript, isVie).map((msg, idx) => (
                 <div
                   key={idx}
                   className={`flex flex-col ${
