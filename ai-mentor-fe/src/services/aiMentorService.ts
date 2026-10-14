@@ -1,5 +1,5 @@
 import { api } from './apiClient';
-import { AIMessage, QuickPrompt } from '../types/ai';
+import { AIMessage } from '../types/ai';
 
 export interface BackendChatResponse {
   id: number;

@@ -13,6 +13,88 @@ import {
   AUTH_UNAUTHORIZED_EVENT,
 } from './services/apiClient';
 
+function parseInitialNavigationState() {
+  const hash = typeof window !== 'undefined' ? window.location.hash : '';
+  const savedView = typeof localStorage !== 'undefined' ? localStorage.getItem('ai_mentor_current_view') : null;
+  const savedCourseId = typeof localStorage !== 'undefined' ? localStorage.getItem('ai_mentor_selected_course_id') : null;
+  const savedExerciseIdStr = typeof localStorage !== 'undefined' ? localStorage.getItem('ai_mentor_selected_exercise_id') : null;
+  const savedExerciseId = savedExerciseIdStr ? parseInt(savedExerciseIdStr, 10) : 1;
+
+  // 1. Hash-based resolution
+  if (hash.startsWith('#/workspace/')) {
+    const rawId = hash.replace('#/workspace/', '').trim();
+    const match = rawId.match(/(\d+)/);
+    const parsedId = match ? parseInt(match[1], 10) : savedExerciseId;
+    return {
+      view: 'ide' as const,
+      exerciseId: isNaN(parsedId) ? 1 : parsedId,
+      trackId: savedCourseId || null,
+    };
+  }
+
+  if (hash.startsWith('#/course/')) {
+    const track = hash.replace('#/course/', '').trim();
+    return {
+      view: 'dashboard' as const,
+      exerciseId: savedExerciseId || 1,
+      trackId: track || null,
+    };
+  }
+
+  if (hash.startsWith('#/submissions')) {
+    return {
+      view: 'submissions' as const,
+      exerciseId: savedExerciseId || 1,
+      trackId: savedCourseId || null,
+    };
+  }
+
+  if (hash.startsWith('#/settings')) {
+    return {
+      view: 'settings' as const,
+      exerciseId: savedExerciseId || 1,
+      trackId: savedCourseId || null,
+    };
+  }
+
+  if (hash.startsWith('#/teacher')) {
+    return {
+      view: 'dashboard' as const,
+      exerciseId: savedExerciseId || 1,
+      trackId: null,
+    };
+  }
+
+  // 2. LocalStorage-based fallback
+  if (savedView === 'ide') {
+    return {
+      view: 'ide' as const,
+      exerciseId: savedExerciseId || 1,
+      trackId: savedCourseId || null,
+    };
+  }
+  if (savedView === 'submissions') {
+    return {
+      view: 'submissions' as const,
+      exerciseId: savedExerciseId || 1,
+      trackId: savedCourseId || null,
+    };
+  }
+  if (savedView === 'settings') {
+    return {
+      view: 'settings' as const,
+      exerciseId: savedExerciseId || 1,
+      trackId: savedCourseId || null,
+    };
+  }
+
+  return {
+    view: 'dashboard' as const,
+    exerciseId: savedExerciseId || 1,
+    trackId: savedCourseId || null,
+  };
+}
+
 export function App() {
   // Current user state with localStorage initialization
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
@@ -27,11 +109,13 @@ export function App() {
     return null;
   });
 
+  const initialNav = parseInitialNavigationState();
+
   // Main view router: 'dashboard' | 'ide' | 'settings' | 'submissions'
-  const [currentView, setCurrentView] = useState<'dashboard' | 'ide' | 'settings' | 'submissions'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'ide' | 'settings' | 'submissions'>(initialNav.view);
   const [settingsTab, setSettingsTab] = useState<'profile' | 'password' | 'appearance'>('profile');
-  const [selectedExerciseId, setSelectedExerciseId] = useState<number>(1);
-  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
+  const [selectedExerciseId, setSelectedExerciseId] = useState<number>(initialNav.exerciseId);
+  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(initialNav.trackId);
 
   // Global Language state
   const [currentLang, setCurrentLang] = useState<Language>(() => {
@@ -70,6 +154,50 @@ export function App() {
     }
   }, [currentTheme]);
 
+  // Sync view state to localStorage & URL Hash
+  useEffect(() => {
+    if (!currentUser) return;
+
+    try {
+      localStorage.setItem('ai_mentor_current_view', currentView);
+
+      if (currentView === 'ide') {
+        localStorage.setItem('ai_mentor_selected_exercise_id', String(selectedExerciseId));
+        window.history.replaceState(null, '', `#/workspace/${selectedExerciseId}`);
+      } else if (currentView === 'submissions') {
+        window.history.replaceState(null, '', `#/submissions`);
+      } else if (currentView === 'settings') {
+        window.history.replaceState(null, '', `#/settings`);
+      } else if (currentView === 'dashboard') {
+        if (currentUser.role === 'teacher') {
+          const teacherTab = localStorage.getItem('ai_mentor_teacher_tab') || 'analytics';
+          window.history.replaceState(null, '', `#/teacher/${teacherTab}`);
+        } else if (selectedTrackId) {
+          localStorage.setItem('ai_mentor_selected_course_id', selectedTrackId);
+          window.history.replaceState(null, '', `#/course/${selectedTrackId}`);
+        } else {
+          localStorage.removeItem('ai_mentor_selected_course_id');
+          window.history.replaceState(null, '', `#/dashboard`);
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }, [currentView, selectedExerciseId, selectedTrackId, currentUser]);
+
+  // Listen for hashchange events (back / forward buttons)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const state = parseInitialNavigationState();
+      setCurrentView(state.view);
+      setSelectedExerciseId(state.exerciseId);
+      setSelectedTrackId(state.trackId);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   const handleLanguageChange = (lang: Language) => {
     setCurrentLang(lang);
     try {
@@ -107,8 +235,14 @@ export function App() {
     clearAuthSession();
     localStorage.removeItem('auth_token');
     localStorage.removeItem('ai_mentor_user');
+    localStorage.removeItem('ai_mentor_current_view');
+    localStorage.removeItem('ai_mentor_selected_course_id');
+    localStorage.removeItem('ai_mentor_selected_exercise_id');
+    localStorage.removeItem('ai_mentor_teacher_tab');
+    window.history.replaceState(null, '', `#/`);
     setCurrentUser(null);
     setCurrentView('dashboard');
+    setSelectedTrackId(null);
   };
 
   const handleUpdateUser = (updatedUser: User) => {
@@ -123,6 +257,13 @@ export function App() {
   const handleOpenIDE = (exerciseId: number = 1) => {
     setSelectedExerciseId(exerciseId);
     setCurrentView('ide');
+    try {
+      localStorage.setItem('ai_mentor_current_view', 'ide');
+      localStorage.setItem('ai_mentor_selected_exercise_id', String(exerciseId));
+      window.history.replaceState(null, '', `#/workspace/${exerciseId}`);
+    } catch {
+      // Ignore
+    }
   };
 
   const handleOpenSettings = (tab: 'profile' | 'password' | 'appearance' = 'profile') => {
@@ -137,8 +278,20 @@ export function App() {
   const handleBackToDashboard = (trackId?: string) => {
     if (trackId) {
       setSelectedTrackId(trackId);
+      try {
+        localStorage.setItem('ai_mentor_selected_course_id', trackId);
+        window.history.replaceState(null, '', `#/course/${trackId}`);
+      } catch {
+        // Ignore
+      }
     } else {
       setSelectedTrackId(null);
+      try {
+        localStorage.removeItem('ai_mentor_selected_course_id');
+        window.history.replaceState(null, '', `#/dashboard`);
+      } catch {
+        // Ignore
+      }
     }
     setCurrentView('dashboard');
   };
@@ -216,6 +369,7 @@ export function App() {
       onOpenSettings={handleOpenSettings}
       onOpenSubmissions={handleOpenSubmissions}
       initialTrackId={selectedTrackId}
+      onTrackChange={(trackId) => setSelectedTrackId(trackId)}
       currentLang={currentLang}
       onLanguageChange={handleLanguageChange}
       currentTheme={currentTheme}

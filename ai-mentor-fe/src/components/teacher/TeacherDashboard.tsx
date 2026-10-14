@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { User } from '../../types/auth';
 import {
   MOCK_CLASS_GROUPS,
@@ -32,7 +32,6 @@ import {
   BarChart3,
   Sun,
   Moon,
-  Globe,
 } from 'lucide-react';
 
 interface TeacherDashboardProps {
@@ -57,8 +56,19 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const isDark = currentTheme === 'dark';
   const isVie = currentLang === 'vie';
 
-  // 1. Global Class Selector
-  const [selectedClassId, setSelectedClassId] = useState<string>('K71A-CNTT');
+  // 1. Global Class Selector (with localStorage persistence)
+  const [selectedClassId, setSelectedClassId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('ai_mentor_teacher_class_id');
+      if (saved && MOCK_CLASS_GROUPS.some((c) => c.id === saved)) {
+        return saved;
+      }
+    } catch {
+      // Ignore
+    }
+    return 'K71A-CNTT';
+  });
+
   const activeClass = useMemo(() => {
     return (
       MOCK_CLASS_GROUPS.find((c) => c.id === selectedClassId) ||
@@ -66,8 +76,44 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     );
   }, [selectedClassId]);
 
-  // 2. Tab Navigation: 'analytics' | 'assignments' | 'logs' | 'roster'
-  const [activeTab, setActiveTab] = useState<'analytics' | 'assignments' | 'logs' | 'roster'>('analytics');
+  // Sync selectedClassId to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('ai_mentor_teacher_class_id', selectedClassId);
+    } catch {
+      // Ignore
+    }
+  }, [selectedClassId]);
+
+  // 2. Tab Navigation: 'analytics' | 'assignments' | 'logs' | 'roster' (with hash & localStorage persistence)
+  const [activeTab, setActiveTab] = useState<'analytics' | 'assignments' | 'logs' | 'roster'>(() => {
+    try {
+      const hash = window.location.hash;
+      if (hash.startsWith('#/teacher/')) {
+        const tab = hash.replace('#/teacher/', '') as any;
+        if (['analytics', 'assignments', 'logs', 'roster'].includes(tab)) {
+          return tab;
+        }
+      }
+      const saved = localStorage.getItem('ai_mentor_teacher_tab');
+      if (saved && ['analytics', 'assignments', 'logs', 'roster'].includes(saved)) {
+        return saved as any;
+      }
+    } catch {
+      // Ignore
+    }
+    return 'analytics';
+  });
+
+  // Sync activeTab to localStorage and URL hash
+  useEffect(() => {
+    try {
+      localStorage.setItem('ai_mentor_teacher_tab', activeTab);
+      window.history.replaceState(null, '', `#/teacher/${activeTab}`);
+    } catch {
+      // Ignore
+    }
+  }, [activeTab]);
 
   // 3. Modals & Drawers state
   const [selectedLogForTranscript, setSelectedLogForTranscript] = useState<StudentAIAuditLog | null>(null);
@@ -180,85 +226,91 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     >
       {/* ================= 1. HEADER & GLOBAL CONTROL BAR ================= */}
       <header
-        className={`h-16 px-4 sm:px-6 border-b flex items-center justify-between sticky top-0 z-30 transition-colors ${
+        className={`h-16 px-4 sm:px-6 border-b flex items-center justify-between gap-6 w-full sticky top-0 z-30 transition-colors ${
           isDark
             ? 'bg-[#0c1626]/95 border-slate-800 backdrop-blur-md'
             : 'bg-white/95 border-slate-200 backdrop-blur-md'
         }`}
       >
-        {/* LEFT: Brand Logo & Class Selector Dropdown */}
-        <div className="flex items-center space-x-3 sm:space-x-5 min-w-0">
+        {/* Khối bên trái: Logo + Divider + Dropdown chọn lớp */}
+        <div className="flex items-center gap-4 min-w-0">
+          {/* Cụm Logo + Tên thương hiệu */}
           <div className="flex items-center space-x-2.5 shrink-0">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#1BA94C] to-[#00EA64] flex items-center justify-center font-bold text-white shadow-md">
-              <span className="font-mono text-lg font-black">H</span>
+              <span className="font-sans text-lg font-black">H</span>
             </div>
             <div className="hidden sm:block">
-              <div className="flex items-center space-x-2">
-                <span className="font-black text-sm tracking-tight font-sans">
-                  AI CODE MENTOR
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-mono">
-                  {isVie ? 'Cổng Giảng Viên' : 'Instructor Portal'}
-                </span>
-              </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 block -mt-0.5 truncate">
-                HNUE • {isVie ? 'Quản lý & Giám sát AI Socratic' : 'EdTech Classroom Supervision'}
+              <span className="font-black text-sm tracking-tight font-sans block">
+                AI CODE MENTOR
+              </span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block -mt-0.5 truncate font-sans">
+                {isVie ? 'Trường Đại học Sư phạm Hà Nội' : 'Hanoi National University of Education'}
               </span>
             </div>
           </div>
 
-          <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
+          {/* Đường kẻ dọc ngăn cách */}
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 shrink-0 hidden sm:block" />
 
-          {/* Class Selector Dropdown */}
-          <div className="relative group min-w-0">
-            <div className="flex items-center space-x-1.5">
-              <select
-                value={selectedClassId}
-                onChange={(e) => setSelectedClassId(e.target.value)}
-                aria-label="Chọn lớp học"
-                className={`appearance-none text-xs sm:text-sm font-bold rounded-xl px-3 py-1.5 pr-8 cursor-pointer border transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  isDark
-                    ? 'bg-[#15233c] text-white border-slate-700 hover:border-indigo-500'
-                    : 'bg-slate-100 text-neutral-900 border-slate-300 hover:border-indigo-500 shadow-xs'
-                }`}
-              >
-                {MOCK_CLASS_GROUPS.map((cls) => (
-                  <option key={cls.id} value={cls.id} className="py-1">
-                    {cls.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
-            </div>
+          {/* Khung bọc Dropdown chọn lớp */}
+          <div className="relative w-auto max-w-[260px] md:max-w-[300px] shrink min-w-0">
+            <select
+              value={selectedClassId}
+              onChange={(e) => setSelectedClassId(e.target.value)}
+              aria-label={isVie ? 'Chọn lớp học' : 'Select class'}
+              className="w-full max-w-[260px] md:max-w-[300px] truncate pl-4 pr-9 py-2 rounded-full text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 appearance-none cursor-pointer font-sans transition-colors"
+            >
+              {MOCK_CLASS_GROUPS.map((cls) => (
+                <option key={cls.id} value={cls.id} className="py-1">
+                  {isVie ? cls.name : (cls.nameEng || cls.name)}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
 
-        {/* RIGHT: Language Toggle, Theme Toggle, CTA New Assignment & Teacher Profile */}
-        <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-          {/* Language Toggle [ VIE | ENG ] */}
+        {/* Khối bên phải: VIE | ENG, Theme Toggle, CTA New Assignment & Teacher Profile */}
+        <div className="flex items-center gap-3 shrink-0 ml-auto">
+          {/* Cụm nút chuyển đổi ngôn ngữ VIE | ENG */}
           {onLanguageChange && (
-            <button
-              type="button"
-              onClick={() => onLanguageChange(isVie ? 'eng' : 'vie')}
-              title={isVie ? 'Switch to English' : 'Chuyển sang Tiếng Việt'}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border transition flex items-center gap-1.5 ${
-                isDark
-                  ? 'border-slate-700 hover:bg-slate-800 text-slate-300'
-                  : 'border-slate-300 hover:bg-slate-100 text-neutral-700'
-              }`}
+            <div
+              role="group"
+              aria-label="Language Selector"
+              className="shrink-0 flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-full border border-slate-200 dark:border-slate-700 font-sans"
             >
-              <Globe className="w-3.5 h-3.5 text-indigo-500" />
-              <span>{isVie ? 'VIE' : 'ENG'}</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => onLanguageChange('vie')}
+                className={`transition-all duration-150 ${
+                  isVie
+                    ? 'bg-[#16a34a] text-white font-semibold px-3 py-1 rounded-full text-xs shadow-sm transition-all'
+                    : 'text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-medium hover:text-slate-900 dark:hover:text-white transition-all'
+                }`}
+              >
+                VIE
+              </button>
+              <button
+                type="button"
+                onClick={() => onLanguageChange('eng')}
+                className={`transition-all duration-150 ${
+                  !isVie
+                    ? 'bg-[#16a34a] text-white font-semibold px-3 py-1 rounded-full text-xs shadow-sm transition-all'
+                    : 'text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-medium hover:text-slate-900 dark:hover:text-white transition-all'
+                }`}
+              >
+                ENG
+              </button>
+            </div>
           )}
 
-          {/* Theme Toggle Button */}
+          {/* Nút chuyển đổi Dark/Light mode */}
           {onThemeToggle && (
             <button
               type="button"
               onClick={onThemeToggle}
-              title={isDark ? 'Chuyển sang Theme Sáng' : 'Chuyển sang Theme Tối'}
-              className={`p-2 rounded-lg border transition ${
+              title={isDark ? (isVie ? 'Chuyển sang Theme Sáng' : 'Switch to Light Theme') : (isVie ? 'Chuyển sang Theme Tối' : 'Switch to Dark Theme')}
+              className={`shrink-0 p-2 rounded-lg border transition ${
                 isDark
                   ? 'border-slate-700 hover:bg-slate-800 text-amber-400'
                   : 'border-slate-300 hover:bg-slate-100 text-slate-700'
@@ -268,20 +320,20 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </button>
           )}
 
-          {/* CTA: Giao bài tập mới */}
+          {/* Nút + Giao bài tập mới */}
           <button
             type="button"
             onClick={() => setIsCreateAssignmentOpen(true)}
-            className="hidden sm:flex items-center space-x-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-900/30 transition active:scale-95 cursor-pointer"
+            className="shrink-0 hidden sm:flex items-center space-x-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-900/30 transition active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>{isVie ? 'Giao bài tập mới' : 'New Assignment'}</span>
           </button>
 
-          <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 shrink-0 hidden sm:block" />
 
-          {/* Teacher Profile Card */}
-          <div className="flex items-center space-x-2.5">
+          {/* Cụm Avatar + Tên giảng viên TS. Phạm Văn Khải + Nút Đăng xuất */}
+          <div className="shrink-0 flex items-center space-x-2.5">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
               PK
             </div>
@@ -314,16 +366,16 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           isDark ? 'bg-[#0d1829] border-slate-800/80 text-slate-300' : 'bg-slate-100/80 border-slate-200 text-neutral-700'
         }`}
       >
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 font-sans">
           <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
           <span className="font-bold">{activeClass.courseName}</span>
           <span>•</span>
-          <span className="text-slate-500 dark:text-slate-400 font-mono">{activeClass.code}</span>
+          <span className="text-slate-500 dark:text-slate-400 font-sans font-medium">{activeClass.code}</span>
           <span>•</span>
           <span className="text-slate-500 dark:text-slate-400">{activeClass.term}</span>
         </div>
 
-        <div className="flex items-center space-x-3 text-[11px] font-medium">
+        <div className="flex items-center space-x-3 text-[11px] font-medium font-sans">
           <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>{activeClass.activeStudents} / {activeClass.totalStudents} {isVie ? 'sinh viên online' : 'active students'}</span>
@@ -344,7 +396,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans">
                 {isVie ? 'Tổng sinh viên & Tỷ lệ học' : 'Enrolled & Active'}
               </span>
               <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
@@ -356,19 +408,19 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <span className="text-3xl font-black font-sans tracking-tight">
                 {activeClass.totalStudents}
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-sans">
                 {isVie ? 'sinh viên' : 'students'}
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 ml-auto">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 ml-auto font-sans">
                 {activeClass.activePercentage}% {isVie ? 'hoạt động' : 'active'}
               </span>
             </div>
 
             {/* 7-Day Mini Sparkline Bars */}
             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mb-1.5 flex justify-between">
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mb-1.5 flex justify-between font-sans">
                 <span>{isVie ? 'Đăng nhập 7 ngày qua' : '7-Day Activity'}</span>
-                <span className="font-mono text-emerald-500">Peak: 68 SV</span>
+                <span className="font-sans font-semibold text-emerald-500">Peak: 68 SV</span>
               </div>
               <div className="flex items-end justify-between gap-1.5 h-8">
                 {activeClass.weeklyLogins.map((item, idx) => {
@@ -380,7 +432,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         className="w-full rounded-xs bg-indigo-500/70 group-hover:bg-[#00EA64] transition-all cursor-pointer"
                         title={`${item.day}: ${item.active} sinh viên`}
                       />
-                      <span className="text-[9px] text-slate-400 font-mono">{item.day}</span>
+                      <span className="text-[9px] text-slate-400 font-sans">{item.day}</span>
                     </div>
                   );
                 })}
@@ -531,7 +583,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       setLogErrorFilter(err.name);
                       setActiveTab('logs');
                     }}
-                    className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition cursor-pointer"
+                    className="px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition cursor-pointer"
                   >
                     {err.name} ({err.percentage}%)
                   </button>
@@ -552,7 +604,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('analytics')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer font-sans ${
                 activeTab === 'analytics'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-900/40'
                   : isDark
@@ -567,7 +619,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('assignments')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer font-sans ${
                 activeTab === 'assignments'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-900/40'
                   : isDark
@@ -577,7 +629,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             >
               <BookOpen className="w-4 h-4" />
               <span>{isVie ? 'Quản lý bài tập & Đề thi' : 'Assignments & Tests'}</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/20">
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-sans font-bold bg-white/20">
                 {assignments.length}
               </span>
             </button>
@@ -585,7 +637,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('logs')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer font-sans ${
                 activeTab === 'logs'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-900/40'
                   : isDark
@@ -596,7 +648,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <MessageSquare className="w-4 h-4" />
               <span>{isVie ? 'Nhật ký Giám sát AI' : 'AI Audit Log'}</span>
               {activeClass.stuckStudentsCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-rose-500 text-white animate-pulse">
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-sans font-bold bg-rose-500 text-white animate-pulse">
                   {activeClass.stuckStudentsCount}
                 </span>
               )}
@@ -605,7 +657,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('roster')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer font-sans ${
                 activeTab === 'roster'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-900/40'
                   : isDark
@@ -615,7 +667,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             >
               <Users className="w-4 h-4" />
               <span>{isVie ? 'Danh sách sinh viên & Điểm số' : 'Roster & Grades'}</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/20">
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-sans font-bold bg-white/20">
                 {activeClass.totalStudents}
               </span>
             </button>
@@ -667,9 +719,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <div className="space-y-3 pt-2">
                 {activeClass.gradeDistribution.map((grade, idx) => (
                   <div key={idx} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs font-medium">
+                    <div className="flex items-center justify-between text-xs font-medium font-sans">
                       <span className="font-semibold">{grade.bracket}</span>
-                      <span className="text-slate-500 dark:text-slate-400 font-mono">
+                      <span className="text-slate-500 dark:text-slate-400 font-sans">
                         {grade.count} {isVie ? 'sinh viên' : 'students'} ({grade.percentage}%)
                       </span>
                     </div>
@@ -696,16 +748,16 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                  <h3 className="font-bold text-sm sm:text-base">
+                  <h3 className="font-bold text-sm sm:text-base font-sans">
                     {isVie ? 'Dòng nộp bài trực tiếp (Live Submissions Stream)' : 'Live Submissions Stream'}
                   </h3>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-sans font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                     REALTIME
                   </span>
                 </div>
 
                 {/* Filters */}
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap font-sans">
                   <div className="relative">
                     <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
                     <input
@@ -713,7 +765,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       placeholder={isVie ? 'Tìm SV, bài tập...' : 'Search student...'}
                       value={liveSubmissionSearch}
                       onChange={(e) => setLiveSubmissionSearch(e.target.value)}
-                      className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                      className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
                         isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-neutral-900'
                       }`}
                     />
@@ -723,7 +775,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     value={liveSubmissionFilter}
                     onChange={(e) => setLiveSubmissionFilter(e.target.value)}
                     aria-label="Lọc trạng thái nộp bài"
-                    className={`px-3 py-1.5 rounded-xl text-xs border font-medium focus:outline-none ${
+                    className={`px-3 py-1.5 rounded-xl text-xs border font-medium focus:outline-none font-sans ${
                       isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-neutral-900'
                     }`}
                   >
@@ -740,7 +792,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
                 <table className="w-full text-left border-collapse">
                   <thead className={isDark ? 'bg-[#0b1322] text-slate-400' : 'bg-slate-50 text-neutral-600'}>
-                    <tr className="border-b border-slate-200 dark:border-slate-800 font-bold">
+                    <tr className="border-b border-slate-200 dark:border-slate-800 font-bold font-sans">
                       <th className="py-3 px-4">{isVie ? 'Sinh viên' : 'Student'}</th>
                       <th className="py-3 px-4">{isVie ? 'Bài tập' : 'Assignment'}</th>
                       <th className="py-3 px-4">{isVie ? 'Ngôn ngữ' : 'Language'}</th>
@@ -752,7 +804,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       <th className="py-3 px-4 text-center">{isVie ? 'Hành động' : 'Action'}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium font-sans">
                     {filteredSubmissions.length === 0 ? (
                       <tr>
                         <td colSpan={9} className="py-8 text-center text-slate-500">
@@ -767,19 +819,19 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'
                           }`}
                         >
-                          <td className="py-3 px-4 font-bold">
+                          <td className="py-3 px-4 font-bold font-sans">
                             <div>{sub.studentName}</div>
-                            <div className="text-[11px] font-mono text-slate-500 font-normal">
+                            <div className="text-[11px] font-sans text-slate-500 font-normal">
                               {sub.studentId}
                             </div>
                           </td>
-                          <td className="py-3 px-4 text-indigo-600 dark:text-indigo-400 font-semibold">
+                          <td className="py-3 px-4 text-indigo-600 dark:text-indigo-400 font-semibold font-sans">
                             {sub.exerciseTitle}
                           </td>
-                          <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
+                          <td className="py-3 px-4 font-sans text-[11px] text-slate-500">
                             {sub.language}
                           </td>
-                          <td className="py-3 px-4 font-mono font-bold">
+                          <td className="py-3 px-4 font-sans font-bold">
                             <span
                               className={
                                 sub.testCasesPassed === sub.totalTestCases
@@ -790,28 +842,28 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                               {sub.testCasesPassed}/{sub.totalTestCases}
                             </span>
                           </td>
-                          <td className="py-3 px-4 font-mono text-[11px]">
+                          <td className="py-3 px-4 font-sans text-[11px]">
                             {sub.executionTimeMs} ms
                           </td>
                           <td className="py-3 px-4">
                             {sub.status === 'accepted' ? (
-                              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-sans">
                                 Accepted
                               </span>
                             ) : sub.status === 'time_limit' ? (
-                              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-sans">
                                 TLE
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-sans">
                                 {sub.status === 'compile_error' ? 'Compile Error' : 'Wrong Answer'}
                               </span>
                             )}
                           </td>
-                          <td className="py-3 px-4 font-mono text-[11px] text-emerald-600 dark:text-emerald-400">
+                          <td className="py-3 px-4 font-sans text-[11px] text-emerald-600 dark:text-emerald-400">
                             {sub.plagiarismScore}%
                           </td>
-                          <td className="py-3 px-4 text-right text-slate-500 text-[11px] font-mono">
+                          <td className="py-3 px-4 text-right text-slate-500 text-[11px] font-sans">
                             {sub.timeAgo}
                           </td>
                           <td className="py-3 px-4 text-center">
@@ -845,7 +897,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   {isVie
                     ? `Đang có ${assignments.length} bài tập được giao cho ${activeClass.name}`
-                    : `Managing ${assignments.length} assignments for ${activeClass.name}`}
+                    : `Managing ${assignments.length} assignments for ${activeClass.nameEng || activeClass.name}`}
                 </p>
               </div>
 
@@ -887,23 +939,23 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         </span>
                       </div>
 
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 flex items-center gap-1 font-mono">
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 flex items-center gap-1 font-sans">
                         <Clock className="w-3 h-3" />
                         <span>{ass.deadline}</span>
                       </span>
                     </div>
 
-                    <h4 className="font-bold text-base leading-snug">{ass.title}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                    <h4 className="font-bold text-base leading-snug font-sans">{ass.title}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed font-sans">
                       {ass.description}
                     </p>
                   </div>
 
                   {/* Submission Progress & Policy Badges */}
                   <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-                    <div className="flex items-center justify-between text-xs font-medium">
+                    <div className="flex items-center justify-between text-xs font-medium font-sans">
                       <span>{isVie ? 'Tiến độ nộp bài:' : 'Submissions:'}</span>
-                      <span className="font-mono font-bold text-emerald-500">
+                      <span className="font-sans font-bold text-emerald-500">
                         {ass.submittedCount} / {ass.totalStudents} ({Math.round((ass.submittedCount / ass.totalStudents) * 100)}%)
                       </span>
                     </div>
@@ -1038,31 +1090,31 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'
                           }`}
                         >
-                          <td className="py-3 px-4 font-bold">
+                          <td className="py-3 px-4 font-bold font-sans">
                             <div className="flex items-center gap-2">
-                              <div className={`w-7 h-7 rounded-lg ${log.avatarColor} text-white flex items-center justify-center text-xs font-bold shrink-0`}>
+                              <div className={`w-7 h-7 rounded-lg ${log.avatarColor} text-white flex items-center justify-center text-xs font-bold shrink-0 font-sans`}>
                                 {log.studentName.charAt(0)}
                               </div>
                               <div>
-                                <div className="truncate max-w-[130px]">{log.studentName}</div>
-                                <div className="text-[11px] font-mono text-slate-500 font-normal">
+                                <div className="truncate max-w-[130px] font-sans">{log.studentName}</div>
+                                <div className="text-[11px] font-sans text-slate-500 font-normal">
                                   {log.studentId}
                                 </div>
                               </div>
                             </div>
                           </td>
 
-                          <td className="py-3 px-4 text-indigo-600 dark:text-indigo-400 font-semibold truncate max-w-[150px]">
+                          <td className="py-3 px-4 text-indigo-600 dark:text-indigo-400 font-semibold truncate max-w-[150px] font-sans">
                             {log.exerciseTitle}
                           </td>
 
                           <td className="py-3 px-4">
-                            <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 whitespace-nowrap">
+                            <span className="px-2 py-0.5 rounded text-[11px] font-sans font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 whitespace-nowrap">
                               {log.errorType}
                             </span>
                           </td>
 
-                          <td className="py-3 px-4 max-w-xs">
+                          <td className="py-3 px-4 max-w-xs font-sans">
                             <div className="text-slate-700 dark:text-slate-300 italic truncate">
                               "{log.studentPrompt}"
                             </div>
@@ -1073,19 +1125,19 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
                           <td className="py-3 px-4 text-center">
                             {log.resolved ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-sans">
                                 <CheckCircle2 className="w-3 h-3" />
                                 <span>{isVie ? 'Đã tự sửa' : 'Resolved'}</span>
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 animate-pulse">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 animate-pulse font-sans">
                                 <AlertTriangle className="w-3 h-3" />
                                 <span>{isVie ? 'Cần giúp' : 'Stuck'}</span>
                               </span>
                             )}
                           </td>
 
-                          <td className="py-3 px-4 text-right text-slate-500 text-[11px] font-mono whitespace-nowrap">
+                          <td className="py-3 px-4 text-right text-slate-500 text-[11px] font-sans whitespace-nowrap">
                             {log.timeAgo}
                           </td>
 
@@ -1179,18 +1231,18 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'
                         }`}
                       >
-                        <td className="py-3.5 px-4 font-mono font-bold">{st.studentId}</td>
-                        <td className="py-3.5 px-4 font-bold">
+                        <td className="py-3.5 px-4 font-sans font-bold">{st.studentId}</td>
+                        <td className="py-3.5 px-4 font-bold font-sans">
                           <div>{st.name}</div>
-                          <div className="text-[11px] font-mono text-slate-500 font-normal">
+                          <div className="text-[11px] font-sans text-slate-500 font-normal">
                             {st.email}
                           </div>
                         </td>
-                        <td className="py-3.5 px-4 font-mono">
+                        <td className="py-3.5 px-4 font-sans">
                           <span className="font-bold text-emerald-500">{st.solvedCount}</span>
                           <span> / {st.totalAssignments} ({Math.round((st.solvedCount / st.totalAssignments) * 100)}%)</span>
                         </td>
-                        <td className="py-3.5 px-4 font-mono font-black text-sm">
+                        <td className="py-3.5 px-4 font-sans font-black text-sm">
                           <span
                             className={
                               st.gpa >= 8.5
@@ -1205,10 +1257,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             {st.gpa.toFixed(1)}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-mono text-slate-500">
+                        <td className="py-3.5 px-4 font-sans text-slate-500">
                           {st.attendanceRate}%
                         </td>
-                        <td className="py-3.5 px-4 font-mono text-indigo-400 font-bold">
+                        <td className="py-3.5 px-4 font-sans text-indigo-400 font-bold">
                           {st.aiQueriesCount} {isVie ? 'lượt' : 'queries'}
                         </td>
                         <td className="py-3.5 px-4">

@@ -17,6 +17,7 @@ interface DashboardPreviewProps {
   onOpenSettings?: (tab?: 'profile' | 'password' | 'appearance') => void;
   onOpenSubmissions?: () => void;
   initialTrackId?: string | null;
+  onTrackChange?: (trackId: string | null) => void;
   currentLang: Language;
   onLanguageChange: (lang: Language) => void;
   currentTheme: ThemeMode;
@@ -30,6 +31,7 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
   onOpenSettings,
   onOpenSubmissions,
   initialTrackId = null,
+  onTrackChange,
   currentLang,
   onLanguageChange,
   currentTheme,
@@ -69,9 +71,11 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
       setActiveNavTab('practice');
     } else if (tab === 'practice') {
       setSelectedTrackId(null);
+      if (onTrackChange) onTrackChange(null);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (tab === 'kits') {
       setSelectedTrackId(null);
+      if (onTrackChange) onTrackChange(null);
       setTimeout(() => {
         const el = document.getElementById('section-kits');
         if (el) {
@@ -83,11 +87,13 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
 
   const handleSelectTrack = (trackId: string) => {
     setSelectedTrackId(trackId);
+    if (onTrackChange) onTrackChange(trackId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBackToSkills = () => {
     setSelectedTrackId(null);
+    if (onTrackChange) onTrackChange(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

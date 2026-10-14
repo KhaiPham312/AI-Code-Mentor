@@ -15,6 +15,10 @@ import {
   fetchSubmissionsForExercise,
 } from '../../services/exerciseService';
 import { CodeEditor } from './CodeEditor';
+import {
+  LanguageOption,
+  getLanguageOptionsForContext,
+} from '../../services/languageTracks';
 import { ProblemDescription } from './ProblemDescription';
 import { TerminalPanel } from './TerminalPanel';
 import { FloatingAIMentorChat } from '../common/FloatingAIMentorChat';
@@ -51,20 +55,104 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
   const [currentExercise, setCurrentExercise] = useState<Exercise>(
     getExerciseById(initialExerciseId) || MOCK_EXERCISES[0]
   );
-  const [code, setCode] = useState<string>(currentExercise.boilerplateCode);
+
+  // Active language option for HackerRank multi-language selection
+  const [currentLanguageOption, setCurrentLanguageOption] = useState<LanguageOption | null>(() => {
+    try {
+      const savedLangId = localStorage.getItem(`ai_mentor_active_lang_${initialExerciseId}`);
+      if (savedLangId) {
+        const initialEx = getExerciseById(initialExerciseId) || MOCK_EXERCISES[0];
+        const options = getLanguageOptionsForContext(
+          undefined,
+          initialEx.category,
+          initialEx.language,
+          initialEx.trackIds
+        );
+        return options.find((o) => o.id === savedLangId) || null;
+      }
+    } catch {
+      // Ignore
+    }
+    return null;
+  });
+
+  const [code, setCode] = useState<string>(() => {
+    try {
+      const initialEx = getExerciseById(initialExerciseId) || MOCK_EXERCISES[0];
+      const savedLangId = localStorage.getItem(`ai_mentor_active_lang_${initialExerciseId}`);
+      if (savedLangId) {
+        const savedLangDraft = localStorage.getItem(`ai_mentor_draft_${initialExerciseId}_${savedLangId}`);
+        if (savedLangDraft) return savedLangDraft;
+      }
+      const savedDraft = localStorage.getItem(`ai_mentor_draft_${initialExerciseId}`);
+      if (savedDraft) return savedDraft;
+      return initialEx.boilerplateCode;
+    } catch {
+      return (getExerciseById(initialExerciseId) || MOCK_EXERCISES[0]).boilerplateCode;
+    }
+  });
+
   const [submissions, setSubmissions] = useState<SubmissionRecord[]>(
     getSubmissionsForExercise(currentExercise.id)
   );
+
+  // 2. Execution & Submission States
+  const [isRunning, setIsRunning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
+  const [submitSuccessNotice, setSubmitSuccessNotice] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // 3. 2-Pane Resizable Layout States (Standard HackerRank)
+  // Left: Problem Description (42%) | Right: Code Editor (top) + Terminal (bottom)
+  const [leftWidth, setLeftWidth] = useState(42); // 42%
+  const [editorHeight, setEditorHeight] = useState(60); // 60% top, 40% bottom drawer
+
+  // Dragging states
+  const [isDraggingVertical, setIsDraggingVertical] = useState(false);
+  const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Sync with Backend on mount or when initialExerciseId changes
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
+      // Immediately synchronize with local mock exercise data so language and boilerplate match the exercise instantly
+      const localEx = getExerciseById(initialExerciseId);
+      if (localEx && isMounted) {
+        setCurrentExercise(localEx);
+        const savedLangId = localStorage.getItem(`ai_mentor_active_lang_${localEx.id}`);
+        let activeOpt: LanguageOption | null = null;
+        if (savedLangId) {
+          const opts = getLanguageOptionsForContext(
+            undefined,
+            localEx.category,
+            localEx.language,
+            localEx.trackIds
+          );
+          activeOpt = opts.find((o) => o.id === savedLangId) || null;
+          setCurrentLanguageOption(activeOpt);
+        }
+
+        const savedDraft = activeOpt
+          ? localStorage.getItem(`ai_mentor_draft_${localEx.id}_${activeOpt.id}`)
+          : localStorage.getItem(`ai_mentor_draft_${localEx.id}`);
+
+        if (savedDraft) {
+          setCode(savedDraft);
+        } else {
+          setCode(localEx.boilerplateCode);
+        }
+        setExecutionResult(null);
+        setSubmissions(getSubmissionsForExercise(localEx.id));
+      }
+
       try {
         const beEx = await fetchExerciseById(initialExerciseId);
         if (isMounted && beEx) {
           setCurrentExercise(beEx);
-          setCode((prev) => (prev === currentExercise.boilerplateCode ? beEx.boilerplateCode : prev));
+          setCode((prev) => (localEx && prev === localEx.boilerplateCode ? beEx.boilerplateCode : (prev || beEx.boilerplateCode)));
         }
       } catch (err) {
         console.warn('Fallback to mock exercise data:', err);
@@ -85,36 +173,53 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
     };
   }, [initialExerciseId]);
 
-  // 2. Execution & Submission States
-  const [isRunning, setIsRunning] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
-  const [submitSuccessNotice, setSubmitSuccessNotice] = useState<string | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // 3. 2-Pane Resizable Layout States (Standard HackerRank)
-  // Left: Problem Description (42%) | Right: Code Editor (top) + Terminal (bottom)
-  const [leftWidth, setLeftWidth] = useState(42); // 42%
-  const [editorHeight, setEditorHeight] = useState(60); // 60% top, 40% bottom drawer
-
-  // Dragging states
-  const [isDraggingVertical, setIsDraggingVertical] = useState(false);
-  const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
-
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Switch Exercise helper
-  const _handleSelectExercise = (exerciseId: number) => {
-    const selected = getExerciseById(exerciseId);
-    if (!selected) return;
-
-    setCurrentExercise(selected);
-    setCode(selected.boilerplateCode);
-    setExecutionResult(null);
-    setSubmissions(getSubmissionsForExercise(selected.id));
-    setSubmitSuccessNotice(null);
+  // Code change with auto-save to localStorage
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    try {
+      localStorage.setItem(`ai_mentor_draft_${currentExercise.id}`, newCode);
+      if (currentLanguageOption) {
+        localStorage.setItem(
+          `ai_mentor_draft_${currentExercise.id}_${currentLanguageOption.id}`,
+          newCode
+        );
+      }
+    } catch {
+      // Ignore
+    }
   };
-  void _handleSelectExercise;
+
+  // Language switch with automatic template loading
+  const handleLanguageChange = (newOption: LanguageOption) => {
+    setCurrentLanguageOption(newOption);
+    try {
+      localStorage.setItem(`ai_mentor_active_lang_${currentExercise.id}`, newOption.id);
+      // Check if student has a saved draft for this language on this exercise
+      const savedDraftForLang = localStorage.getItem(
+        `ai_mentor_draft_${currentExercise.id}_${newOption.id}`
+      );
+      if (savedDraftForLang) {
+        setCode(savedDraftForLang);
+        return;
+      }
+      // If language matches exercise default
+      if (
+        newOption.monacoLang === currentExercise.language ||
+        (newOption.id.startsWith('c') && currentExercise.language === 'c') ||
+        (newOption.id.startsWith('cpp') && currentExercise.language === 'cpp') ||
+        (newOption.id.startsWith('py') && currentExercise.language === 'python') ||
+        (newOption.id === 'postgresql' && currentExercise.language === 'sql') ||
+        (newOption.id === 'bash' && currentExercise.language === 'bash')
+      ) {
+        setCode(currentExercise.boilerplateCode);
+        return;
+      }
+      // Otherwise, supply canonical HackerRank starter code for this version
+      setCode(newOption.starterCode);
+    } catch {
+      // Ignore
+    }
+  };
 
   // Reset boilerplate
   const handleResetBoilerplate = () => {
@@ -123,7 +228,19 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
         'Bạn có chắc muốn khôi phục lại mã nguồn ban đầu? Các thay đổi chưa lưu sẽ bị mất.'
       )
     ) {
-      setCode(currentExercise.boilerplateCode);
+      if (currentLanguageOption && currentLanguageOption.monacoLang !== currentExercise.language) {
+        setCode(currentLanguageOption.starterCode);
+      } else {
+        setCode(currentExercise.boilerplateCode);
+      }
+      try {
+        localStorage.removeItem(`ai_mentor_draft_${currentExercise.id}`);
+        if (currentLanguageOption) {
+          localStorage.removeItem(`ai_mentor_draft_${currentExercise.id}_${currentLanguageOption.id}`);
+        }
+      } catch {
+        // Ignore
+      }
     }
   };
 
@@ -464,9 +581,14 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
           <div style={{ height: `${editorHeight}%` }} className="overflow-hidden">
             <CodeEditor
               code={code}
-              onChange={setCode}
+              onChange={handleCodeChange}
               onRun={handleRunCode}
               exerciseLanguage={currentExercise.language}
+              category={currentExercise.category}
+              trackIds={currentExercise.trackIds}
+              courseId={primaryTrack}
+              selectedLanguageId={currentLanguageOption?.id}
+              onLanguageChange={handleLanguageChange}
               onResetBoilerplate={handleResetBoilerplate}
               systemTheme={currentTheme}
               onThemeToggle={onThemeToggle}

@@ -148,7 +148,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                 <span className="text-[10px] text-slate-400 block font-medium">
                   {isVie ? 'Thời gian chạy' : 'Execution Time'}
                 </span>
-                <span className="font-bold font-mono">
+                <span className="font-bold font-sans">
                   {submission.executionTimeMs} ms
                 </span>
               </div>
@@ -164,7 +164,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                 <span className="text-[10px] text-slate-400 block font-medium">
                   {isVie ? 'Bộ nhớ tiêu thụ' : 'Memory Peak'}
                 </span>
-                <span className="font-bold font-mono">
+                <span className="font-bold font-sans">
                   {submission.memoryMb} MB
                 </span>
               </div>
@@ -180,7 +180,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                 <span className="text-[10px] text-slate-400 block font-medium">
                   {isVie ? 'Kiểm tra đạo văn' : 'Plagiarism Scan'}
                 </span>
-                <span className="font-bold text-emerald-500">
+                <span className="font-bold text-emerald-500 font-sans">
                   {submission.plagiarismScore}% {isVie ? 'trùng lặp (Tự làm)' : 'similarity'}
                 </span>
               </div>
@@ -196,7 +196,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                 <span className="text-[10px] text-slate-400 block font-medium">
                   {isVie ? 'Ngôn ngữ' : 'Language'}
                 </span>
-                <span className="font-bold font-mono">{submission.language}</span>
+                <span className="font-bold font-sans">{submission.language}</span>
               </div>
             </div>
           </div>
@@ -205,7 +205,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
           <div className="border rounded-xl overflow-hidden shadow-xs border-slate-200 dark:border-slate-800">
             {/* Code Toolbar */}
             <div
-              className={`px-4 py-2.5 border-b flex items-center justify-between text-xs font-mono ${
+              className={`px-4 py-2.5 border-b flex items-center justify-between text-xs font-sans ${
                 isDark ? 'bg-[#0a0f18] border-slate-800 text-slate-400' : 'bg-slate-100 border-slate-200 text-neutral-600'
               }`}
             >
