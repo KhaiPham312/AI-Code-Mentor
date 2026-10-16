@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { LoginPage } from './components/LoginPage';
 import { DashboardPreview } from './components/DashboardPreview';
 import { TeacherDashboard } from './components/teacher/TeacherDashboard';
@@ -12,6 +12,12 @@ import {
   clearAuthSession,
   AUTH_UNAUTHORIZED_EVENT,
 } from './services/apiClient';
+import {
+  AppView,
+  SettingsTab,
+  parseCurrentRoute,
+  syncBrowserUrl,
+} from './services/navigation';
 
 export function App() {
   // Current user state with localStorage initialization
@@ -28,10 +34,11 @@ export function App() {
   });
 
   // Main view router: 'dashboard' | 'ide' | 'settings' | 'submissions'
-  const [currentView, setCurrentView] = useState<'dashboard' | 'ide' | 'settings' | 'submissions'>('dashboard');
-  const [settingsTab, setSettingsTab] = useState<'profile' | 'password' | 'appearance'>('profile');
-  const [selectedExerciseId, setSelectedExerciseId] = useState<number>(1);
-  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
+  // Khởi tạo trực tiếp từ URL hiện tại để khi F5 vẫn giữ nguyên trang & bài tập đang làm
+  const [currentView, setCurrentView] = useState<AppView>(() => parseCurrentRoute().view);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>(() => parseCurrentRoute().settingsTab);
+  const [selectedExerciseId, setSelectedExerciseId] = useState<number>(() => parseCurrentRoute().exerciseId);
+  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(() => parseCurrentRoute().trackId);
 
   // Global Language state
   const [currentLang, setCurrentLang] = useState<Language>(() => {
@@ -83,24 +90,97 @@ export function App() {
     setCurrentTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  // Helper điều hướng tập trung và cập nhật browser URL
+  const navigateTo = useCallback(
+    (
+      view: AppView,
+      options?: {
+        exerciseId?: number;
+        settingsTab?: SettingsTab;
+        trackId?: string | null;
+      },
+      replace: boolean = false
+    ) => {
+      setCurrentView(view);
+      if (options?.exerciseId !== undefined) {
+        setSelectedExerciseId(options.exerciseId);
+      }
+      if (options?.settingsTab !== undefined) {
+        setSettingsTab(options.settingsTab);
+      }
+      if (options?.trackId !== undefined) {
+        setSelectedTrackId(options.trackId);
+      }
+      syncBrowserUrl(view, options, replace);
+    },
+    []
+  );
+
+  // Lắng nghe sự kiện Back/Forward của trình duyệt (PopState)
+  useEffect(() => {
+    const handlePopState = () => {
+      const route = parseCurrentRoute();
+      setCurrentView(route.view);
+      setSelectedExerciseId(route.exerciseId);
+      setSettingsTab(route.settingsTab);
+      setSelectedTrackId(route.trackId);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  // Đồng bộ URL ngay khi mount lần đầu (nếu URL đang ở / hoặc đường dẫn hợp lệ)
+  useEffect(() => {
+    if (currentUser) {
+      const initial = parseCurrentRoute();
+      syncBrowserUrl(
+        initial.view,
+        {
+          exerciseId: initial.exerciseId,
+          settingsTab: initial.settingsTab,
+          trackId: initial.trackId,
+        },
+        true
+      );
+    }
+  }, [currentUser]);
+
   // Listen for 401 Unauthorized globally
   useEffect(() => {
     const handleUnauthorized = () => {
       setCurrentUser(null);
-      setCurrentView('dashboard');
+      navigateTo('dashboard', {}, true);
     };
     window.addEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized);
     return () => {
       window.removeEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized);
     };
-  }, []);
+  }, [navigateTo]);
 
   const handleLoginSuccess = (user: User, token: string) => {
     setAuthToken(token);
     localStorage.setItem('auth_token', token);
     localStorage.setItem('ai_mentor_user', JSON.stringify(user));
     setCurrentUser(user);
-    setCurrentView('dashboard');
+
+    // Nếu người dùng truy cập trực tiếp vào một URL cụ thể trước đó, giữ nguyên view đó
+    const initial = parseCurrentRoute();
+    if (initial.view !== 'dashboard') {
+      navigateTo(
+        initial.view,
+        {
+          exerciseId: initial.exerciseId,
+          settingsTab: initial.settingsTab,
+          trackId: initial.trackId,
+        },
+        true
+      );
+    } else {
+      navigateTo('dashboard', { trackId: initial.trackId }, true);
+    }
   };
 
   const handleLogout = () => {
@@ -108,7 +188,7 @@ export function App() {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('ai_mentor_user');
     setCurrentUser(null);
-    setCurrentView('dashboard');
+    navigateTo('dashboard', {}, true);
   };
 
   const handleUpdateUser = (updatedUser: User) => {
@@ -121,26 +201,24 @@ export function App() {
   };
 
   const handleOpenIDE = (exerciseId: number = 1) => {
-    setSelectedExerciseId(exerciseId);
-    setCurrentView('ide');
+    navigateTo('ide', { exerciseId });
   };
 
-  const handleOpenSettings = (tab: 'profile' | 'password' | 'appearance' = 'profile') => {
+  const handleOpenSettings = (tab: SettingsTab = 'profile') => {
+    navigateTo('settings', { settingsTab: tab });
+  };
+
+  const handleSettingsTabChange = (tab: SettingsTab) => {
     setSettingsTab(tab);
-    setCurrentView('settings');
+    syncBrowserUrl('settings', { settingsTab: tab }, true);
   };
 
   const handleOpenSubmissions = () => {
-    setCurrentView('submissions');
+    navigateTo('submissions');
   };
 
   const handleBackToDashboard = (trackId?: string) => {
-    if (trackId) {
-      setSelectedTrackId(trackId);
-    } else {
-      setSelectedTrackId(null);
-    }
-    setCurrentView('dashboard');
+    navigateTo('dashboard', { trackId: trackId || null });
   };
 
   // 1. Unauthenticated -> Auth / Login Page
@@ -154,11 +232,12 @@ export function App() {
       <SettingsPage
         user={currentUser}
         onUpdateUser={handleUpdateUser}
-        onBackToDashboard={() => setCurrentView('dashboard')}
+        onBackToDashboard={handleBackToDashboard}
         currentLang={currentLang}
         currentTheme={currentTheme}
         onThemeToggle={handleThemeToggle}
         initialTab={settingsTab}
+        onTabChange={handleSettingsTabChange}
       />
     );
   }
@@ -168,7 +247,7 @@ export function App() {
     return (
       <SubmissionsPage
         user={currentUser}
-        onBackToDashboard={() => setCurrentView('dashboard')}
+        onBackToDashboard={handleBackToDashboard}
         onOpenIDE={handleOpenIDE}
         currentLang={currentLang}
         onLanguageChange={handleLanguageChange}

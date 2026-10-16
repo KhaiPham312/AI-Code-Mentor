@@ -35,9 +35,11 @@ def run_sample_code(
 
     # If user provided a custom input, create a dynamic sample test case
     if run_req.custom_input is not None and run_req.custom_input.strip() != "":
-        out, err, time_ms, ok = CodeRunner.execute_python(
+        exec_lang = run_req.language or exercise.language or "python"
+        out, err, time_ms, ok = CodeRunner.execute(
             code=run_req.source_code,
             input_data=run_req.custom_input,
+            language=exec_lang,
             timeout_seconds=exercise.time_limit_ms / 1000.0
         )
         return CodeRunResponse(

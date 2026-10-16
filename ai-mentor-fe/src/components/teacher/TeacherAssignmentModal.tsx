@@ -42,6 +42,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Algorithms');
+  const [language, setLanguage] = useState('python');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [targetClass, setTargetClass] = useState(selectedClassId);
   const [deadline, setDeadline] = useState('2026-10-25T23:59');
@@ -107,6 +108,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
     onSaveAssignment({
       title,
       category,
+      language,
       difficulty,
       classGroup: targetClass,
       deadline: `${deadline.replace('T', ' ')}`,
@@ -200,11 +202,11 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
             />
           </div>
 
-          {/* Category, Difficulty, Class in Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Category, Language, Difficulty, Class in Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div>
               <label className="block font-bold mb-1">
-                {isVie ? 'Danh mục chủ đề:' : 'Category:'}
+                {isVie ? 'Danh mục:' : 'Category:'}
               </label>
               <select
                 value={category}
@@ -217,10 +219,31 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               >
                 <option value="Algorithms">Algorithms (Giải thuật)</option>
                 <option value="Data Structures">Data Structures (Cấu trúc dữ liệu)</option>
-                <option value="Python">Python 3</option>
-                <option value="C++">C++ 17</option>
-                <option value="Graph Theory">Graph Theory (Lý thuyết đồ thị)</option>
-                <option value="Dynamic Programming">Dynamic Programming (Quy hoạch động)</option>
+                <option value="Database">Database (Cơ sở dữ liệu)</option>
+                <option value="OOP">Lập trình Hướng đối tượng</option>
+                <option value="Graph Theory">Graph Theory (Đồ thị)</option>
+                <option value="Dynamic Programming">Dynamic Programming (QHD)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold mb-1 text-indigo-500 dark:text-indigo-400">
+                {isVie ? 'Ngôn ngữ:' : 'Language:'}
+              </label>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className={`w-full p-2.5 rounded-lg border font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  isDark
+                    ? 'bg-indigo-950/40 border-indigo-700/60 text-indigo-300'
+                    : 'bg-indigo-50 border-indigo-300 text-indigo-900'
+                }`}
+              >
+                <option value="python">Python 3</option>
+                <option value="cpp">C++ (GCC 17)</option>
+                <option value="sql">SQL (PostgreSQL / SQLite)</option>
+                <option value="c">C (GCC 11)</option>
+                <option value="java">Java 17</option>
               </select>
             </div>
 
