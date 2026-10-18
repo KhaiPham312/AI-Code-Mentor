@@ -216,6 +216,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
             />
           </div>
 
+          {/* Category, Language, Difficulty, Class in Grid */}
           {/* Category, Difficulty, Class in Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>

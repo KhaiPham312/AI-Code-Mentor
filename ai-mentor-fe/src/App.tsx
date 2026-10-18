@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { LoginPage } from './components/LoginPage';
 import { DashboardPreview } from './components/DashboardPreview';
 import { TeacherDashboard } from './components/teacher/TeacherDashboard';
@@ -12,88 +12,12 @@ import {
   clearAuthSession,
   AUTH_UNAUTHORIZED_EVENT,
 } from './services/apiClient';
-
-function parseInitialNavigationState() {
-  const hash = typeof window !== 'undefined' ? window.location.hash : '';
-  const savedView = typeof localStorage !== 'undefined' ? localStorage.getItem('ai_mentor_current_view') : null;
-  const savedCourseId = typeof localStorage !== 'undefined' ? localStorage.getItem('ai_mentor_selected_course_id') : null;
-  const savedExerciseIdStr = typeof localStorage !== 'undefined' ? localStorage.getItem('ai_mentor_selected_exercise_id') : null;
-  const savedExerciseId = savedExerciseIdStr ? parseInt(savedExerciseIdStr, 10) : 1;
-
-  // 1. Hash-based resolution
-  if (hash.startsWith('#/workspace/')) {
-    const rawId = hash.replace('#/workspace/', '').trim();
-    const match = rawId.match(/(\d+)/);
-    const parsedId = match ? parseInt(match[1], 10) : savedExerciseId;
-    return {
-      view: 'ide' as const,
-      exerciseId: isNaN(parsedId) ? 1 : parsedId,
-      trackId: savedCourseId || null,
-    };
-  }
-
-  if (hash.startsWith('#/course/')) {
-    const track = hash.replace('#/course/', '').trim();
-    return {
-      view: 'dashboard' as const,
-      exerciseId: savedExerciseId || 1,
-      trackId: track || null,
-    };
-  }
-
-  if (hash.startsWith('#/submissions')) {
-    return {
-      view: 'submissions' as const,
-      exerciseId: savedExerciseId || 1,
-      trackId: savedCourseId || null,
-    };
-  }
-
-  if (hash.startsWith('#/settings')) {
-    return {
-      view: 'settings' as const,
-      exerciseId: savedExerciseId || 1,
-      trackId: savedCourseId || null,
-    };
-  }
-
-  if (hash.startsWith('#/teacher')) {
-    return {
-      view: 'dashboard' as const,
-      exerciseId: savedExerciseId || 1,
-      trackId: null,
-    };
-  }
-
-  // 2. LocalStorage-based fallback
-  if (savedView === 'ide') {
-    return {
-      view: 'ide' as const,
-      exerciseId: savedExerciseId || 1,
-      trackId: savedCourseId || null,
-    };
-  }
-  if (savedView === 'submissions') {
-    return {
-      view: 'submissions' as const,
-      exerciseId: savedExerciseId || 1,
-      trackId: savedCourseId || null,
-    };
-  }
-  if (savedView === 'settings') {
-    return {
-      view: 'settings' as const,
-      exerciseId: savedExerciseId || 1,
-      trackId: savedCourseId || null,
-    };
-  }
-
-  return {
-    view: 'dashboard' as const,
-    exerciseId: savedExerciseId || 1,
-    trackId: savedCourseId || null,
-  };
-}
+import {
+  AppView,
+  SettingsTab,
+  parseCurrentRoute,
+  syncBrowserUrl,
+} from './services/navigation';
 
 export function App() {
   // Current user state with localStorage initialization
@@ -109,13 +33,11 @@ export function App() {
     return null;
   });
 
-  const initialNav = parseInitialNavigationState();
-
-  // Main view router: 'dashboard' | 'ide' | 'settings' | 'submissions'
-  const [currentView, setCurrentView] = useState<'dashboard' | 'ide' | 'settings' | 'submissions'>(initialNav.view);
-  const [settingsTab, setSettingsTab] = useState<'profile' | 'password' | 'appearance'>('profile');
-  const [selectedExerciseId, setSelectedExerciseId] = useState<number>(initialNav.exerciseId);
-  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(initialNav.trackId);
+  // Khởi tạo trực tiếp từ URL hiện tại để khi F5 vẫn giữ nguyên trang & bài tập đang làm
+  const [currentView, setCurrentView] = useState<AppView>(() => parseCurrentRoute().view);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>(() => parseCurrentRoute().settingsTab);
+  const [selectedExerciseId, setSelectedExerciseId] = useState<number>(() => parseCurrentRoute().exerciseId);
+  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(() => parseCurrentRoute().trackId);
 
   // Global Language state
   const [currentLang, setCurrentLang] = useState<Language>(() => {
@@ -154,50 +76,6 @@ export function App() {
     }
   }, [currentTheme]);
 
-  // Sync view state to localStorage & URL Hash
-  useEffect(() => {
-    if (!currentUser) return;
-
-    try {
-      localStorage.setItem('ai_mentor_current_view', currentView);
-
-      if (currentView === 'ide') {
-        localStorage.setItem('ai_mentor_selected_exercise_id', String(selectedExerciseId));
-        window.history.replaceState(null, '', `#/workspace/${selectedExerciseId}`);
-      } else if (currentView === 'submissions') {
-        window.history.replaceState(null, '', `#/submissions`);
-      } else if (currentView === 'settings') {
-        window.history.replaceState(null, '', `#/settings`);
-      } else if (currentView === 'dashboard') {
-        if (currentUser.role === 'teacher') {
-          const teacherTab = localStorage.getItem('ai_mentor_teacher_tab') || 'analytics';
-          window.history.replaceState(null, '', `#/teacher/${teacherTab}`);
-        } else if (selectedTrackId) {
-          localStorage.setItem('ai_mentor_selected_course_id', selectedTrackId);
-          window.history.replaceState(null, '', `#/course/${selectedTrackId}`);
-        } else {
-          localStorage.removeItem('ai_mentor_selected_course_id');
-          window.history.replaceState(null, '', `#/dashboard`);
-        }
-      }
-    } catch {
-      // Ignore
-    }
-  }, [currentView, selectedExerciseId, selectedTrackId, currentUser]);
-
-  // Listen for hashchange events (back / forward buttons)
-  useEffect(() => {
-    const handleHashChange = () => {
-      const state = parseInitialNavigationState();
-      setCurrentView(state.view);
-      setSelectedExerciseId(state.exerciseId);
-      setSelectedTrackId(state.trackId);
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
   const handleLanguageChange = (lang: Language) => {
     setCurrentLang(lang);
     try {
@@ -211,24 +89,97 @@ export function App() {
     setCurrentTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  // Helper điều hướng tập trung và cập nhật browser URL qua History API
+  const navigateTo = useCallback(
+    (
+      view: AppView,
+      options?: {
+        exerciseId?: number;
+        settingsTab?: SettingsTab;
+        trackId?: string | null;
+      },
+      replace: boolean = false
+    ) => {
+      setCurrentView(view);
+      if (options?.exerciseId !== undefined) {
+        setSelectedExerciseId(options.exerciseId);
+      }
+      if (options?.settingsTab !== undefined) {
+        setSettingsTab(options.settingsTab);
+      }
+      if (options?.trackId !== undefined) {
+        setSelectedTrackId(options.trackId);
+      }
+      syncBrowserUrl(view, options, replace);
+    },
+    []
+  );
+
+  // Lắng nghe sự kiện Back/Forward của trình duyệt (PopState)
+  useEffect(() => {
+    const handlePopState = () => {
+      const route = parseCurrentRoute();
+      setCurrentView(route.view);
+      setSelectedExerciseId(route.exerciseId);
+      setSettingsTab(route.settingsTab);
+      setSelectedTrackId(route.trackId);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  // Đồng bộ URL ngay khi mount lần đầu (nếu URL đang ở / hoặc đường dẫn hợp lệ)
+  useEffect(() => {
+    if (currentUser) {
+      const initial = parseCurrentRoute();
+      syncBrowserUrl(
+        initial.view,
+        {
+          exerciseId: initial.exerciseId,
+          settingsTab: initial.settingsTab,
+          trackId: initial.trackId,
+        },
+        true
+      );
+    }
+  }, [currentUser]);
+
   // Listen for 401 Unauthorized globally
   useEffect(() => {
     const handleUnauthorized = () => {
       setCurrentUser(null);
-      setCurrentView('dashboard');
+      navigateTo('dashboard', {}, true);
     };
     window.addEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized);
     return () => {
       window.removeEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized);
     };
-  }, []);
+  }, [navigateTo]);
 
   const handleLoginSuccess = (user: User, token: string) => {
     setAuthToken(token);
     localStorage.setItem('auth_token', token);
     localStorage.setItem('ai_mentor_user', JSON.stringify(user));
     setCurrentUser(user);
-    setCurrentView('dashboard');
+
+    // Nếu người dùng truy cập trực tiếp vào một URL cụ thể trước đó, giữ nguyên view đó
+    const initial = parseCurrentRoute();
+    if (initial.view !== 'dashboard') {
+      navigateTo(
+        initial.view,
+        {
+          exerciseId: initial.exerciseId,
+          settingsTab: initial.settingsTab,
+          trackId: initial.trackId,
+        },
+        true
+      );
+    } else {
+      navigateTo('dashboard', { trackId: initial.trackId }, true);
+    }
   };
 
   const handleLogout = () => {
@@ -239,10 +190,9 @@ export function App() {
     localStorage.removeItem('ai_mentor_selected_course_id');
     localStorage.removeItem('ai_mentor_selected_exercise_id');
     localStorage.removeItem('ai_mentor_teacher_tab');
-    window.history.replaceState(null, '', `#/`);
+    window.history.replaceState(null, '', `/`);
     setCurrentUser(null);
-    setCurrentView('dashboard');
-    setSelectedTrackId(null);
+    navigateTo('dashboard', {}, true);
   };
 
   const handleUpdateUser = (updatedUser: User) => {
@@ -255,45 +205,24 @@ export function App() {
   };
 
   const handleOpenIDE = (exerciseId: number = 1) => {
-    setSelectedExerciseId(exerciseId);
-    setCurrentView('ide');
-    try {
-      localStorage.setItem('ai_mentor_current_view', 'ide');
-      localStorage.setItem('ai_mentor_selected_exercise_id', String(exerciseId));
-      window.history.replaceState(null, '', `#/workspace/${exerciseId}`);
-    } catch {
-      // Ignore
-    }
+    navigateTo('ide', { exerciseId });
   };
 
-  const handleOpenSettings = (tab: 'profile' | 'password' | 'appearance' = 'profile') => {
+  const handleOpenSettings = (tab: SettingsTab = 'profile') => {
+    navigateTo('settings', { settingsTab: tab });
+  };
+
+  const handleSettingsTabChange = (tab: SettingsTab) => {
     setSettingsTab(tab);
-    setCurrentView('settings');
+    syncBrowserUrl('settings', { settingsTab: tab }, true);
   };
 
   const handleOpenSubmissions = () => {
-    setCurrentView('submissions');
+    navigateTo('submissions');
   };
 
   const handleBackToDashboard = (trackId?: string) => {
-    if (trackId) {
-      setSelectedTrackId(trackId);
-      try {
-        localStorage.setItem('ai_mentor_selected_course_id', trackId);
-        window.history.replaceState(null, '', `#/course/${trackId}`);
-      } catch {
-        // Ignore
-      }
-    } else {
-      setSelectedTrackId(null);
-      try {
-        localStorage.removeItem('ai_mentor_selected_course_id');
-        window.history.replaceState(null, '', `#/dashboard`);
-      } catch {
-        // Ignore
-      }
-    }
-    setCurrentView('dashboard');
+    navigateTo('dashboard', { trackId: trackId || null });
   };
 
   // 1. Unauthenticated or explicit Auth Routes (Forgot Password / Reset Password from Gmail)
@@ -321,11 +250,12 @@ export function App() {
       <SettingsPage
         user={currentUser}
         onUpdateUser={handleUpdateUser}
-        onBackToDashboard={() => setCurrentView('dashboard')}
+        onBackToDashboard={handleBackToDashboard}
         currentLang={currentLang}
         currentTheme={currentTheme}
         onThemeToggle={handleThemeToggle}
         initialTab={settingsTab}
+        onTabChange={handleSettingsTabChange}
       />
     );
   }
@@ -335,7 +265,7 @@ export function App() {
     return (
       <SubmissionsPage
         user={currentUser}
-        onBackToDashboard={() => setCurrentView('dashboard')}
+        onBackToDashboard={handleBackToDashboard}
         onOpenIDE={handleOpenIDE}
         currentLang={currentLang}
         onLanguageChange={handleLanguageChange}
@@ -346,7 +276,7 @@ export function App() {
     );
   }
 
-  // 3. 1:1 HackerRank Student Workspace IDE
+  // 3. 1:1 HackerRank Student Workspace IDE (/ide)
   if (currentView === 'ide') {
     return (
       <StudentWorkspace
@@ -374,7 +304,7 @@ export function App() {
     );
   }
 
-  // 5. Main Student Dashboard
+  // 5. Main Student Dashboard (/dashboard)
   return (
     <DashboardPreview
       user={currentUser}
@@ -383,7 +313,7 @@ export function App() {
       onOpenSettings={handleOpenSettings}
       onOpenSubmissions={handleOpenSubmissions}
       initialTrackId={selectedTrackId}
-      onTrackChange={(trackId) => setSelectedTrackId(trackId)}
+      onTrackChange={(trackId) => navigateTo('dashboard', { trackId })}
       currentLang={currentLang}
       onLanguageChange={handleLanguageChange}
       currentTheme={currentTheme}

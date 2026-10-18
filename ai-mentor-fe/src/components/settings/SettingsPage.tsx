@@ -26,6 +26,7 @@ interface SettingsPageProps {
   currentTheme: ThemeMode;
   onThemeToggle: () => void;
   initialTab?: 'profile' | 'password' | 'appearance';
+  onTabChange?: (tab: 'profile' | 'password' | 'appearance') => void;
 }
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({
@@ -36,8 +37,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   currentTheme,
   onThemeToggle,
   initialTab = 'profile',
+  onTabChange,
 }) => {
   const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'appearance'>(initialTab);
+
+  const handleSelectTab = (tab: 'profile' | 'password' | 'appearance') => {
+    setActiveTab(tab);
+    onTabChange?.(tab);
+  };
 
   // Synchronize when initialTab prop updates
   useEffect(() => {
@@ -224,7 +231,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
             <nav className="flex flex-col gap-1" aria-label="Settings Categories">
               <button
                 type="button"
-                onClick={() => setActiveTab('profile')}
+                onClick={() => handleSelectTab('profile')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-left transition-all ${
                   activeTab === 'profile'
                     ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-[#00EA64] font-bold border-l-4 border-[#1BA94C]'
@@ -237,7 +244,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
               <button
                 type="button"
-                onClick={() => setActiveTab('password')}
+                onClick={() => handleSelectTab('password')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-left transition-all ${
                   activeTab === 'password'
                     ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-[#00EA64] font-bold border-l-4 border-[#1BA94C]'
@@ -250,7 +257,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
               <button
                 type="button"
-                onClick={() => setActiveTab('appearance')}
+                onClick={() => handleSelectTab('appearance')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-left transition-all ${
                   activeTab === 'appearance'
                     ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-[#00EA64] font-bold border-l-4 border-[#1BA94C]'
