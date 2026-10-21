@@ -100,6 +100,13 @@ export const translations = {
     resetMismatch: 'Xác nhận mật khẩu mới không trùng khớp.',
     resetMinLength: 'Mật khẩu mới phải có tối thiểu 6 ký tự.',
     resetInvalidLink: 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.',
+
+    // Standardized Auth Errors
+    errAccountNotFound: 'Không tìm thấy tài khoản với email hoặc tên đăng nhập này!',
+    errSessionExpired: 'Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.',
+    errInvalidCredentials: 'Tên đăng nhập hoặc mật khẩu không chính xác.',
+    errNetwork: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối mạng.',
+    msgResetSuccess: 'Cập nhật mật khẩu thành công! Đang chuyển về trang đăng nhập...',
   },
   eng: {
     // Left Brand Sidebar
@@ -200,5 +207,39 @@ export const translations = {
     resetMismatch: 'New password confirmation does not match.',
     resetMinLength: 'New password must be at least 6 characters.',
     resetInvalidLink: 'Password reset link is invalid or expired.',
+
+    // Standardized Auth Errors
+    errAccountNotFound: 'No account found with this email or username!',
+    errSessionExpired: 'Session has expired. Please log in again.',
+    errInvalidCredentials: 'Invalid username or password.',
+    errNetwork: 'Cannot connect to server. Please check your network connection.',
+    msgResetSuccess: 'Password updated successfully! Redirecting to login...',
   },
 };
+
+/**
+ * Map error codes to localized UI messages
+ */
+export function getAuthErrorMessage(errorCodeOrMessage: string, lang: Language): string {
+  const t = translations[lang];
+  if (!errorCodeOrMessage) return '';
+  switch (errorCodeOrMessage) {
+    case 'ACCOUNT_NOT_FOUND':
+    case 'Không tìm thấy tài khoản với email hoặc tên đăng nhập này!':
+      return t.errAccountNotFound;
+    case 'SESSION_EXPIRED':
+    case 'Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.':
+      return t.errSessionExpired;
+    case 'INVALID_CREDENTIALS':
+      return t.errInvalidCredentials;
+    case 'INVALID_RESET_LINK':
+    case 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.':
+      return t.resetInvalidLink;
+    case 'RESET_SUCCESS':
+      return t.msgResetSuccess;
+    case 'NETWORK_ERROR':
+      return t.errNetwork;
+    default:
+      return errorCodeOrMessage;
+  }
+}

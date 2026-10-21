@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -8,7 +8,8 @@ import {
   ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 import { resetPasswordService } from '../../services/authService';
-import { Language, translations } from './i18n';
+import { ApiError } from '../../services/apiClient';
+import { Language, translations, getAuthErrorMessage } from './i18n';
 
 interface ResetPasswordFormProps {
   lang: Language;
@@ -21,29 +22,45 @@ interface ResetPasswordFormProps {
 export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
   lang,
   account,
-  token: _token,
+  token: rawToken,
   onSuccessRedirect,
   onBackToLogin,
 }) => {
   const t = translations[lang];
+
+  const trimmedAccount = (account || '').trim();
+  const trimmedToken = (rawToken || '').trim();
+  const isLinkInvalid = !trimmedAccount || !trimmedToken;
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(
+    isLinkInvalid ? t.resetInvalidLink : null
+  );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading) return;
+    if (isLoading || isLinkInvalid) return;
 
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    if (!account) {
+    if (!trimmedAccount || !trimmedToken) {
       setErrorMessage(t.resetInvalidLink);
       return;
     }
@@ -68,8 +85,8 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
     try {
       // Gọi API resetPassword (POST /api/v1/auth/reset-password)
       await resetPasswordService({
-        email: account,
-        token: _token || '',
+        email: trimmedAccount,
+        token: trimmedToken,
         newPassword,
       });
 
@@ -77,11 +94,16 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
       setIsLoading(false);
 
       // Auto redirect to Login after 1.8 seconds with username prefilled
-      setTimeout(() => {
-        onSuccessRedirect(account);
+      redirectTimerRef.current = setTimeout(() => {
+        onSuccessRedirect(trimmedAccount);
       }, 1800);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : t.resetInvalidLink;
+      let msg = t.resetInvalidLink;
+      if (err instanceof ApiError && (err.status === 400 || err.status === 404)) {
+        msg = t.resetInvalidLink;
+      } else if (err instanceof Error) {
+        msg = getAuthErrorMessage(err.message, lang);
+      }
       setErrorMessage(msg);
       setIsLoading(false);
     }
@@ -108,7 +130,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
           <ShieldCheckIcon className="w-4 h-4 text-emerald-600 flex-shrink-0" />
           <span className="text-xs text-slate-500 font-medium">
             {t.resetAccountPrefix}{' '}
-            <strong className="text-slate-800 font-semibold font-mono">{account || 'student@hnue.edu.vn'}</strong>
+            <strong className="text-slate-800 font-semibold font-mono">{trimmedAccount || '—'}</strong>
           </span>
         </div>
       </div>
@@ -152,6 +174,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
               type={showNewPassword ? 'text' : 'password'}
               autoComplete="new-password"
               value={newPassword}
+              disabled={isLinkInvalid || isLoading || Boolean(successMessage)}
               onChange={(e) => {
                 setNewPassword(e.target.value);
                 setErrorMessage(null);
@@ -159,13 +182,14 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
               placeholder={t.resetNewPassPlaceholder}
               required
               aria-required="true"
-              className="w-full h-11 pl-3.5 pr-11 bg-white border border-slate-300 rounded-md text-[15px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a]/25"
+              className="w-full h-11 pl-3.5 pr-11 bg-white border border-slate-300 rounded-md text-[15px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a]/25 disabled:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-400"
             />
             <button
               type="button"
+              disabled={isLinkInvalid || isLoading || Boolean(successMessage)}
               onClick={() => setShowNewPassword(!showNewPassword)}
               aria-label={showNewPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus-visible:outline-none"
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus-visible:outline-none disabled:cursor-not-allowed"
             >
               {showNewPassword ? (
                 <EyeSlashIcon className="w-4 h-4" aria-hidden="true" />
@@ -191,6 +215,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
               type={showConfirmPassword ? 'text' : 'password'}
               autoComplete="new-password"
               value={confirmPassword}
+              disabled={isLinkInvalid || isLoading || Boolean(successMessage)}
               onChange={(e) => {
                 setConfirmPassword(e.target.value);
                 setErrorMessage(null);
@@ -198,13 +223,14 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
               placeholder={t.resetConfirmPassPlaceholder}
               required
               aria-required="true"
-              className="w-full h-11 pl-3.5 pr-11 bg-white border border-slate-300 rounded-md text-[15px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a]/25"
+              className="w-full h-11 pl-3.5 pr-11 bg-white border border-slate-300 rounded-md text-[15px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a]/25 disabled:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-400"
             />
             <button
               type="button"
+              disabled={isLinkInvalid || isLoading || Boolean(successMessage)}
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus-visible:outline-none"
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus-visible:outline-none disabled:cursor-not-allowed"
             >
               {showConfirmPassword ? (
                 <EyeSlashIcon className="w-4 h-4" aria-hidden="true" />
@@ -219,7 +245,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
         <button
           type="submit"
           id="btn-update-password"
-          disabled={isLoading || Boolean(successMessage)}
+          disabled={isLinkInvalid || isLoading || Boolean(successMessage)}
           style={{ backgroundColor: '#16a34a' }}
           className="w-full h-12 py-3 mt-2 rounded-md hover:bg-[#15803d] active:scale-[0.99] text-white font-bold text-base tracking-wide transition-all duration-150 flex items-center justify-center gap-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#16a34a] disabled:opacity-60 disabled:cursor-not-allowed select-none"
         >

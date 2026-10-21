@@ -9,6 +9,8 @@ import { User } from '../types/auth';
 
 interface LoginPageProps {
   onLoginSuccess: (user: User, token: string) => void;
+  currentLang?: Language;
+  onLanguageChange?: (newLang: Language) => void;
 }
 
 type AuthRouteView = 'login' | 'forgot' | 'reset';
@@ -49,7 +51,7 @@ function parseAuthUrl(): { view: AuthRouteView; token: string; account: string }
     return {
       view: 'reset',
       token: tokenParam,
-      account: emailParam ? decodeURIComponent(emailParam) : 'student@hnue.edu.vn',
+      account: emailParam,
     };
   }
 
@@ -70,30 +72,26 @@ function parseAuthUrl(): { view: AuthRouteView; token: string; account: string }
   return { view: 'login', token: '', account: '' };
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({
+  onLoginSuccess,
+  currentLang = 'vie',
+  onLanguageChange,
+}) => {
   const initialNav = parseAuthUrl();
   const [authView, setAuthView] = useState<AuthRouteView>(initialNav.view);
-  const [resetAccount, setResetAccount] = useState<string>(initialNav.account || 'student@hnue.edu.vn');
+  const [resetAccount, setResetAccount] = useState<string>(initialNav.account || '');
   const [resetToken, setResetToken] = useState<string>(initialNav.token || '');
   const [prefilledIdentifier, setPrefilledIdentifier] = useState<string>('');
 
-  const [lang, setLang] = useState<Language>(() => {
-    try {
-      const saved = localStorage.getItem('ai_mentor_lang');
-      if (saved === 'eng' || saved === 'vie') return saved;
-    } catch {
-      // Fallback if localStorage is inaccessible
-    }
-    return 'vie';
-  });
+  const lang = currentLang;
 
   // Lắng nghe cả sự kiện hashchange và popstate để back/forward/F5 hoạt động chuẩn xác 100%
   useEffect(() => {
     const handleUrlChange = () => {
       const currentNav = parseAuthUrl();
       setAuthView(currentNav.view);
-      if (currentNav.account) setResetAccount(currentNav.account);
-      if (currentNav.token) setResetToken(currentNav.token);
+      if (currentNav.account !== undefined) setResetAccount(currentNav.account);
+      if (currentNav.token !== undefined) setResetToken(currentNav.token);
     };
 
     window.addEventListener('hashchange', handleUrlChange);
@@ -105,11 +103,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   }, []);
 
   const handleLanguageChange = (newLang: Language) => {
-    setLang(newLang);
-    try {
-      localStorage.setItem('ai_mentor_lang', newLang);
-    } catch {
-      // Ignore storage error
+    if (onLanguageChange) {
+      onLanguageChange(newLang);
+    } else {
+      try {
+        localStorage.setItem('ai_mentor_lang', newLang);
+      } catch {
+        // Ignore storage error
+      }
     }
   };
 

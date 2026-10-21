@@ -27,6 +27,11 @@ export interface Exercise {
   status?: 'solved' | 'in_progress' | 'not_started';
   score?: number;
   trackIds?: string[];
+  titleEn?: string;
+  categoryEn?: string;
+  titleVie?: string;
+  categoryVie?: string;
+  descriptionEn?: string;
 }
 
 export interface TestCaseResult {
@@ -58,4 +63,9 @@ export interface SubmissionRecord {
   totalTests: number;
   executionTimeMs: number;
   code: string;
+  studentKey?: string;
+  studentName?: string;
+  studentEmail?: string;
+  studentId?: string;
+  memoryMb?: number;
 }

@@ -6,6 +6,7 @@ import {
   getLanguageOptionsForContext,
   getInitialOptionForExercise,
 } from '../../services/languageTracks';
+import { Language, ideTranslations } from './ideI18n';
 
 export type { LanguageOption };
 
@@ -22,6 +23,7 @@ interface CodeEditorProps {
   onResetBoilerplate?: () => void;
   systemTheme?: 'dark' | 'light';
   onThemeToggle?: () => void;
+  currentLang?: Language;
 }
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({
@@ -37,7 +39,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   onResetBoilerplate,
   systemTheme = 'dark',
   onThemeToggle,
+  currentLang = 'vie',
 }) => {
+  const t = ideTranslations[currentLang];
+
   // Monaco Theme (vs-dark / vs-light) - synced with system theme by default
   const [editorTheme, setEditorTheme] = useState<'vs-dark' | 'vs-light'>(() => {
     if (systemTheme) {
@@ -138,7 +143,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             <select
               value={activeOption.id}
               onChange={(e) => handleSelectLanguage(e.target.value)}
-              aria-label="Chọn ngôn ngữ lập trình"
+              aria-label={t.selectLanguage}
               className={`appearance-none text-xs rounded-lg px-2.5 py-1 pr-6 cursor-pointer font-semibold focus:outline-none border transition-colors ${
                 isDark
                   ? 'bg-[#252526] text-emerald-400 border-slate-700 hover:border-emerald-500'
@@ -171,8 +176,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 }
               }
             }}
-            title={isDark ? 'Chuyển sang Theme Sáng (vs-light)' : 'Chuyển sang Theme Tối (vs-dark)'}
-            className={`p-1.5 rounded-lg border transition-colors ${
+            title={isDark ? t.themeToggleTooltipLight : t.themeToggleTooltipDark}
+            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               isDark
                 ? 'text-amber-400 hover:text-amber-300 bg-slate-800/80 border-slate-700 hover:bg-slate-700'
                 : 'text-slate-700 hover:text-slate-900 bg-gray-200/80 border-gray-300 hover:bg-gray-300'
@@ -186,8 +191,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             <button
               type="button"
               onClick={onResetBoilerplate}
-              title="Khôi phục mã nguồn ban đầu (Reset)"
-              className={`p-1.5 rounded-lg border transition-colors ${
+              title={t.resetTooltip}
+              className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
                 isDark
                   ? 'text-slate-400 hover:text-white bg-slate-800/80 border-slate-700 hover:bg-slate-700'
                   : 'text-gray-600 hover:text-gray-900 bg-gray-200/80 border-gray-300 hover:bg-gray-300'

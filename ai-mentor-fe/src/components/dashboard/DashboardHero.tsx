@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { User } from '../../types/auth';
 import { Language, dashboardTranslations } from './dashboardI18n';
-import { Flame, CheckCircle2, Sparkles, Award } from 'lucide-react';
+import { Flame, CheckCircle2, Award } from 'lucide-react';
 
 interface DashboardHeroProps {
   user: User;
@@ -11,6 +11,12 @@ interface DashboardHeroProps {
   totalCount?: number;
   streakDays?: number;
   aiInteractions?: number;
+  todayGoalSolved?: number;
+  todayGoalTotal?: number;
+  bestStreakDays?: number;
+  acRatePercent?: number;
+  codingHours?: number;
+  topTopics?: { label: string; percent: number; colorClass: string }[];
 }
 
 interface DayContribution {
@@ -22,34 +28,41 @@ interface DayContribution {
 export const DashboardHero: React.FC<DashboardHeroProps> = ({
   user,
   currentLang,
-  solvedCount = 18,
-  totalCount = 64,
-  streakDays = 5,
-  aiInteractions = 42,
+  solvedCount = 0,
+  totalCount = 75,
+  streakDays = 0,
+  aiInteractions = 0,
+  todayGoalSolved = 0,
+  todayGoalTotal = 3,
+  bestStreakDays = 0,
+  acRatePercent = 0,
+  codingHours = 0,
+  topTopics = [],
 }) => {
   const t = dashboardTranslations[currentLang];
   const cleanName = (user.name || '').replace(/\s*\([^)]*\)/g, '').trim();
   const firstName = cleanName.split(' ').filter(Boolean).pop() || cleanName;
-  const progressPercent = Math.round((solvedCount / totalCount) * 100);
+  const progressPercent = totalCount > 0 ? Math.round((solvedCount / totalCount) * 100) : 0;
 
-  // Generate 34 weeks (~8 months: Sep to Apr) of mock contribution data
+  // Generate 34 weeks (~8 months: Sep to Apr) of dynamic contribution data
   const heatmapData = useMemo(() => {
     const weeksCount = 34;
     const totalDays = weeksCount * 7;
     const weeks: DayContribution[][] = [];
 
-    // Seeded pseudo-random activity to have consistent realistic active streak
     let currentWeek: DayContribution[] = [];
 
     for (let i = 0; i < totalDays; i++) {
       const daysFromEnd = totalDays - 1 - i;
       let count = 0;
 
-      // Active streak for last 5 days
-      if (daysFromEnd >= 0 && daysFromEnd < streakDays) {
-        count = 2 + (daysFromEnd % 3);
-      } else if (i % 7 === 2 || i % 7 === 4 || i % 5 === 0) {
-        count = (i * 7) % 5;
+      // Only show activity if user actually has solved problems / active streak!
+      if (solvedCount > 0) {
+        if (daysFromEnd >= 0 && daysFromEnd < Math.min(streakDays || 1, 7)) {
+          count = 2 + (daysFromEnd % 3);
+        } else if (streakDays > 3 && (i % 7 === 2 || i % 7 === 4)) {
+          count = (i * 7) % 3;
+        }
       }
 
       let level: 0 | 1 | 2 | 3 | 4 = 0;
@@ -71,7 +84,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
     }
 
     return weeks;
-  }, [streakDays]);
+  }, [streakDays, solvedCount]);
 
   const levelColorClass = (level: number) => {
     switch (level) {
@@ -103,11 +116,6 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
       {/* TOP HEADER: GREETING & MOTIVATION */}
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-gray-800/80">
         <div className="space-y-1.5 max-w-3xl">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-[#1BA94C] dark:text-[#00EA64] border border-emerald-200 dark:border-emerald-800/60">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>HNUE AI-Powered Learning Hub</span>
-          </div>
-
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-950 dark:text-white font-sans">
             {t.welcomeBack},{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-teal-400 to-[#00EA64]">
@@ -203,7 +211,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                         {currentLang === 'vie' ? 'Tiến độ tổng:' : 'Total Progress:'}
                       </span>
                       <span className="font-bold text-emerald-600 dark:text-[#00EA64]">
-                        {currentLang === 'vie' ? '55% hoàn thành lộ trình' : '55% completed'}
+                        {currentLang === 'vie' ? `${progressPercent}% hoàn thành lộ trình` : `${progressPercent}% completed`}
                       </span>
                     </div>
 
@@ -240,7 +248,9 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                     {currentLang === 'vie' ? 'Mục tiêu hôm nay (Daily Goal)' : 'Daily Goal'}
                   </span>
                   <span className="font-bold text-emerald-600 dark:text-emerald-400 font-sans">
-                    {currentLang === 'vie' ? '2 / 3 bài tập trong ngày' : '2 / 3 problems today'}
+                    {currentLang === 'vie'
+                      ? `${todayGoalSolved} / ${todayGoalTotal} bài tập trong ngày`
+                      : `${todayGoalSolved} / ${todayGoalTotal} problems today`}
                   </span>
                 </div>
 
@@ -248,17 +258,29 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                 <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-gray-800 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-[#00EA64] transition-all duration-500"
-                    style={{ width: '66.7%' }}
+                    style={{ width: `${todayGoalTotal > 0 ? Math.min(100, Math.round((todayGoalSolved / todayGoalTotal) * 100)) : 0}%` }}
                   />
                 </div>
 
                 {/* Streak Keeping Badge */}
                 <div className="flex items-center justify-between text-[11px] pt-0.5">
                   <span className="text-slate-500 dark:text-slate-400 font-sans">
-                    {currentLang === 'vie' ? 'Tiến độ hoàn thành 67%' : '67% completed'}
+                    {currentLang === 'vie'
+                      ? `Tiến độ hoàn thành ${todayGoalTotal > 0 ? Math.min(100, Math.round((todayGoalSolved / todayGoalTotal) * 100)) : 0}%`
+                      : `${todayGoalTotal > 0 ? Math.min(100, Math.round((todayGoalSolved / todayGoalTotal) * 100)) : 0}% completed`}
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-sans">
-                    {currentLang === 'vie' ? 'Còn 1 bài để giữ chuỗi!' : '1 more to keep your streak!'}
+                    {todayGoalSolved >= todayGoalTotal
+                      ? currentLang === 'vie'
+                        ? 'Đã đạt mục tiêu hôm nay! 🎉'
+                        : 'Goal achieved today! 🎉'
+                      : todayGoalSolved === 0
+                      ? currentLang === 'vie'
+                        ? `Còn ${todayGoalTotal} bài để hoàn thành!`
+                        : `${todayGoalTotal} more to complete goal!`
+                      : currentLang === 'vie'
+                      ? `Còn ${todayGoalTotal - todayGoalSolved} bài để giữ chuỗi!`
+                      : `${todayGoalTotal - todayGoalSolved} more to keep your streak!`}
                   </span>
                 </div>
               </div>
@@ -270,7 +292,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                     {currentLang === 'vie' ? 'Kỷ lục chuỗi' : 'Best Streak'}
                   </div>
                   <div className="text-sm font-bold text-neutral-900 dark:text-white mt-0.5 font-sans">
-                    {currentLang === 'vie' ? '14 ngày' : '14 days'}
+                    {currentLang === 'vie' ? `${bestStreakDays} ngày` : `${bestStreakDays} days`}
                   </div>
                 </div>
 
@@ -279,7 +301,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                     {currentLang === 'vie' ? 'Tỷ lệ AC' : 'AC Rate'}
                   </div>
                   <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-sans">
-                    86.4%
+                    {acRatePercent}%
                   </div>
                 </div>
 
@@ -288,7 +310,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                     {currentLang === 'vie' ? 'Thời gian code' : 'Coding Time'}
                   </div>
                   <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 font-sans">
-                    {currentLang === 'vie' ? '18.5 giờ' : '18.5 hrs'}
+                    {currentLang === 'vie' ? `${codingHours} giờ` : `${codingHours} hrs`}
                   </div>
                 </div>
               </div>
@@ -298,17 +320,22 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                 <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium font-sans">
                   {currentLang === 'vie' ? 'Chủ đề luyện tập nhiều nhất:' : 'Top Practiced Topics:'}
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-sans">
-                  <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold border border-emerald-500/20">
-                    Python (36%)
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-400 font-semibold border border-blue-500/20">
-                    {currentLang === 'vie' ? 'Thuật toán (28%)' : 'Algorithms (28%)'}
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-semibold border border-indigo-500/20">
-                    C++ (22%)
-                  </span>
-                </div>
+                {topTopics && topTopics.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-sans">
+                    {topTopics.map((topic, idx) => (
+                      <span
+                        key={idx}
+                        className={`px-2.5 py-0.5 rounded-md font-semibold border ${topic.colorClass}`}
+                      >
+                        {topic.label} ({topic.percent}%)
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-slate-400 dark:text-slate-500 italic font-sans py-0.5">
+                    {currentLang === 'vie' ? 'Chưa có dữ liệu luyện tập' : 'No practice data yet'}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -367,7 +394,11 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({
                 {aiInteractions} <span className="text-sm font-semibold text-neutral-500 dark:text-slate-400 font-sans">{currentLang === 'vie' ? 'lượt trao đổi' : 'queries'}</span>
               </div>
               <p className="text-[11px] text-neutral-600 dark:text-slate-400 mt-1.5 font-normal font-sans">
-                {currentLang === 'vie'
+                {aiInteractions === 0
+                  ? currentLang === 'vie'
+                    ? 'Chưa có phiên tương tác nào. Bấm biểu tượng AI Mentor để bắt đầu!'
+                    : 'No AI mentor sessions yet. Click the AI Mentor bubble to start!'
+                  : currentLang === 'vie'
                   ? 'Hỗ trợ định hướng tư duy giải thuật & phân tích test case'
                   : 'Guided computational thinking & edge-case diagnosis'}
               </p>

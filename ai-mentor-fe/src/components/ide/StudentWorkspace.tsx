@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { localizeExercise } from '../../services/mockExercisesData.en';
 import { User } from '../../types/auth';
 import { Exercise, ExecutionResult, SubmissionRecord } from '../../types/exercise';
 import {
@@ -35,6 +36,15 @@ import {
   Moon,
 } from 'lucide-react';
 import { ThemeMode } from '../dashboard/dashboardI18n';
+import { Language, ideTranslations } from './ideI18n';
+import {
+  getUserStorageKey,
+  getUserDraft,
+  saveUserDraft,
+  clearUserDraft,
+  saveUserSubmission,
+  markExerciseAsSolved,
+} from '../../services/userStorage';
 
 interface StudentWorkspaceProps {
   user: User;
@@ -42,18 +52,30 @@ interface StudentWorkspaceProps {
   initialExerciseId?: number;
   currentTheme?: ThemeMode;
   onThemeToggle?: () => void;
+  currentLang?: Language;
+  onLanguageChange?: (l: Language) => void;
 }
 
 export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
-  user: _user,
+  user,
   onBackToDashboard,
   initialExerciseId = 1,
   currentTheme = 'dark',
   onThemeToggle,
+  currentLang = 'vie',
+  onLanguageChange,
 }) => {
+  const t = ideTranslations[currentLang];
+  const userKey = getUserStorageKey(user);
+
   // 1. Current Exercise State
   const [currentExercise, setCurrentExercise] = useState<Exercise>(
     getExerciseById(initialExerciseId) || MOCK_EXERCISES[0]
+  );
+
+  const localizedExercise = useMemo(
+    () => localizeExercise(currentExercise, currentLang),
+    [currentExercise, currentLang]
   );
 
   // Active language option for HackerRank multi-language selection
@@ -79,12 +101,14 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
   const [code, setCode] = useState<string>(() => {
     try {
       const initialEx = getExerciseById(initialExerciseId) || MOCK_EXERCISES[0];
-      const savedLangId = localStorage.getItem(`ai_mentor_active_lang_${initialExerciseId}`);
+      const savedLangId =
+        localStorage.getItem(`ai_mentor_active_lang_${userKey}_${initialExerciseId}`) ||
+        localStorage.getItem(`ai_mentor_active_lang_${initialExerciseId}`);
       if (savedLangId) {
-        const savedLangDraft = localStorage.getItem(`ai_mentor_draft_${initialExerciseId}_${savedLangId}`);
+        const savedLangDraft = getUserDraft(userKey, initialExerciseId, savedLangId);
         if (savedLangDraft) return savedLangDraft;
       }
-      const savedDraft = localStorage.getItem(`ai_mentor_draft_${initialExerciseId}`);
+      const savedDraft = getUserDraft(userKey, initialExerciseId);
       if (savedDraft) return savedDraft;
       return initialEx.boilerplateCode;
     } catch {
@@ -93,7 +117,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
   });
 
   const [submissions, setSubmissions] = useState<SubmissionRecord[]>(
-    getSubmissionsForExercise(currentExercise.id)
+    getSubmissionsForExercise(currentExercise.id, userKey)
   );
 
   // 2. Execution & Submission States
@@ -122,7 +146,9 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
       const localEx = getExerciseById(initialExerciseId);
       if (localEx && isMounted) {
         setCurrentExercise(localEx);
-        const savedLangId = localStorage.getItem(`ai_mentor_active_lang_${localEx.id}`);
+        const savedLangId =
+          localStorage.getItem(`ai_mentor_active_lang_${userKey}_${localEx.id}`) ||
+          localStorage.getItem(`ai_mentor_active_lang_${localEx.id}`);
         let activeOpt: LanguageOption | null = null;
         if (savedLangId) {
           const opts = getLanguageOptionsForContext(
@@ -135,9 +161,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
           setCurrentLanguageOption(activeOpt);
         }
 
-        const savedDraft = activeOpt
-          ? localStorage.getItem(`ai_mentor_draft_${localEx.id}_${activeOpt.id}`)
-          : localStorage.getItem(`ai_mentor_draft_${localEx.id}`);
+        const savedDraft = getUserDraft(userKey, localEx.id, activeOpt?.id);
 
         if (savedDraft) {
           setCode(savedDraft);
@@ -145,7 +169,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
           setCode(localEx.boilerplateCode);
         }
         setExecutionResult(null);
-        setSubmissions(getSubmissionsForExercise(localEx.id));
+        setSubmissions(getSubmissionsForExercise(localEx.id, userKey));
       }
 
       try {
@@ -176,28 +200,16 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
   // Code change with auto-save to localStorage
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
-    try {
-      localStorage.setItem(`ai_mentor_draft_${currentExercise.id}`, newCode);
-      if (currentLanguageOption) {
-        localStorage.setItem(
-          `ai_mentor_draft_${currentExercise.id}_${currentLanguageOption.id}`,
-          newCode
-        );
-      }
-    } catch {
-      // Ignore
-    }
+    saveUserDraft(userKey, currentExercise.id, newCode, currentLanguageOption?.id);
   };
 
   // Language switch with automatic template loading
   const handleLanguageChange = (newOption: LanguageOption) => {
     setCurrentLanguageOption(newOption);
     try {
-      localStorage.setItem(`ai_mentor_active_lang_${currentExercise.id}`, newOption.id);
+      localStorage.setItem(`ai_mentor_active_lang_${userKey}_${currentExercise.id}`, newOption.id);
       // Check if student has a saved draft for this language on this exercise
-      const savedDraftForLang = localStorage.getItem(
-        `ai_mentor_draft_${currentExercise.id}_${newOption.id}`
-      );
+      const savedDraftForLang = getUserDraft(userKey, currentExercise.id, newOption.id);
       if (savedDraftForLang) {
         setCode(savedDraftForLang);
         return;
@@ -233,14 +245,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
       } else {
         setCode(currentExercise.boilerplateCode);
       }
-      try {
-        localStorage.removeItem(`ai_mentor_draft_${currentExercise.id}`);
-        if (currentLanguageOption) {
-          localStorage.removeItem(`ai_mentor_draft_${currentExercise.id}_${currentLanguageOption.id}`);
-        }
-      } catch {
-        // Ignore
-      }
+      clearUserDraft(userKey, currentExercise.id, currentLanguageOption?.id);
     }
   };
 
@@ -269,7 +274,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
         totalTests: currentExercise.sampleTestCases.length,
         passedTests: 0,
         executionTimeMs: 0,
-        errorMessage: 'Đã xảy ra sự cố trong quá trình khởi tạo môi trường biên dịch.',
+        errorMessage: t.compilerInitError,
         results: [],
       });
     } finally {
@@ -293,16 +298,16 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
         );
       } catch (beErr) {
         console.warn('Backend submit failed, fallback to mock submit:', beErr);
-        subRecord = await submitStudentCode(currentExercise, code);
+        subRecord = await submitStudentCode(currentExercise, code, user);
       }
 
       // Refresh submissions list
       try {
         const beSubs = await fetchSubmissionsForExercise(currentExercise.id);
         if (beSubs.length > 0) setSubmissions(beSubs);
-        else setSubmissions(getSubmissionsForExercise(currentExercise.id));
+        else setSubmissions(getSubmissionsForExercise(currentExercise.id, userKey));
       } catch {
-        setSubmissions(getSubmissionsForExercise(currentExercise.id));
+        setSubmissions(getSubmissionsForExercise(currentExercise.id, userKey));
       }
 
       const isAllPassed = subRecord.status === 'passed';
@@ -322,13 +327,74 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
         stdout: `[SUBMISSION SCORING] ${subRecord.passedTests}/${subRecord.totalTests} test cases passed. Status: ${subRecord.status.toUpperCase()}`,
       });
 
+      const finalScore = isAllPassed ? 10 : Math.round((subRecord.passedTests / subRecord.totalTests) * 10);
+      const studentIdStr = user.studentId ? String(user.studentId) : user.id ? String(user.id) : undefined;
+      const cleanStudentName = user.name ? user.name.replace(/\s*\([^)]*\)/g, '').trim() : 'Học viên';
+
+      saveUserSubmission(userKey, {
+        id: subRecord.id,
+        exerciseId: currentExercise.id,
+        exerciseTitle: currentExercise.title,
+        category: currentExercise.category,
+        submittedAt: subRecord.submittedAt,
+        status: subRecord.status,
+        passedTests: subRecord.passedTests,
+        totalTests: subRecord.totalTests,
+        executionTimeMs: subRecord.executionTimeMs,
+        code: code,
+        language: currentLanguageOption?.label || currentExercise.language || 'Python 3',
+        score: finalScore,
+        studentKey: userKey,
+        studentName: cleanStudentName,
+        studentEmail: user.email,
+        studentId: studentIdStr,
+        memoryMb: 14.1,
+      });
+
+      // Luôn lưu key bài nộp mới nhất của sinh viên cho bài tập này (cả đạt và chưa đạt)
+      try {
+        localStorage.setItem(
+          `ai_mentor_latest_user_submission_${userKey}_${currentExercise.id}`,
+          JSON.stringify({
+            id: subRecord.id,
+            name: cleanStudentName,
+            studentId: studentIdStr || userKey,
+            studentEmail: user.email,
+            studentKey: userKey,
+            exerciseId: currentExercise.id,
+            exerciseTitle: currentExercise.title,
+            score: finalScore,
+            executionTimeMs: subRecord.executionTimeMs || 28,
+            memoryMb: 14.1,
+            language: currentLanguageOption?.label || currentExercise.language || 'Python 3',
+            timeAgo: t.justNow,
+            submittedCode: code,
+            status: subRecord.status,
+            passedTests: subRecord.passedTests,
+            totalTests: subRecord.totalTests,
+          })
+        );
+      } catch {
+        // ignore
+      }
+
+      setSubmissions(getSubmissionsForExercise(currentExercise.id, userKey));
+
       if (isAllPassed) {
+        try {
+          markExerciseAsSolved(userKey, currentExercise.id);
+        } catch {
+          // ignore
+        }
         setSubmitSuccessNotice(
-          `🎉 Chúc mừng! Bạn đã giải thành công bài tập "${currentExercise.title}" (+${currentExercise.score || 100} điểm).`
+          t.submitSuccessToast(
+            currentLang === 'eng' && currentExercise.titleEn ? currentExercise.titleEn : currentExercise.title,
+            currentExercise.score || 100
+          )
         );
       } else {
         setSubmitSuccessNotice(
-          `Kết quả nộp bài: Đạt ${subRecord.passedTests}/${subRecord.totalTests} test cases. Hãy kiểm tra lại các trường hợp biên!`
+          t.submitResultPartial(subRecord.passedTests, subRecord.totalTests)
         );
       }
     } catch {
@@ -337,7 +403,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
         totalTests: currentExercise.sampleTestCases.length + currentExercise.hiddenTestCaseCount,
         passedTests: 0,
         executionTimeMs: 0,
-        errorMessage: 'Không thể kết nối đến máy chủ chấm bài.',
+        errorMessage: t.gradingServerError,
         results: [],
       });
     } finally {
@@ -433,7 +499,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
           <div
             onClick={() => onBackToDashboard()}
             className="flex items-center gap-2 cursor-pointer flex-shrink-0"
-            title="Quay lại danh mục luyện tập"
+            title={t.backToPractice}
           >
             <div className="w-8 h-8 rounded bg-[#1BA94C] flex items-center justify-center font-bold text-white shadow-sm flex-shrink-0">
               <span className="font-mono text-lg font-extrabold tracking-tighter">H</span>
@@ -454,19 +520,19 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
               onClick={() => onBackToDashboard()}
               className="hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer font-semibold transition-colors"
             >
-              Prepare
+              {t.prepare}
             </span>
             <span>&gt;</span>
             <span
               onClick={() => onBackToDashboard(primaryTrack)}
               className="hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer font-medium transition-colors truncate max-w-[120px] sm:max-w-[160px]"
-              title={`Xem danh sách bài tập của khóa: ${currentExercise.category}`}
+              title={t.viewCourseExercises(localizedExercise.category)}
             >
-              {currentExercise.category}
+              {localizedExercise.category}
             </span>
             <span>&gt;</span>
             <span className="text-slate-950 dark:text-slate-100 font-bold truncate max-w-[160px] sm:max-w-[280px] lg:max-w-[360px]">
-              {currentExercise.title}
+              {localizedExercise.title}
             </span>
           </nav>
         </div>
@@ -478,7 +544,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
             type="button"
             onClick={handleRunCode}
             disabled={isRunning || isSubmitting}
-            title="Chạy thử code với Sample Test Cases"
+            title={t.runCodeTooltip}
             className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#21262d] dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-600/80 text-xs font-semibold transition active:scale-95 disabled:opacity-50"
           >
             <Play
@@ -486,7 +552,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
                 isRunning ? 'animate-spin' : ''
               }`}
             />
-            <span className="hidden sm:inline">{isRunning ? 'Running...' : 'Run Code'}</span>
+            <span className="hidden sm:inline">{isRunning ? t.running : t.runCode}</span>
           </button>
 
           {/* Submit Code Button (HackerRank Green) */}
@@ -494,21 +560,53 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
             type="button"
             onClick={handleSubmitCode}
             disabled={isRunning || isSubmitting}
-            title="Nộp bài chính thức để chấm điểm toàn bộ test cases"
+            title={t.submitCodeTooltip}
             className="flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-[#1BA94C] hover:bg-[#15893d] text-white text-xs font-semibold transition active:scale-95 shadow-sm shadow-emerald-900/40 disabled:opacity-50"
           >
             <Check className="w-4 h-4" />
-            <span>{isSubmitting ? 'Scoring...' : 'Submit Code'}</span>
+            <span>{isSubmitting ? t.scoring : t.submitCode}</span>
           </button>
 
           <div className="h-5 w-px bg-slate-200 dark:bg-slate-800" />
+
+          {/* Language Switcher Pill (VIE | ENG) */}
+          {onLanguageChange && (
+            <div
+              role="group"
+              aria-label="Language Selector"
+              className="inline-flex items-center p-0.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-[11px] font-semibold"
+            >
+              <button
+                type="button"
+                onClick={() => onLanguageChange('vie')}
+                className={`px-2 py-0.5 rounded-full transition-all duration-150 ${
+                  currentLang === 'vie'
+                    ? 'bg-[#1BA94C] text-white shadow-sm font-bold'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                VIE
+              </button>
+              <button
+                type="button"
+                onClick={() => onLanguageChange('eng')}
+                className={`px-2 py-0.5 rounded-full transition-all duration-150 ${
+                  currentLang === 'eng'
+                    ? 'bg-[#1BA94C] text-white shadow-sm font-bold'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                ENG
+              </button>
+            </div>
+          )}
 
           {/* Theme Toggle Button */}
           {onThemeToggle && (
             <button
               type="button"
               onClick={onThemeToggle}
-              title={currentTheme === 'dark' ? 'Chuyển sang Theme Sáng' : 'Chuyển sang Theme Tối'}
+              title={currentTheme === 'dark' ? t.themeToggleToLight : t.themeToggleToDark}
               className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               {currentTheme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
@@ -519,7 +617,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
           <button
             type="button"
             onClick={toggleFullscreen}
-            title={isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
+            title={isFullscreen ? t.exitFullscreen : t.fullscreen}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -529,7 +627,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
           <button
             type="button"
             onClick={() => onBackToDashboard()}
-            title="Quay lại Dashboard"
+            title={t.backToDashboard}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -561,7 +659,13 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
           style={{ width: `${leftWidth}%` }}
           className="h-full shrink-0 flex flex-col overflow-hidden min-w-[280px] max-w-[70%]"
         >
-          <ProblemDescription exercise={currentExercise} submissions={submissions} theme={currentTheme} />
+          <ProblemDescription
+            exercise={localizedExercise}
+            submissions={submissions}
+            theme={currentTheme}
+            currentLang={currentLang}
+            user={user}
+          />
         </div>
 
         {/* VERTICAL DRAGGABLE RESIZER HANDLE (Between Left Problem & Right Editor) */}
@@ -570,7 +674,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
           className={`w-2 hover:w-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-[#1BA94C] dark:hover:bg-[#1BA94C] transition-all cursor-col-resize flex items-center justify-center group z-10 ${
             isDraggingVertical ? 'bg-[#1BA94C]' : ''
           }`}
-          title="Kéo thả để điều chỉnh độ rộng Đề bài / Code Editor"
+          title={t.resizerVerticalTooltip}
         >
           <GripVertical className="w-3 h-3 text-slate-400 dark:text-slate-500 group-hover:text-white" />
         </div>
@@ -592,6 +696,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
               onResetBoilerplate={handleResetBoilerplate}
               systemTheme={currentTheme}
               onThemeToggle={onThemeToggle}
+              currentLang={currentLang}
             />
           </div>
 
@@ -601,7 +706,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
             className={`h-2 hover:h-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-[#1BA94C] dark:hover:bg-[#1BA94C] transition-all cursor-row-resize flex items-center justify-center group z-10 ${
               isDraggingHorizontal ? 'bg-[#1BA94C]' : ''
             }`}
-            title="Kéo thả để điều chỉnh chiều cao Terminal"
+            title={t.resizerHorizontalTooltip}
           >
             <GripHorizontal className="w-3 h-3 text-slate-400 dark:text-slate-500 group-hover:text-white" />
           </div>
@@ -612,6 +717,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
               result={executionResult}
               isRunning={isRunning}
               theme={currentTheme}
+              currentLang={currentLang}
             />
           </div>
         </div>
@@ -619,8 +725,8 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
 
       {/* ================= 3. FLOATING AI MENTOR CHAT BUBBLE ================= */}
       <FloatingAIMentorChat
-        exerciseTitle={currentExercise.title}
-        category={currentExercise.category}
+        exerciseTitle={localizedExercise.title}
+        category={localizedExercise.category}
         codeContext={code}
         errorContext={
           executionResult?.status === 'error'
@@ -628,6 +734,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
             : undefined
         }
         theme={currentTheme}
+        currentLang={currentLang}
       />
     </div>
   );

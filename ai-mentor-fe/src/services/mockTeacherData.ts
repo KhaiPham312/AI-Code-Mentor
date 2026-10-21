@@ -1,3 +1,6 @@
+import { EXERCISE_TITLE_TRANSLATIONS } from './mockExercisesData';
+import { getRealStudentSubmissionsForTeacher } from './userStorage';
+export { getRealStudentSubmissionsForTeacher } from './userStorage';
 export interface ClassGroup {
   id: string;
   name: string;
@@ -276,8 +279,8 @@ export const MOCK_CLASS_GROUPS: ClassGroup[] = [
 export const MOCK_LIVE_SUBMISSIONS: LiveSubmission[] = [
   {
     id: 101,
-    studentName: 'Nguyễn Văn Minh',
-    studentId: '2151050012',
+    studentName: 'Bùi Tuấn Kiệt',
+    studentId: '2151050028',
     classGroup: 'K71A-CNTT',
     exerciseId: 1,
     exerciseTitle: 'Tìm số nguyên tố trong mảng',
@@ -463,8 +466,8 @@ def is_prime(x):
 export const MOCK_AI_AUDIT_LOGS: StudentAIAuditLog[] = [
   {
     id: 1,
-    studentName: 'Nguyễn Văn Minh',
-    studentId: '2151050012',
+    studentName: 'Bùi Tuấn Kiệt',
+    studentId: '2151050028',
     avatarColor: 'bg-emerald-600',
     classGroup: 'K71A-CNTT',
     exerciseId: 1,
@@ -681,7 +684,7 @@ export const MOCK_AI_AUDIT_LOGS: StudentAIAuditLog[] = [
 export const MOCK_ASSIGNMENTS: TeacherAssignment[] = [
   {
     id: 1,
-    title: 'Bài 01: Tìm số nguyên tố trong mảng',
+    title: 'Tìm số nguyên tố trong mảng',
     category: 'Algorithms',
     difficulty: 'easy',
     language: 'Python 3',
@@ -699,7 +702,7 @@ export const MOCK_ASSIGNMENTS: TeacherAssignment[] = [
   },
   {
     id: 2,
-    title: 'Bài 02: Kiểm tra tính hợp lệ chuỗi ngoặc',
+    title: 'Kiểm tra tính hợp lệ của chuỗi ngoặc',
     category: 'Data Structures',
     difficulty: 'easy',
     language: 'Python 3',
@@ -717,7 +720,7 @@ export const MOCK_ASSIGNMENTS: TeacherAssignment[] = [
   },
   {
     id: 3,
-    title: 'Bài 03: Tìm cặp số Two Sum',
+    title: 'Tìm hai số có tổng bằng Target (Two Sum)',
     category: 'Algorithms',
     difficulty: 'medium',
     language: 'Python 3',
@@ -735,7 +738,7 @@ export const MOCK_ASSIGNMENTS: TeacherAssignment[] = [
   },
   {
     id: 4,
-    title: 'Bài 04: Sắp xếp mảng QuickSort & MergeSort',
+    title: 'Sắp xếp mảng QuickSort & MergeSort',
     category: 'Algorithms',
     difficulty: 'hard',
     language: 'Python 3',
@@ -753,7 +756,7 @@ export const MOCK_ASSIGNMENTS: TeacherAssignment[] = [
   },
   {
     id: 5,
-    title: 'Bài 05: Kiểm tra Đồ thị Hai phía (Bipartite Graph)',
+    title: 'Kiểm tra Đồ thị Hai phía (Bipartite Graph)',
     category: 'Graph Theory',
     difficulty: 'hard',
     language: 'Python 3',
@@ -777,13 +780,13 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     name: 'Nguyễn Văn Minh',
     email: 'minh.nv21@hnue.edu.vn',
     classGroup: 'K71A-CNTT',
-    solvedCount: 4,
+    solvedCount: 0,
     totalAssignments: 4,
-    gpa: 9.6,
+    gpa: 8.5,
     attendanceRate: 98,
-    aiQueriesCount: 6,
-    status: 'excellent',
-    recentActivity: 'Nộp bài 01 đạt 10/10 (12 phút trước)',
+    aiQueriesCount: 0,
+    status: 'progressing',
+    recentActivity: 'Chưa có hoạt động nộp bài',
   },
   {
     studentId: '2151050045',
@@ -796,7 +799,7 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     attendanceRate: 96,
     aiQueriesCount: 8,
     status: 'excellent',
-    recentActivity: 'Nộp bài 02 đạt 10/10 (28 phút trước)',
+    recentActivity: 'Nộp bài: Kiểm tra tính hợp lệ của chuỗi ngoặc đạt 10/10 (28 phút trước)',
   },
   {
     studentId: '2151050033',
@@ -809,7 +812,7 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     attendanceRate: 92,
     aiQueriesCount: 14,
     status: 'progressing',
-    recentActivity: 'Nộp bài 03 đạt 10/10 (1 giờ trước)',
+    recentActivity: 'Nộp bài: Two Sum đạt 10/10 (1 giờ trước)',
   },
   {
     studentId: '2151050089',
@@ -822,7 +825,7 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     attendanceRate: 85,
     aiQueriesCount: 24,
     status: 'needs_attention',
-    recentActivity: 'Bị lỗi TLE Bài 01 (45 phút trước)',
+    recentActivity: 'Bị lỗi TLE: Tìm số nguyên tố trong mảng (45 phút trước)',
   },
   {
     studentId: '2151050102',
@@ -835,7 +838,7 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     attendanceRate: 74,
     aiQueriesCount: 32,
     status: 'at_risk',
-    recentActivity: 'Bế tắc Bài 03, hỏi AI 4 lần chưa giải xong',
+    recentActivity: 'Bế tắc Two Sum, hỏi AI 4 lần chưa giải xong',
   },
   {
     studentId: '2151050067',
@@ -848,7 +851,7 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     attendanceRate: 88,
     aiQueriesCount: 18,
     status: 'progressing',
-    recentActivity: 'Sai test case Bài 02 (15 phút trước)',
+    recentActivity: 'Sai test case: Kiểm tra tính hợp lệ của chuỗi ngoặc (15 phút trước)',
   },
   {
     studentId: '2151050028',
@@ -882,18 +885,16 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
 
 export const EXERCISE_TITLE_MAP: Record<string, string> = {
   'Tìm số nguyên tố trong mảng': 'Find Prime Numbers in Array',
+  'Kiểm tra tính hợp lệ của chuỗi ngoặc': 'Valid Parentheses Check',
   'Kiểm tra tính hợp lệ chuỗi ngoặc': 'Valid Parentheses Check',
+  'Tìm hai số có tổng bằng Target (Two Sum)': 'Two Sum Problem',
   'Tìm cặp số Two Sum': 'Two Sum Problem',
   'Sắp xếp mảng bằng QuickSort': 'QuickSort Array Implementation',
   'Tìm đường đi ngắn nhất Dijkstra': "Dijkstra's Shortest Path",
   'Cây nhị phân tìm kiếm (BST)': 'Binary Search Tree (BST) Operations',
   'Sắp xếp mảng QuickSort & MergeSort': 'QuickSort & MergeSort Implementation',
   'Kiểm tra Đồ thị Hai phía (Bipartite Graph)': 'Bipartite Graph Verification',
-  'Bài 01: Tìm số nguyên tố trong mảng': 'Problem 01: Find Prime Numbers in Array',
-  'Bài 02: Kiểm tra tính hợp lệ chuỗi ngoặc': 'Problem 02: Valid Parentheses Check',
-  'Bài 03: Tìm cặp số Two Sum': 'Problem 03: Two Sum Problem',
-  'Bài 04: Sắp xếp mảng QuickSort & MergeSort': 'Problem 04: QuickSort & MergeSort Implementation',
-  'Bài 05: Kiểm tra Đồ thị Hai phía (Bipartite Graph)': 'Problem 05: Bipartite Graph Verification',
+  ...EXERCISE_TITLE_TRANSLATIONS,
 };
 
 export const TIME_AGO_MAP: Record<string, string> = {
@@ -931,12 +932,18 @@ export const DAY_OF_WEEK_MAP: Record<string, string> = {
 };
 
 export const ROSTER_ACTIVITY_MAP: Record<string, string> = {
-  'Nộp bài 01 đạt 10/10 (12 phút trước)': 'Submitted Problem 01: 10/10 (12 mins ago)',
-  'Nộp bài 02 đạt 10/10 (28 phút trước)': 'Submitted Problem 02: 10/10 (28 mins ago)',
-  'Nộp bài 03 đạt 10/10 (1 giờ trước)': 'Submitted Problem 03: 10/10 (1 hour ago)',
-  'Bị lỗi TLE Bài 01 (45 phút trước)': 'TLE on Problem 01 (45 mins ago)',
-  'Bế tắc Bài 03, hỏi AI 4 lần chưa giải xong': 'Stuck on Problem 03, 4 AI queries pending',
-  'Sai test case Bài 02 (15 phút trước)': 'Failed test case on Problem 02 (15 mins ago)',
+  'Nộp bài: Tìm số nguyên tố trong mảng đạt 10/10 (12 phút trước)': 'Submitted: Find Prime Numbers in Array: 10/10 (12 mins ago)',
+  'Nộp bài: Kiểm tra tính hợp lệ của chuỗi ngoặc đạt 10/10 (28 phút trước)': 'Submitted: Valid Parentheses Check: 10/10 (28 mins ago)',
+  'Nộp bài: Two Sum đạt 10/10 (1 giờ trước)': 'Submitted: Two Sum Problem: 10/10 (1 hour ago)',
+  'Bị lỗi TLE: Tìm số nguyên tố trong mảng (45 phút trước)': 'TLE on: Find Prime Numbers in Array (45 mins ago)',
+  'Bế tắc Two Sum, hỏi AI 4 lần chưa giải xong': 'Stuck on Two Sum Problem, 4 AI queries pending',
+  'Sai test case: Kiểm tra tính hợp lệ của chuỗi ngoặc (15 phút trước)': 'Failed test case on: Valid Parentheses Check (15 mins ago)',
+  'Nộp bài 01 đạt 10/10 (12 phút trước)': 'Submitted: Find Prime Numbers in Array: 10/10 (12 mins ago)',
+  'Nộp bài 02 đạt 10/10 (28 phút trước)': 'Submitted: Valid Parentheses Check: 10/10 (28 mins ago)',
+  'Nộp bài 03 đạt 10/10 (1 giờ trước)': 'Submitted: Two Sum Problem: 10/10 (1 hour ago)',
+  'Bị lỗi TLE Bài 01 (45 phút trước)': 'TLE on: Find Prime Numbers in Array (45 mins ago)',
+  'Bế tắc Bài 03, hỏi AI 4 lần chưa giải xong': 'Stuck on Two Sum Problem, 4 AI queries pending',
+  'Sai test case Bài 02 (15 phút trước)': 'Failed test case on: Valid Parentheses Check (15 mins ago)',
   'Đã hoàn thành 3/4 bài tập': 'Completed 3/4 assignments',
   'Nộp bài hôm qua': 'Submitted yesterday',
 };
@@ -1098,8 +1105,28 @@ export const AI_LOG_TRANSCRIPT_MAP: Record<string, TranscriptMessage[]> = {
 };
 
 export function translateExerciseTitle(title: string, isVie: boolean): string {
-  if (isVie) return title;
-  return EXERCISE_TITLE_MAP[title] || title;
+  if (!title) return '';
+  // Strip any 'Bài XX: ', 'Problem XX: ', 'Bài XX (C): ' prefixes
+  const clean = title
+    .replace(/^Bài\s*\d+\s*(?:\([^)]*\))?:\s*/i, '')
+    .replace(/^Problem\s*\d+\s*(?:\([^)]*\))?:\s*/i, '')
+    .trim();
+
+  if (isVie) {
+    return clean;
+  }
+
+  if (EXERCISE_TITLE_TRANSLATIONS && EXERCISE_TITLE_TRANSLATIONS[clean]) {
+    return EXERCISE_TITLE_TRANSLATIONS[clean];
+  }
+  if (EXERCISE_TITLE_MAP[clean]) {
+    return EXERCISE_TITLE_MAP[clean];
+  }
+  if (EXERCISE_TITLE_MAP[title]) {
+    return EXERCISE_TITLE_MAP[title].replace(/^Problem\s*\d+\s*(?:\([^)]*\))?:\s*/i, '').trim();
+  }
+
+  return clean;
 }
 
 export function translateTimeAgo(time: string, isVie: boolean): string {
@@ -1170,5 +1197,385 @@ export function translateTranscript(
   if (isVie) return messages;
   const mapped = AI_LOG_TRANSCRIPT_MAP[String(id)];
   return mapped || messages;
+}
+
+/**
+ * Generate rich student submissions for any exercise in the 9 courses
+ */
+/**
+ * Generate rich student submissions for any exercise in the 9 courses
+ */
+export function getTeacherSubmissionsForExercise(
+  exerciseId: number,
+  _courseId: string,
+  exerciseTitle: string = 'Bài tập thực hành',
+  boilerplateCode: string = '',
+  exerciseLang: string = 'python'
+): LiveSubmission[] {
+  const cleanTitle = exerciseTitle
+    .replace(/^Bài\s*\d+\s*(?:\([^)]*\))?:\s*/i, '')
+    .replace(/^Problem\s*\d+\s*(?:\([^)]*\))?:\s*/i, '')
+    .trim();
+
+  // 1. Lấy bài nộp thật từ người dùng đã giải bài tập này
+  const realSubs = getRealStudentSubmissionsForTeacher().filter(
+    (s) => s.exerciseId === exerciseId
+  ).map((s) => ({
+    ...s,
+    exerciseTitle: cleanTitle,
+  }));
+  const realStudentIds = new Set(realSubs.map((s) => s.studentId));
+
+  const existing = MOCK_LIVE_SUBMISSIONS.filter((s) => s.exerciseId === exerciseId && !realStudentIds.has(s.studentId));
+  if (existing.length >= 6) {
+    return [
+      ...realSubs,
+      ...existing.map(sub => ({
+        ...sub,
+        exerciseTitle: cleanTitle
+      }))
+    ];
+  }
+
+  const langLabel =
+    exerciseLang === 'cpp'
+      ? 'C++ 17'
+      : exerciseLang === 'c'
+      ? 'C (GCC 11)'
+      : exerciseLang === 'java'
+      ? 'Java 17'
+      : exerciseLang === 'sql'
+      ? 'PostgreSQL'
+      : 'Python 3';
+
+  const isPy = exerciseLang === 'python' || langLabel.includes('Python');
+  const isCpp = exerciseLang === 'cpp' || langLabel.includes('C++');
+
+  const rosterStudents = [
+    { name: 'Hoàng Bảo Ngọc', id: '2151050115', status: 'accepted', score: 10, passed: 10, ms: 38, plag: 2, time: '3 phút trước' },
+    { name: 'Trần Thị Mai', id: '2151050045', status: 'accepted', score: 10, passed: 10, ms: 45, plag: 4, time: '12 phút trước' },
+    { name: 'Phạm Đức Anh', id: '2151050033', status: 'accepted', score: 10, passed: 10, ms: 52, plag: 1, time: '25 phút trước' },
+    { name: 'Hoàng Minh Tú', id: '2151050115', status: 'accepted', score: 10, passed: 10, ms: 60, plag: 5, time: '40 phút trước' },
+    { name: 'Đỗ Thùy Linh', id: '2151050074', status: 'accepted', score: 10, passed: 10, ms: 34, plag: 3, time: '55 phút trước' },
+    { name: 'Vũ Thị Hồng Nhung', id: '2151050067', status: 'wrong_answer', score: 7, passed: 7, ms: 75, plag: 6, time: '1 giờ trước' },
+    { name: 'Lê Hoàng Nam', id: '2151050089', status: 'time_limit', score: 4, passed: 4, ms: 1420, plag: 0, time: '1 giờ trước' },
+    { name: 'Đặng Quốc Huy', id: '2151050102', status: 'compile_error', score: 0, passed: 0, ms: 0, plag: 0, time: '2 giờ trước' },
+    { name: 'Bùi Tuấn Kiệt', id: '2151050028', status: 'accepted', score: 10, passed: 10, ms: 41, plag: 3, time: '3 giờ trước' },
+    { name: 'Phạm Quốc Bảo', id: '2151050058', status: 'wrong_answer', score: 8, passed: 8, ms: 68, plag: 8, time: '4 giờ trước' },
+  ];
+
+  const generated: LiveSubmission[] = rosterStudents.map((st, index) => {
+    let studentCode = '';
+
+    if (isPy) {
+      if (st.status === 'accepted') {
+        studentCode = `import math
+import sys
+
+# Giải thuật hoàn chỉnh tối ưu - Đạt 10/10 test cases
+${boilerplateCode || `def solve(data):
+    if not data:
+        return []
+    return [x for x in data if x is not None]`}
+`;
+      } else if (st.status === 'wrong_answer') {
+        studentCode = `import math
+
+# Lỗi thuật toán: Bỏ sót điều kiện biên cho giá trị rỗng hoặc số âm
+${boilerplateCode ? boilerplateCode.replace(/return .*/, 'return -1  # Sai sót logic biên') : `def solve(data):
+    return data[0] if data else 0`}
+`;
+      } else if (st.status === 'time_limit') {
+        studentCode = `import math
+
+# Thuật toán duyệt cạn O(N^3) lặp vô hạn gây Time Limit Exceeded
+def solve_tle():
+    count = 0
+    while True:
+        count += 1
+        if count > 80000000:
+            break
+    return count
+
+${boilerplateCode || 'solve_tle()'}`;
+      } else {
+        studentCode = `def solve(data)
+    # SyntaxError: thiếu dấu hai chấm sau khai báo hàm
+    for item in data
+        print(item)
+`;
+      }
+    } else if (isCpp) {
+      if (st.status === 'accepted') {
+        studentCode = `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+// Cài đặt tối ưu - Vượt qua 10/10 test cases
+${boilerplateCode || `int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout << "Passed\n";
+    return 0;
+}`}
+`;
+      } else if (st.status === 'wrong_answer') {
+        studentCode = `#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Lỗi biên: Trả về sai khi mảng rỗng hoặc chứa số âm
+int main() {
+    cout << -1 << "\n";
+    return 0;
+}
+`;
+      } else if (st.status === 'time_limit') {
+        studentCode = `#include <iostream>
+
+using namespace std;
+
+// Vòng lặp quá tải gây Time Limit Exceeded (> 1000ms)
+int main() {
+    volatile long long sum = 0;
+    for (long long i = 0; i < 2000000000LL; i++) {
+        sum += i;
+    }
+    cout << sum << "\n";
+    return 0;
+}
+`;
+      } else {
+        studentCode = `#include <iostream>
+
+using namespace std;
+
+int main() {
+    cout << "Syntax error missing semicolon"
+    return 0
+}
+`;
+      }
+    } else {
+      // Default fallback
+      studentCode = boilerplateCode || `// Solution for: ${cleanTitle}\n`;
+    }
+
+    return {
+      id: exerciseId * 1000 + index + 1,
+      studentName: st.name,
+      studentId: st.id,
+      classGroup: 'K71A-CNTT',
+      exerciseId: exerciseId,
+      exerciseTitle: cleanTitle,
+      language: langLabel,
+      testCasesPassed: st.passed,
+      totalTestCases: 10,
+      score: st.score,
+      executionTimeMs: st.ms,
+      memoryMb: 14.2,
+      status: st.status as 'accepted' | 'wrong_answer' | 'time_limit' | 'compile_error',
+      timeAgo: st.time,
+      plagiarismScore: st.plag,
+      submittedCode: studentCode,
+    };
+  });
+
+  return [...existing, ...generated.filter(g => !existing.some(e => e.studentId === g.studentId))];
+}
+
+export interface CourseLeaderboardEntry {
+  rank: number;
+  name: string;
+  studentId: string;
+  classGroup: string;
+  avatarColor: string;
+  solvedCount: number;
+  totalExercises: number;
+  totalScore: number;
+  avgRuntimeMs: number;
+  mainLanguage: string;
+  isCurrentUser?: boolean;
+}
+
+export interface ExerciseLeaderboardEntry {
+  rank: number;
+  name: string;
+  studentId: string;
+  classGroup: string;
+  avatarColor: string;
+  language: string;
+  score: number;
+  maxScore: number;
+  executionTimeMs: number;
+  memoryMb: number;
+  timeAgo: string;
+  submittedCode: string;
+  isCurrentUser?: boolean;
+}
+
+export function getCourseLeaderboard(
+  courseId: string,
+  totalExercises: number = 10,
+  currentUserStudentId?: string
+): CourseLeaderboardEntry[] {
+  const defaultLanguageMap: Record<string, string> = {
+    algorithms: 'Python 3',
+    'data-structures': 'C++ 17',
+    mathematics: 'Python 3',
+    ai: 'Python 3',
+    c: 'C (GCC 11)',
+    cpp: 'C++ 17',
+    java: 'Java 17',
+    python: 'Python 3',
+    sql: 'PostgreSQL',
+  };
+  const primaryLang = defaultLanguageMap[courseId] || 'Python 3';
+
+  const baseStudents = [
+    { name: 'Trần Thị Mai', id: '2151050045', classGroup: 'K71A-CNTT', color: 'bg-indigo-600', solvedOffset: 0, ms: 24, lang: primaryLang === 'Python 3' ? 'C++ 17' : primaryLang },
+    { name: 'Hoàng Bảo Ngọc', id: '2151050115', classGroup: 'K71A-CNTT', color: 'bg-emerald-600', solvedOffset: -1, ms: 28, lang: primaryLang },
+    { name: 'Đỗ Thùy Linh', id: '2151050074', classGroup: 'K71A-CNTT', color: 'bg-pink-600', solvedOffset: -2, ms: 32, lang: primaryLang },
+    { name: 'Phạm Đức Anh', id: '2151050033', classGroup: 'K71A-CNTT', color: 'bg-amber-600', solvedOffset: -2, ms: 36, lang: primaryLang === 'C (GCC 11)' ? 'C++ 17' : 'Java 17' },
+    { name: 'Hoàng Minh Tú', id: '2151050115', classGroup: 'K71A-CNTT', color: 'bg-cyan-600', solvedOffset: -3, ms: 39, lang: primaryLang },
+    { name: 'Bùi Tuấn Kiệt', id: '2151050028', classGroup: 'K71A-CNTT', color: 'bg-violet-600', solvedOffset: -3, ms: 42, lang: primaryLang },
+    { name: 'Vũ Thị Hồng Nhung', id: '2151050067', classGroup: 'K71A-CNTT', color: 'bg-rose-600', solvedOffset: -4, ms: 45, lang: primaryLang },
+    { name: 'Phạm Quốc Bảo', id: '2151050058', classGroup: 'K71A-CNTT', color: 'bg-teal-600', solvedOffset: -5, ms: 49, lang: primaryLang },
+    { name: 'Lê Hoàng Nam', id: '2151050089', classGroup: 'K71A-CNTT', color: 'bg-blue-600', solvedOffset: -5, ms: 56, lang: primaryLang },
+    { name: 'Đặng Quốc Huy', id: '2151050102', classGroup: 'K71A-CNTT', color: 'bg-purple-600', solvedOffset: -6, ms: 64, lang: primaryLang },
+  ];
+
+  const list = baseStudents.map((st) => {
+    let solved = Math.max(1, Math.min(totalExercises, totalExercises + st.solvedOffset));
+    let ms = st.ms;
+    if (currentUserStudentId && st.id === currentUserStudentId) {
+      try {
+        const raw = localStorage.getItem(`ai_mentor_solved_exercise_ids_${currentUserStudentId}`);
+        const solvedIds = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(solvedIds) && solvedIds.length > 0) {
+          solved = Math.min(totalExercises, solvedIds.length);
+          ms = Math.max(18, ms - 6);
+        } else {
+          solved = 0;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    const score = solved * 10;
+    return {
+      rank: 0,
+      name: st.name,
+      studentId: st.id,
+      classGroup: st.classGroup,
+      avatarColor: st.color,
+      solvedCount: solved,
+      totalExercises,
+      totalScore: score,
+      avgRuntimeMs: ms,
+      mainLanguage: st.lang,
+      isCurrentUser: Boolean(currentUserStudentId && st.id === currentUserStudentId),
+    };
+  });
+
+  list.sort((a, b) => {
+    if (b.solvedCount !== a.solvedCount) return b.solvedCount - a.solvedCount;
+    if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+    return a.avgRuntimeMs - b.avgRuntimeMs;
+  });
+
+  return list.map((entry, idx) => ({
+    ...entry,
+    rank: idx + 1,
+  }));
+}
+
+export function getExerciseLeaderboard(
+  exerciseId: number,
+  courseId: string,
+  exerciseTitle: string = 'Bài tập thực hành',
+  boilerplateCode: string = '',
+  exerciseLang: string = 'python',
+  userLatestSubmission?: {
+    name?: string;
+    studentId?: string;
+    executionTimeMs?: number;
+    memoryMb?: number;
+    language?: string;
+    score?: number;
+    timeAgo?: string;
+    submittedCode?: string;
+  },
+  currentUserStudentId?: string
+): ExerciseLeaderboardEntry[] {
+  const allSubmissions = getTeacherSubmissionsForExercise(
+    exerciseId,
+    courseId,
+    exerciseTitle,
+    boilerplateCode,
+    exerciseLang
+  );
+
+  const accepted = allSubmissions.filter(s => s.status === 'accepted' || s.score >= 8);
+
+  const entries: ExerciseLeaderboardEntry[] = accepted.map(s => ({
+    rank: 0,
+    name: s.studentName,
+    studentId: s.studentId,
+    classGroup: s.classGroup || 'K71A-CNTT',
+    avatarColor: (currentUserStudentId && s.studentId === currentUserStudentId) ? 'bg-emerald-600' : 'bg-indigo-600',
+    language: s.language,
+    score: s.score,
+    maxScore: s.totalTestCases || 10,
+    executionTimeMs: s.executionTimeMs,
+    memoryMb: s.memoryMb || 14.2,
+    timeAgo: s.timeAgo,
+    submittedCode: s.submittedCode,
+    isCurrentUser: Boolean(
+      (currentUserStudentId && s.studentId === currentUserStudentId) ||
+      (userLatestSubmission?.studentId && s.studentId === userLatestSubmission.studentId)
+    ),
+  }));
+
+  if (userLatestSubmission && userLatestSubmission.score !== undefined) {
+    const activeStudentId = userLatestSubmission.studentId || currentUserStudentId;
+    const existingIndex = entries.findIndex(
+      e => (activeStudentId && e.studentId === activeStudentId)
+    );
+    const userEntry: ExerciseLeaderboardEntry = {
+      rank: 0,
+      name: userLatestSubmission.name || 'Học viên',
+      studentId: activeStudentId || '',
+      classGroup: 'K71A-CNTT',
+      avatarColor: 'bg-emerald-600',
+      language: userLatestSubmission.language || (exerciseLang === 'cpp' ? 'C++ 17' : 'Python 3'),
+      score: userLatestSubmission.score,
+      maxScore: 10,
+      executionTimeMs: userLatestSubmission.executionTimeMs || 28,
+      memoryMb: userLatestSubmission.memoryMb || 14.1,
+      timeAgo: userLatestSubmission.timeAgo || 'Vừa xong',
+      submittedCode: userLatestSubmission.submittedCode || boilerplateCode,
+      isCurrentUser: true,
+    };
+    if (existingIndex >= 0) {
+      entries[existingIndex] = userEntry;
+    } else {
+      entries.push(userEntry);
+    }
+  }
+
+  entries.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (a.executionTimeMs !== b.executionTimeMs) return a.executionTimeMs - b.executionTimeMs;
+    return a.memoryMb - b.memoryMb;
+  });
+
+  return entries.map((entry, idx) => ({
+    ...entry,
+    rank: idx + 1,
+  }));
 }
 

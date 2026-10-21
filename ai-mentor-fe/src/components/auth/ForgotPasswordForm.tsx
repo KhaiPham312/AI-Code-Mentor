@@ -5,7 +5,8 @@ import {
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import { forgotPassword } from '../../services/authService';
-import { Language, translations } from './i18n';
+import { ApiError } from '../../services/apiClient';
+import { Language, translations, getAuthErrorMessage } from './i18n';
 
 interface ForgotPasswordFormProps {
   lang: Language;
@@ -18,7 +19,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
 }) => {
   const t = translations[lang];
 
-  const [identifier, setIdentifier] = useState('student@hnue.edu.vn');
+  const [identifier, setIdentifier] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sentSuccess, setSentSuccess] = useState<boolean>(false);
@@ -49,7 +50,12 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
       setSentSuccess(true);
       setIsLoading(false);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : t.forgotNotFound;
+      let msg = t.forgotNotFound;
+      if (err instanceof ApiError && (err.status === 404 || err.status === 400)) {
+        msg = t.forgotNotFound;
+      } else if (err instanceof Error) {
+        msg = getAuthErrorMessage(err.message, lang);
+      }
       setErrorMessage(msg);
       setIsLoading(false);
     }

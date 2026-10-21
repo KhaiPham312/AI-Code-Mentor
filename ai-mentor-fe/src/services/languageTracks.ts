@@ -857,24 +857,6 @@ export const CANONICAL_COURSES: CourseTrackConfig[] = [
     options: SQL_LANGUAGES,
     defaultLangLabel: 'PostgreSQL',
   },
-  {
-    id: 'databases',
-    name: 'Hệ cơ sở dữ liệu (Databases)',
-    options: SQL_LANGUAGES,
-    defaultLangLabel: 'MySQL',
-  },
-  {
-    id: 'linux-shell',
-    name: 'Hệ điều hành Linux (Linux Shell)',
-    options: LINUX_LANGUAGES,
-    defaultLangLabel: 'Bash',
-  },
-  {
-    id: 'functional-programming',
-    name: 'Lập trình hàm (Functional Programming)',
-    options: FP_LANGUAGES,
-    defaultLangLabel: 'Haskell (GHC 9.4)',
-  },
 ];
 
 /**
@@ -887,17 +869,16 @@ export function getLanguageOptionsForContext(
   trackIds?: string[]
 ): LanguageOption[] {
   const normalizedId = (courseOrTrackId || '').toLowerCase().trim();
-  const normalizedCat = (category || '').toLowerCase().trim();
   const tracks = (trackIds || []).map((t) => t.toLowerCase().trim());
+  const normalizedCat = (category || '').toLowerCase().trim();
 
-  // Check SQL first
+  // 1. Ưu tiên phân loại theo trackIds / subjectId trước
+  // Check SQL
   if (
-    normalizedId.includes('sql') ||
-    normalizedId.includes('database') ||
-    normalizedCat.includes('sql') ||
-    normalizedCat.includes('database') ||
     tracks.includes('sql') ||
     tracks.includes('databases') ||
+    normalizedId.includes('sql') ||
+    normalizedId.includes('database') ||
     exerciseLang === 'sql'
   ) {
     return SQL_LANGUAGES;
@@ -905,14 +886,11 @@ export function getLanguageOptionsForContext(
 
   // Check C++
   if (
+    tracks.includes('cpp') ||
     normalizedId === 'cpp' ||
     normalizedId.includes('c++') ||
-    normalizedCat.includes('c++') ||
-    (tracks.includes('cpp') && !tracks.includes('algorithms')) ||
     exerciseLang === 'cpp'
   ) {
-    // If it's specifically C++ track, return C++ options.
-    // However, if it's an algorithm problem that supports C++, return ALGORITHMS_LANGUAGES
     if (
       tracks.includes('algorithms') ||
       tracks.includes('data-structures') ||
@@ -925,10 +903,8 @@ export function getLanguageOptionsForContext(
 
   // Check C
   if (
+    tracks.includes('c') ||
     normalizedId === 'c' ||
-    normalizedCat.includes('c language') ||
-    normalizedCat.includes('lập trình c ') ||
-    (tracks.includes('c') && !tracks.includes('algorithms')) ||
     exerciseLang === 'c'
   ) {
     if (
@@ -940,33 +916,10 @@ export function getLanguageOptionsForContext(
     return C_LANGUAGES;
   }
 
-  // Check Linux Shell
-  if (
-    normalizedId.includes('linux') ||
-    normalizedId.includes('shell') ||
-    normalizedCat.includes('linux') ||
-    normalizedCat.includes('shell') ||
-    tracks.includes('linux-shell') ||
-    exerciseLang === 'bash'
-  ) {
-    return LINUX_LANGUAGES;
-  }
-
-  // Check Functional Programming
-  if (
-    normalizedId.includes('func') ||
-    normalizedId === 'fp' ||
-    normalizedCat.includes('hàm') ||
-    tracks.includes('fp')
-  ) {
-    return FP_LANGUAGES;
-  }
-
   // Check Java
   if (
+    tracks.includes('java') ||
     normalizedId === 'java' ||
-    normalizedCat.includes('java') ||
-    (tracks.includes('java') && !tracks.includes('algorithms')) ||
     exerciseLang === 'java'
   ) {
     if (tracks.includes('algorithms') || tracks.includes('data-structures')) {
@@ -977,19 +930,78 @@ export function getLanguageOptionsForContext(
 
   // Check Python / AI
   if (
-    normalizedId === 'ai' ||
-    normalizedCat.includes('trí tuệ nhân tạo') ||
-    tracks.includes('ai')
+    tracks.includes('ai') ||
+    normalizedId === 'ai'
   ) {
     return PYTHON_LANGUAGES;
   }
 
   if (
+    tracks.includes('python') ||
     normalizedId === 'python' ||
+    exerciseLang === 'python'
+  ) {
+    if (
+      !tracks.includes('algorithms') &&
+      !tracks.includes('data-structures')
+    ) {
+      return PYTHON_LANGUAGES;
+    }
+  }
+
+  // Check Linux Shell
+  if (
+    tracks.includes('linux-shell') ||
+    normalizedId.includes('linux') ||
+    normalizedId.includes('shell') ||
+    exerciseLang === 'bash'
+  ) {
+    return LINUX_LANGUAGES;
+  }
+
+  // Check Functional Programming
+  if (
+    tracks.includes('fp') ||
+    normalizedId.includes('func') ||
+    normalizedId === 'fp'
+  ) {
+    return FP_LANGUAGES;
+  }
+
+  // Algorithms / Data Structures / Mathematics
+  if (
+    tracks.includes('algorithms') ||
+    tracks.includes('data-structures') ||
+    tracks.includes('mathematics')
+  ) {
+    return ALGORITHMS_LANGUAGES;
+  }
+
+  // 2. Fallback cuối cùng: so khớp chuỗi tên danh mục
+  if (normalizedCat.includes('sql') || normalizedCat.includes('database')) {
+    return SQL_LANGUAGES;
+  }
+  if (normalizedCat.includes('c++')) {
+    return CPP_LANGUAGES;
+  }
+  if (normalizedCat.includes('c language') || normalizedCat.includes('lập trình c')) {
+    return C_LANGUAGES;
+  }
+  if (normalizedCat.includes('java')) {
+    return JAVA_LANGUAGES;
+  }
+  if (
+    normalizedCat.includes('trí tuệ nhân tạo') ||
     normalizedCat.includes('lập trình python') ||
-    (tracks.includes('python') && !tracks.includes('algorithms') && !tracks.includes('data-structures'))
+    normalizedCat.includes('python')
   ) {
     return PYTHON_LANGUAGES;
+  }
+  if (normalizedCat.includes('linux') || normalizedCat.includes('shell')) {
+    return LINUX_LANGUAGES;
+  }
+  if (normalizedCat.includes('hàm') || normalizedCat.includes('functional')) {
+    return FP_LANGUAGES;
   }
 
   // Default to Algorithms / Data Structures (Full 21 languages)

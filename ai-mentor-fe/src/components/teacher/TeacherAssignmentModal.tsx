@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TeacherAssignment } from '../../services/mockTeacherData';
+import { Difficulty } from '../../types/exercise';
 import { Language, ThemeMode } from '../dashboard/dashboardI18n';
 import {
   X,
@@ -45,7 +46,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<string>('algorithms');
   const [primaryLanguage, setPrimaryLanguage] = useState<string>('C++17');
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [targetClass, setTargetClass] = useState(selectedClassId);
   const [deadline, setDeadline] = useState('2026-10-25T23:59');
   const [description, setDescription] = useState('');
@@ -106,7 +107,11 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
     setTestCases(testCases.filter((tc) => tc.id !== id));
   };
 
-  const handleUpdateTestCase = (id: number, field: keyof TestCaseInput, value: any) => {
+  const handleUpdateTestCase = <K extends keyof TestCaseInput>(
+    id: number,
+    field: K,
+    value: TestCaseInput[K]
+  ) => {
     setTestCases(
       testCases.map((tc) => (tc.id === id ? { ...tc, [field]: value } : tc))
     );
@@ -246,16 +251,16 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               </label>
               <select
                 value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value as any)}
+                onChange={(e) => setDifficulty(e.target.value as Difficulty)}
                 className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
                   isDark
                     ? 'bg-slate-800/80 border-slate-700 text-white'
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
                 }`}
               >
-                <option value="easy">{isVie ? 'Cơ bản (Easy)' : 'Easy'}</option>
-                <option value="medium">{isVie ? 'Trung bình (Medium)' : 'Medium'}</option>
-                <option value="hard">{isVie ? 'Nâng cao (Hard)' : 'Hard'}</option>
+                <option value="easy">{isVie ? 'Dễ' : 'Easy'}</option>
+                <option value="medium">{isVie ? 'Trung bình' : 'Medium'}</option>
+                <option value="hard">{isVie ? 'Khó' : 'Hard'}</option>
               </select>
             </div>
 

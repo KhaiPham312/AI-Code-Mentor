@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -13,8 +13,9 @@ import {
   checkEmailExists,
 } from '../../services/mockAuth';
 import { loginUser, registerUser } from '../../services/authService';
+import { ApiError } from '../../services/apiClient';
 import { User, UserRole } from '../../types/auth';
-import { Language, translations } from './i18n';
+import { Language, translations, getAuthErrorMessage } from './i18n';
 
 interface LoginFormProps {
   onLoginSuccess: (user: User, token: string) => void;
@@ -58,6 +59,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       setPassword(''); // clear old password so user inputs their new password
     }
   }, [initialIdentifier]);
+
+  const registerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (registerTimerRef.current) {
+        clearTimeout(registerTimerRef.current);
+      }
+    };
+  }, []);
 
   // Status and error states
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -171,7 +182,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             password,
             role,
           });
-        } catch (beErr: any) {
+        } catch (beErr: unknown) {
+          if (beErr instanceof ApiError && (beErr.status === 400 || beErr.status === 409 || beErr.status === 422)) {
+            throw beErr;
+          }
           console.warn('Backend register failed, trying mock fallback:', beErr);
           result = await mockRegister(fullName, email, password, role);
         }
@@ -184,7 +198,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         );
 
         // Switch to login form with pre-filled registered username
-        setTimeout(() => {
+        registerTimerRef.current = setTimeout(() => {
           setAuthMode('login');
           setLoginIdentifier(result.user.username || email.trim().toLowerCase());
           setPassword('');
@@ -197,9 +211,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         let loginResult: { token: string; user: User };
         try {
           loginResult = await loginUser(loginIdentifier, password);
-        } catch (beErr: any) {
+        } catch (beErr: unknown) {
           // Nếu backend trả về lỗi tài khoản / mật khẩu cụ thể hoặc kết nối
-          if (beErr?.status === 401 || beErr?.status === 400) {
+          if (beErr instanceof ApiError && (beErr.status === 401 || beErr.status === 400)) {
             throw beErr;
           }
           console.warn('Backend login connection failed, trying mock fallback:', beErr);
@@ -209,8 +223,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         onLoginSuccess(loginResult.user, loginResult.token);
       }
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setGeneralError(err.message);
+      if (err instanceof ApiError && (err.status === 401 || err.status === 400)) {
+        setGeneralError(
+          err.message && err.message !== 'INVALID_CREDENTIALS' && err.message.length > 3
+            ? getAuthErrorMessage(err.message, lang)
+            : t.errInvalidCredentials
+        );
+      } else if (err instanceof Error) {
+        setGeneralError(getAuthErrorMessage(err.message, lang));
       } else {
         setGeneralError(
           lang === 'vie'

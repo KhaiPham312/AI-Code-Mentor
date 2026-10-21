@@ -1,5 +1,5 @@
 import { api } from './apiClient';
-import { AIMessage } from '../types/ai';
+import { AIMessage, SocraticIntent } from '../types/ai';
 
 export interface BackendChatResponse {
   id: number;
@@ -13,9 +13,26 @@ export interface BackendChatResponse {
 export interface SendMessagePayload {
   exerciseId?: number;
   message: string;
-  intent?: string;
+  intent?: SocraticIntent;
   currentCode?: string;
   terminalError?: string;
+  language?: string;
+}
+
+const VALID_SOCRATIC_INTENTS: SocraticIntent[] = [
+  'explain_error',
+  'hint_next_step',
+  'analyze_complexity',
+  'suggest_test_cases',
+  'free_chat',
+  'greeting',
+];
+
+function normalizeIntent(val?: string | null, fallback: SocraticIntent = 'free_chat'): SocraticIntent {
+  if (val && VALID_SOCRATIC_INTENTS.includes(val as SocraticIntent)) {
+    return val as SocraticIntent;
+  }
+  return fallback;
 }
 
 /**
@@ -29,6 +46,7 @@ export async function sendAIMessage(payload: SendMessagePayload): Promise<AIMess
     intent: payload.intent || 'free_chat',
     current_code: payload.currentCode,
     terminal_error: payload.terminalError,
+    language: payload.language || 'vie',
   });
 
   return {
@@ -39,7 +57,7 @@ export async function sendAIMessage(payload: SendMessagePayload): Promise<AIMess
       hour: '2-digit',
       minute: '2-digit',
     }),
-    intent: (data.intent as any) || payload.intent || 'free_chat',
+    intent: normalizeIntent(data.intent, payload.intent || 'free_chat'),
   };
 }
 
@@ -59,7 +77,7 @@ export async function fetchAIConversationHistory(
         hour: '2-digit',
         minute: '2-digit',
       }),
-      intent: (msg.intent as any) || 'free_chat',
+      intent: normalizeIntent(msg.intent, 'free_chat'),
     }));
   } catch {
     return [];

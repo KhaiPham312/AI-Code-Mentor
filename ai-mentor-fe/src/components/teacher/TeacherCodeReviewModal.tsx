@@ -5,13 +5,10 @@ import {
   translateTimeAgo,
 } from '../../services/mockTeacherData';
 import { Language, ThemeMode } from '../dashboard/dashboardI18n';
+import { StatusBadge } from '../common/StatusBadge';
 import {
   X,
   Code,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  Clock,
   ShieldCheck,
   Copy,
   Check,
@@ -47,39 +44,6 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getStatusBadge = () => {
-    switch (submission.status) {
-      case 'accepted':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Accepted ({submission.testCasesPassed}/{submission.totalTestCases})</span>
-          </span>
-        );
-      case 'wrong_answer':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1.5">
-            <XCircle className="w-3.5 h-3.5" />
-            <span>Wrong Answer ({submission.testCasesPassed}/{submission.totalTestCases})</span>
-          </span>
-        );
-      case 'time_limit':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            <span>Time Limit Exceeded</span>
-          </span>
-        );
-      case 'compile_error':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1.5">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>Compilation Error</span>
-          </span>
-        );
-    }
-  };
-
   const codeLines = submission.submittedCode.split('\n');
 
   return (
@@ -113,7 +77,15 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                 <h3 className="font-bold text-base">
                   {isVie ? 'Mã Nguồn Bài Nộp Của Sinh Viên' : 'Student Submitted Code Review'}
                 </h3>
-                {getStatusBadge()}
+                <StatusBadge
+                  status={submission.status}
+                  detail={
+                    submission.status === 'accepted' || submission.status === 'wrong_answer'
+                      ? `(${submission.testCasesPassed}/${submission.totalTestCases})`
+                      : undefined
+                  }
+                  size="sm"
+                />
               </div>
               <p
                 className={`text-xs mt-0.5 ${
