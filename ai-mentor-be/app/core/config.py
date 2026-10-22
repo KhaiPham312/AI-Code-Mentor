@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     AI_PROVIDER: str = "gemini"
     GEMINI_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
-    DEFAULT_AI_MODEL: str = "gemini-1.5-flash"
+    DEFAULT_AI_MODEL: str = "gemini-3.8-flash"
 
     # Sandbox Execution
     CODE_EXEC_TIMEOUT_MS: int = 5000

@@ -36,7 +36,7 @@ class AIService:
                         "maxOutputTokens": 1000,
                     }
                 }
-                async with httpx.AsyncClient(timeout=15.0) as client:
+                async with httpx.AsyncClient(timeout=20.0) as client:
                     resp = await client.post(url, json=payload)
                     if resp.status_code == 200:
                         data = resp.json()
@@ -45,9 +45,10 @@ class AIService:
                             parts = candidates[0].get("content", {}).get("parts", [])
                             if parts:
                                 return parts[0].get("text", "")
+                    else:
+                        print(f"[Gemini API Error] Status: {resp.status_code}, Body: {resp.text}")
             except Exception as e:
-                # Log and fallback to pedagogic heuristic
-                pass
+                print(f"[Gemini API Exception] Error: {e}")
 
         # Intelligent Socratic Fallback
         if intent == "explain_error" and terminal_error:

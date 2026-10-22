@@ -38,7 +38,7 @@ def seed_database():
             teacher = User(
                 username="teacher",
                 email="teacher@hnue.edu.vn",
-                name="TS. Phạm Văn Khải (Giảng viên)",
+                name="TS. Phạm Văn Mười (Giảng viên)",
                 class_group="Khoa Công nghệ Thông tin",
                 role="teacher",
                 password_hash=get_password_hash("123456"),
