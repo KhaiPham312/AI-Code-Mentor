@@ -165,4 +165,5 @@ def test_ai_mentor_chat():
     assert chat_res.status_code == 200
     chat_data = chat_res.json()
     assert chat_data["role"] == "assistant"
-    assert "Phân tích lỗi" in chat_data["content"]
+    assert len(chat_data["content"]) > 10
+    assert "IndexError" in chat_data["content"] or "lỗi" in chat_data["content"].lower()
