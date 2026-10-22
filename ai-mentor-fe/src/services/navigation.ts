@@ -1,19 +1,59 @@
-export type AppView = 'dashboard' | 'ide' | 'settings' | 'submissions';
+export type AppView = 'dashboard' | 'ide' | 'settings' | 'submissions' | 'teacher';
 export type SettingsTab = 'profile' | 'password' | 'appearance';
+export type TeacherTab = 'analytics' | 'assignments' | 'logs' | 'roster';
+export type TeacherDrilldownView = 'submissions' | 'leaderboard';
+
+export function isTeacherTab(x: unknown): x is TeacherTab {
+  return typeof x === 'string' && ['analytics', 'assignments', 'logs', 'roster'].includes(x);
+}
+
+export interface RouteOptions {
+  exerciseId?: number;
+  settingsTab?: SettingsTab;
+  trackId?: string | null;
+  courseId?: string | null;
+  exerciseView?: TeacherDrilldownView | null;
+  teacherTab?: TeacherTab;
+  teacherCourse?: string | null;
+  teacherExercise?: number | null;
+  teacherView?: TeacherDrilldownView | null;
+}
 
 export interface RouteState {
   view: AppView;
   exerciseId: number;
   settingsTab: SettingsTab;
   trackId: string | null;
+  courseId?: string | null;
+  exerciseView?: TeacherDrilldownView | null;
+  teacherTab?: TeacherTab;
+  teacherCourse?: string | null;
+  teacherExercise?: number | null;
+  teacherView?: TeacherDrilldownView | null;
+}
+
+export function resolveHomeRoute(role?: string): string {
+  return role === 'teacher' ? '/teacher' : '/dashboard';
 }
 
 /**
  * Phân tích URL hiện tại của trình duyệt (pathname và query params)
  * để lấy ra view, exerciseId, settingsTab hoặc trackId tương ứng.
  */
-export function parseCurrentRoute(): RouteState {
-  if (typeof window === 'undefined') {
+export function parseCurrentRoute(
+  customPath?: string,
+  customSearch?: string
+): RouteState {
+  let rawPath = '/';
+  let searchParams = new URLSearchParams();
+
+  if (customPath !== undefined) {
+    rawPath = customPath.replace(/\/+$/, '') || '/';
+    searchParams = new URLSearchParams(customSearch || '');
+  } else if (typeof window !== 'undefined') {
+    rawPath = window.location.pathname.replace(/\/+$/, '') || '/';
+    searchParams = new URLSearchParams(window.location.search);
+  } else {
     return {
       view: 'dashboard',
       exerciseId: 1,
@@ -22,9 +62,6 @@ export function parseCurrentRoute(): RouteState {
     };
   }
 
-  const rawPath = window.location.pathname.replace(/\/+$/, '') || '/';
-  const searchParams = new URLSearchParams(window.location.search);
-
   const state: RouteState = {
     view: 'dashboard',
     exerciseId: 1,
@@ -32,7 +69,29 @@ export function parseCurrentRoute(): RouteState {
     trackId: searchParams.get('trackId') || null,
   };
 
-  // 1. Settings page (/settings)
+  // 1. Teacher Dashboard (/teacher)
+  if (rawPath === '/teacher') {
+    state.view = 'teacher';
+    const tab = searchParams.get('tab');
+    if (isTeacherTab(tab)) {
+      state.teacherTab = tab;
+    }
+    const course = searchParams.get('course') || null;
+    state.teacherCourse = course;
+    state.courseId = course;
+    const ex = searchParams.get('exercise');
+    const parsedEx = ex && !isNaN(Number(ex)) ? Number(ex) : null;
+    state.teacherExercise = parsedEx;
+    if (parsedEx) state.exerciseId = parsedEx;
+    const v = searchParams.get('view');
+    if (v === 'submissions' || v === 'leaderboard') {
+      state.teacherView = v;
+      state.exerciseView = v;
+    }
+    return state;
+  }
+
+  // 2. Settings page (/settings)
   if (rawPath === '/settings') {
     state.view = 'settings';
     const tab = searchParams.get('tab');
@@ -42,13 +101,13 @@ export function parseCurrentRoute(): RouteState {
     return state;
   }
 
-  // 2. Submissions history (/submissions)
+  // 3. Submissions history (/submissions)
   if (rawPath === '/submissions') {
     state.view = 'submissions';
     return state;
   }
 
-  // 3. IDE Workspace: hỗ trợ /ide, /ide/:id, /ide?exerciseId=..., /ide?id=...
+  // 4. IDE Workspace: hỗ trợ /ide, /ide/:id, /ide?exerciseId=..., /ide?id=...
   if (rawPath === '/ide' || rawPath.startsWith('/ide/')) {
     state.view = 'ide';
     let idFromPath: number | null = null;
@@ -65,7 +124,7 @@ export function parseCurrentRoute(): RouteState {
     return state;
   }
 
-  // 4. Default: Dashboard (/ hoặc /dashboard hoặc các đường dẫn khác)
+  // 5. Default: Dashboard (/ hoặc /dashboard hoặc các đường dẫn khác)
   state.view = 'dashboard';
   return state;
 }
@@ -73,15 +132,24 @@ export function parseCurrentRoute(): RouteState {
 /**
  * Xây dựng URL chuẩn từ view và các options kèm theo
  */
-export function buildRouteUrl(
-  view: AppView,
-  options?: {
-    exerciseId?: number;
-    settingsTab?: SettingsTab;
-    trackId?: string | null;
-  }
-): string {
+export function buildRouteUrl(view: AppView, options?: RouteOptions): string {
   switch (view) {
+    case 'teacher': {
+      const params = new URLSearchParams();
+      const tab = options?.teacherTab;
+      const course = options?.courseId ?? options?.teacherCourse;
+      const exercise = options?.exerciseId ?? options?.teacherExercise;
+      const viewType = options?.exerciseView ?? options?.teacherView;
+
+      if (tab) params.set('tab', tab);
+      if (course) params.set('course', course);
+      if (exercise !== undefined && exercise !== null) {
+        params.set('exercise', String(exercise));
+      }
+      if (viewType) params.set('view', viewType);
+      const q = params.toString();
+      return q ? `/teacher?${q}` : '/teacher';
+    }
     case 'ide': {
       const id = options?.exerciseId ?? 1;
       return `/ide?exerciseId=${id}`;
@@ -108,11 +176,7 @@ export function buildRouteUrl(
  */
 export function syncBrowserUrl(
   view: AppView,
-  options?: {
-    exerciseId?: number;
-    settingsTab?: SettingsTab;
-    trackId?: string | null;
-  },
+  options?: RouteOptions,
   replace: boolean = false
 ): void {
   if (typeof window === 'undefined') return;

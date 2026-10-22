@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { User } from '../types/auth';
 import { getExercises } from '../services/mockExerciseService';
-import { Language, ThemeMode } from './dashboard/dashboardI18n';
+import { Language, ThemeMode, dashboardTranslations } from './dashboard/dashboardI18n';
+import { SKILL_TRACKS } from '../types/skills';
+import {
+  getUserStorageKey,
+  getUserSolvedExerciseIds,
+  getUserSubmissions,
+} from '../services/userStorage';
 import { DashboardNavbar } from './dashboard/DashboardNavbar';
 import { DashboardHero } from './dashboard/DashboardHero';
 import { SkillPreparationKits } from './dashboard/SkillPreparationKits';
@@ -17,6 +23,7 @@ interface DashboardPreviewProps {
   onOpenSettings?: (tab?: 'profile' | 'password' | 'appearance') => void;
   onOpenSubmissions?: () => void;
   initialTrackId?: string | null;
+  onTrackChange?: (trackId: string | null) => void;
   currentLang: Language;
   onLanguageChange: (lang: Language) => void;
   currentTheme: ThemeMode;
@@ -30,11 +37,14 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
   onOpenSettings,
   onOpenSubmissions,
   initialTrackId = null,
+  onTrackChange,
   currentLang,
   onLanguageChange,
   currentTheme,
   onThemeToggle,
 }) => {
+  const t = dashboardTranslations[currentLang];
+
   // Navigation & Track states
   const [activeNavTab, setActiveNavTab] = useState<
     'practice' | 'kits' | 'leaderboard' | 'ai-mentor'
@@ -42,15 +52,75 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(initialTrackId);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
-  // Sync if initialTrackId changes
+  // Sync if initialTrackId changes and validate against SKILL_TRACKS
   useEffect(() => {
-    setSelectedTrackId(initialTrackId);
-  }, [initialTrackId]);
+    if (initialTrackId) {
+      const isValid = SKILL_TRACKS.some((tr) => tr.id === initialTrackId);
+      if (isValid) {
+        setSelectedTrackId(initialTrackId);
+      } else {
+        setSelectedTrackId(null);
+        if (onTrackChange) onTrackChange(null);
+      }
+    } else {
+      setSelectedTrackId(null);
+    }
+  }, [initialTrackId, onTrackChange]);
 
   // Exercise Data
   const exercises = getExercises();
-  const solvedCount = exercises.filter((ex) => ex.status === 'solved').length;
   const totalCount = exercises.length;
+
+  // Real user submissions metrics isolated by userKey
+  const userKey = useMemo(() => getUserStorageKey(user), [user]);
+  const userSolvedIds = useMemo(() => getUserSolvedExerciseIds(userKey), [userKey]);
+  const userSubmissions = useMemo(() => getUserSubmissions(userKey), [userKey]);
+
+  const realSolvedCount = userSolvedIds.length;
+  const streakDays = realSolvedCount > 0 ? 1 : 0;
+  const bestStreakDays = realSolvedCount > 0 ? 1 : 0;
+  const todayGoalTotal = 3;
+  const todayGoalSolved = Math.min(todayGoalTotal, realSolvedCount);
+  const acRatePercent =
+    userSubmissions.length > 0
+      ? Math.round(
+          (userSubmissions.filter((s) => s.status === 'passed').length /
+            userSubmissions.length) *
+            100
+        )
+      : 0;
+  const codingHours =
+    userSubmissions.length > 0
+      ? Math.round(userSubmissions.length * 0.4 * 10) / 10
+      : 0;
+
+  const topTopics = useMemo(() => {
+    if (userSolvedIds.length === 0) return [];
+    const counts: Record<string, number> = {};
+    exercises.forEach((ex) => {
+      if (userSolvedIds.includes(ex.id)) {
+        const cat = currentLang === 'eng' && ex.categoryEn ? ex.categoryEn : ex.category;
+        counts[cat] = (counts[cat] || 0) + 1;
+      }
+    });
+    const total = userSolvedIds.length;
+    const colorClasses = [
+      'text-amber-500 bg-amber-500/10 border-amber-500/20',
+      'text-blue-500 bg-blue-500/10 border-blue-500/20',
+      'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+      'text-purple-500 bg-purple-500/10 border-purple-500/20',
+    ];
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([label, cnt], idx) => ({
+        label,
+        percent: Math.round((cnt / total) * 100),
+        colorClass: colorClasses[idx % colorClasses.length],
+      }));
+  }, [userSolvedIds, exercises, currentLang]);
+
+  const aiInteractions = 0; // Real count: no fake numbers
 
   const handleLaunchIDE = (exerciseId: number = 1) => {
     if (onOpenIDE) {
@@ -69,9 +139,11 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
       setActiveNavTab('practice');
     } else if (tab === 'practice') {
       setSelectedTrackId(null);
+      if (onTrackChange) onTrackChange(null);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (tab === 'kits') {
       setSelectedTrackId(null);
+      if (onTrackChange) onTrackChange(null);
       setTimeout(() => {
         const el = document.getElementById('section-kits');
         if (el) {
@@ -83,11 +155,13 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
 
   const handleSelectTrack = (trackId: string) => {
     setSelectedTrackId(trackId);
+    if (onTrackChange) onTrackChange(trackId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBackToSkills = () => {
     setSelectedTrackId(null);
+    if (onTrackChange) onTrackChange(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -125,6 +199,7 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
             currentLang={currentLang}
             onBack={handleBackToSkills}
             onOpenIDE={handleLaunchIDE}
+            user={user}
           />
         ) : (
           /* MAIN PRACTICE SKILLS DASHBOARD */
@@ -134,13 +209,19 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
               user={user}
               currentLang={currentLang}
               onOpenIDE={() => handleLaunchIDE(1)}
-              solvedCount={solvedCount}
+              solvedCount={realSolvedCount}
               totalCount={totalCount}
-              streakDays={5}
-              aiInteractions={42}
+              streakDays={streakDays}
+              aiInteractions={aiInteractions}
+              todayGoalSolved={todayGoalSolved}
+              todayGoalTotal={todayGoalTotal}
+              bestStreakDays={bestStreakDays}
+              acRatePercent={acRatePercent}
+              codingHours={codingHours}
+              topTopics={topTopics}
             />
 
-            {/* SECTION A: SKILL PREPARATION KITS (ALL 6 TRACKS SUPPORTED) */}
+            {/* SECTION A: SKILL PREPARATION KITS */}
             <div id="section-kits" className="scroll-mt-20">
               <SkillPreparationKits
                 currentLang={currentLang}
@@ -154,9 +235,6 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
                       break;
                     case 'cpp-core':
                       handleSelectTrack('cpp');
-                      break;
-                    case 'fullstack':
-                      handleSelectTrack('react');
                       break;
                     case 'sql-db':
                       handleSelectTrack('sql');
@@ -177,6 +255,7 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
                 currentLang={currentLang}
                 exercises={exercises}
                 onSelectTrack={handleSelectTrack}
+                solvedExerciseIds={userSolvedIds}
               />
             </div>
           </>
@@ -191,10 +270,11 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
           if (activeNavTab === 'leaderboard') setActiveNavTab('practice');
         }}
         currentLang={currentLang}
+        user={user}
       />
 
       {/* 4. FLOATING AI SOCRATIC MENTOR WIDGET */}
-      <FloatingAIMentorChat theme={currentTheme} />
+      <FloatingAIMentorChat theme={currentTheme} currentLang={currentLang} />
 
       {/* 5. CLEAN FOOTER */}
       <footer className="mt-auto border-t py-6 border-slate-200 dark:border-gray-800 bg-white dark:bg-[#0b0f17] text-xs text-slate-500 dark:text-slate-400 select-none">
@@ -207,16 +287,16 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
               AI Code Mentor
             </span>
             <span>•</span>
-            <span>Khoa Công nghệ Thông tin, Trường Đại học Sư phạm Hà Nội (HNUE)</span>
+            <span>{t.footerFaculty}</span>
           </div>
 
           <div className="flex items-center gap-4">
             <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-[#00EA64]">
               <span className="w-2 h-2 rounded-full bg-[#00EA64] animate-ping" />
-              <span>Hệ thống trực tuyến 100%</span>
+              <span>{t.footerOnlineStatus}</span>
             </span>
             <span>•</span>
-            <span>Phiên bản 2.5.0</span>
+            <span>{t.footerVersion}</span>
           </div>
         </div>
       </footer>

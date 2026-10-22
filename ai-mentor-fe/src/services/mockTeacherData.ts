@@ -1,9 +1,15 @@
+import { EXERCISE_TITLE_TRANSLATIONS } from './mockExercisesData';
+import { getRealStudentSubmissionsForTeacher } from './userStorage';
+export { getRealStudentSubmissionsForTeacher } from './userStorage';
 export interface ClassGroup {
   id: string;
   name: string;
+  nameEng?: string;
   code: string;
   courseName: string;
+  courseNameEng?: string;
   term: string;
+  termEng?: string;
   totalStudents: number;
   activeStudents: number;
   activePercentage: number;
@@ -102,10 +108,13 @@ export interface StudentRosterItem {
 export const MOCK_CLASS_GROUPS: ClassGroup[] = [
   {
     id: 'K71A-CNTT',
-    name: 'Lớp K71A - Công nghệ Thông tin',
+    name: 'Lớp K71A – Công nghệ Thông tin',
+    nameEng: 'Class K71A – Information Technology',
     code: 'COMP201_K71A',
-    courseName: 'Cấu trúc Dữ liệu & Giải thuật',
+    courseName: 'Cấu trúc dữ liệu (Data Structures)',
+    courseNameEng: 'Data Structures',
     term: 'Học kỳ 1 • 2026-2027',
+    termEng: 'Semester 1 • 2026-2027',
     totalStudents: 68,
     activeStudents: 64,
     activePercentage: 94.1,
@@ -140,50 +149,14 @@ export const MOCK_CLASS_GROUPS: ClassGroup[] = [
     ],
   },
   {
-    id: 'K71B-CNTT',
-    name: 'Lớp K71B - Công nghệ Thông tin',
-    code: 'COMP202_K71B',
-    courseName: 'Lập trình Python & Trí tuệ Nhân tạo',
-    term: 'Học kỳ 1 • 2026-2027',
-    totalStudents: 64,
-    activeStudents: 59,
-    activePercentage: 92.2,
-    completionRate: 68.5,
-    maxCompleted: 32,
-    inProgress: 14,
-    notStarted: 18,
-    totalAIQueries: 162,
-    resolvedWithAI: 85.2,
-    stuckStudentsCount: 7,
-    commonErrors: [
-      { name: 'TypeError', percentage: 38, count: 48 },
-      { name: 'KeyError', percentage: 28, count: 35 },
-      { name: 'IndexError', percentage: 20, count: 25 },
-      { name: 'AttributeError', percentage: 14, count: 18 },
-    ],
-    weeklyLogins: [
-      { day: 'T2', active: 52 },
-      { day: 'T3', active: 57 },
-      { day: 'T4', active: 61 },
-      { day: 'T5', active: 59 },
-      { day: 'T6', active: 63 },
-      { day: 'T7', active: 39 },
-      { day: 'CN', active: 48 },
-    ],
-    gradeDistribution: [
-      { bracket: '< 5.0 (Yếu)', count: 5, percentage: 7.8, color: '#ef4444' },
-      { bracket: '5.0 - 6.4 (TB)', count: 13, percentage: 20.3, color: '#f59e0b' },
-      { bracket: '6.5 - 7.9 (Khá)', count: 22, percentage: 34.4, color: '#3b82f6' },
-      { bracket: '8.0 - 8.9 (Giỏi)', count: 18, percentage: 28.1, color: '#10b981' },
-      { bracket: '9.0 - 10.0 (Xuất sắc)', count: 6, percentage: 9.4, color: '#00EA64' },
-    ],
-  },
-  {
     id: 'K72A-KHMT',
-    name: 'Lớp K72A - Khoa học Máy tính',
-    code: 'CS301_K72A',
-    courseName: 'Thuật toán Nâng cao & Olympic',
+    name: 'Lớp K72A – Khoa học Máy tính',
+    nameEng: 'Class K72A – Computer Science',
+    code: 'COMP202_K72A',
+    courseName: 'Thuật toán (Algorithms)',
+    courseNameEng: 'Algorithms',
     term: 'Học kỳ 1 • 2026-2027',
+    termEng: 'Semester 1 • 2026-2027',
     totalStudents: 55,
     activeStudents: 53,
     activePercentage: 96.4,
@@ -217,13 +190,97 @@ export const MOCK_CLASS_GROUPS: ClassGroup[] = [
       { bracket: '9.0 - 10.0 (Xuất sắc)', count: 12, percentage: 21.8, color: '#00EA64' },
     ],
   },
+  {
+    id: 'K73A-CNTT',
+    name: 'Lớp K73A – Công nghệ Thông tin',
+    nameEng: 'Class K73A – Information Technology',
+    code: 'COMP104_K73A',
+    courseName: 'Lập trình C++ (C++)',
+    courseNameEng: 'C++ Programming',
+    term: 'Học kỳ 1 • 2026-2027',
+    termEng: 'Semester 1 • 2026-2027',
+    totalStudents: 62,
+    activeStudents: 58,
+    activePercentage: 93.5,
+    completionRate: 75.8,
+    maxCompleted: 34,
+    inProgress: 13,
+    notStarted: 15,
+    totalAIQueries: 130,
+    resolvedWithAI: 89.2,
+    stuckStudentsCount: 4,
+    commonErrors: [
+      { name: 'SegmentationFault', percentage: 40, count: 52 },
+      { name: 'MemoryLeak', percentage: 26, count: 34 },
+      { name: 'CompileError', percentage: 20, count: 26 },
+      { name: 'LogicError', percentage: 14, count: 18 },
+    ],
+    weeklyLogins: [
+      { day: 'T2', active: 54 },
+      { day: 'T3', active: 56 },
+      { day: 'T4', active: 58 },
+      { day: 'T5', active: 57 },
+      { day: 'T6', active: 60 },
+      { day: 'T7', active: 42 },
+      { day: 'CN', active: 49 },
+    ],
+    gradeDistribution: [
+      { bracket: '< 5.0 (Yếu)', count: 3, percentage: 4.8, color: '#ef4444' },
+      { bracket: '5.0 - 6.4 (TB)', count: 10, percentage: 16.1, color: '#f59e0b' },
+      { bracket: '6.5 - 7.9 (Khá)', count: 23, percentage: 37.1, color: '#3b82f6' },
+      { bracket: '8.0 - 8.9 (Giỏi)', count: 18, percentage: 29.0, color: '#10b981' },
+      { bracket: '9.0 - 10.0 (Xuất sắc)', count: 8, percentage: 12.9, color: '#00EA64' },
+    ],
+  },
+  {
+    id: 'K73B-KHMT',
+    name: 'Lớp K73B – Khoa học Máy tính',
+    nameEng: 'Class K73B – Computer Science',
+    code: 'COMP105_K73B',
+    courseName: 'Lập trình Python (Python)',
+    courseNameEng: 'Python Programming',
+    term: 'Học kỳ 1 • 2026-2027',
+    termEng: 'Semester 1 • 2026-2027',
+    totalStudents: 64,
+    activeStudents: 59,
+    activePercentage: 92.2,
+    completionRate: 68.5,
+    maxCompleted: 32,
+    inProgress: 14,
+    notStarted: 18,
+    totalAIQueries: 162,
+    resolvedWithAI: 85.2,
+    stuckStudentsCount: 7,
+    commonErrors: [
+      { name: 'TypeError', percentage: 38, count: 48 },
+      { name: 'KeyError', percentage: 28, count: 35 },
+      { name: 'IndexError', percentage: 20, count: 25 },
+      { name: 'AttributeError', percentage: 14, count: 18 },
+    ],
+    weeklyLogins: [
+      { day: 'T2', active: 52 },
+      { day: 'T3', active: 57 },
+      { day: 'T4', active: 61 },
+      { day: 'T5', active: 59 },
+      { day: 'T6', active: 63 },
+      { day: 'T7', active: 39 },
+      { day: 'CN', active: 48 },
+    ],
+    gradeDistribution: [
+      { bracket: '< 5.0 (Yếu)', count: 5, percentage: 7.8, color: '#ef4444' },
+      { bracket: '5.0 - 6.4 (TB)', count: 13, percentage: 20.3, color: '#f59e0b' },
+      { bracket: '6.5 - 7.9 (Khá)', count: 22, percentage: 34.4, color: '#3b82f6' },
+      { bracket: '8.0 - 8.9 (Giỏi)', count: 18, percentage: 28.1, color: '#10b981' },
+      { bracket: '9.0 - 10.0 (Xuất sắc)', count: 6, percentage: 9.4, color: '#00EA64' },
+    ],
+  },
 ];
 
 export const MOCK_LIVE_SUBMISSIONS: LiveSubmission[] = [
   {
     id: 101,
-    studentName: 'Nguyễn Văn Minh',
-    studentId: '2151050012',
+    studentName: 'Bùi Tuấn Kiệt',
+    studentId: '2151050028',
     classGroup: 'K71A-CNTT',
     exerciseId: 1,
     exerciseTitle: 'Tìm số nguyên tố trong mảng',
@@ -409,8 +466,8 @@ def is_prime(x):
 export const MOCK_AI_AUDIT_LOGS: StudentAIAuditLog[] = [
   {
     id: 1,
-    studentName: 'Nguyễn Văn Minh',
-    studentId: '2151050012',
+    studentName: 'Bùi Tuấn Kiệt',
+    studentId: '2151050028',
     avatarColor: 'bg-emerald-600',
     classGroup: 'K71A-CNTT',
     exerciseId: 1,
@@ -627,7 +684,7 @@ export const MOCK_AI_AUDIT_LOGS: StudentAIAuditLog[] = [
 export const MOCK_ASSIGNMENTS: TeacherAssignment[] = [
   {
     id: 1,
-    title: 'Bài 01: Tìm số nguyên tố trong mảng',
+    title: 'Tìm số nguyên tố trong mảng',
     category: 'Algorithms',
     difficulty: 'easy',
     language: 'Python 3',
@@ -645,7 +702,7 @@ export const MOCK_ASSIGNMENTS: TeacherAssignment[] = [
   },
   {
     id: 2,
-    title: 'Bài 02: Kiểm tra tính hợp lệ chuỗi ngoặc',
+    title: 'Kiểm tra tính hợp lệ của chuỗi ngoặc',
     category: 'Data Structures',
     difficulty: 'easy',
     language: 'Python 3',
@@ -663,7 +720,7 @@ export const MOCK_ASSIGNMENTS: TeacherAssignment[] = [
   },
   {
     id: 3,
-    title: 'Bài 03: Tìm cặp số Two Sum',
+    title: 'Tìm hai số có tổng bằng Target (Two Sum)',
     category: 'Algorithms',
     difficulty: 'medium',
     language: 'Python 3',
@@ -681,7 +738,7 @@ export const MOCK_ASSIGNMENTS: TeacherAssignment[] = [
   },
   {
     id: 4,
-    title: 'Bài 04: Sắp xếp mảng QuickSort & MergeSort',
+    title: 'Sắp xếp mảng QuickSort & MergeSort',
     category: 'Algorithms',
     difficulty: 'hard',
     language: 'Python 3',
@@ -699,7 +756,7 @@ export const MOCK_ASSIGNMENTS: TeacherAssignment[] = [
   },
   {
     id: 5,
-    title: 'Bài 05: Kiểm tra Đồ thị Hai phía (Bipartite Graph)',
+    title: 'Kiểm tra Đồ thị Hai phía (Bipartite Graph)',
     category: 'Graph Theory',
     difficulty: 'hard',
     language: 'Python 3',
@@ -723,13 +780,13 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     name: 'Nguyễn Văn Minh',
     email: 'minh.nv21@hnue.edu.vn',
     classGroup: 'K71A-CNTT',
-    solvedCount: 4,
+    solvedCount: 0,
     totalAssignments: 4,
-    gpa: 9.6,
+    gpa: 8.5,
     attendanceRate: 98,
-    aiQueriesCount: 6,
-    status: 'excellent',
-    recentActivity: 'Nộp bài 01 đạt 10/10 (12 phút trước)',
+    aiQueriesCount: 0,
+    status: 'progressing',
+    recentActivity: 'Chưa có hoạt động nộp bài',
   },
   {
     studentId: '2151050045',
@@ -742,7 +799,7 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     attendanceRate: 96,
     aiQueriesCount: 8,
     status: 'excellent',
-    recentActivity: 'Nộp bài 02 đạt 10/10 (28 phút trước)',
+    recentActivity: 'Nộp bài: Kiểm tra tính hợp lệ của chuỗi ngoặc đạt 10/10 (28 phút trước)',
   },
   {
     studentId: '2151050033',
@@ -755,7 +812,7 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     attendanceRate: 92,
     aiQueriesCount: 14,
     status: 'progressing',
-    recentActivity: 'Nộp bài 03 đạt 10/10 (1 giờ trước)',
+    recentActivity: 'Nộp bài: Two Sum đạt 10/10 (1 giờ trước)',
   },
   {
     studentId: '2151050089',
@@ -768,7 +825,7 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     attendanceRate: 85,
     aiQueriesCount: 24,
     status: 'needs_attention',
-    recentActivity: 'Bị lỗi TLE Bài 01 (45 phút trước)',
+    recentActivity: 'Bị lỗi TLE: Tìm số nguyên tố trong mảng (45 phút trước)',
   },
   {
     studentId: '2151050102',
@@ -781,7 +838,7 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     attendanceRate: 74,
     aiQueriesCount: 32,
     status: 'at_risk',
-    recentActivity: 'Bế tắc Bài 03, hỏi AI 4 lần chưa giải xong',
+    recentActivity: 'Bế tắc Two Sum, hỏi AI 4 lần chưa giải xong',
   },
   {
     studentId: '2151050067',
@@ -794,7 +851,7 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     attendanceRate: 88,
     aiQueriesCount: 18,
     status: 'progressing',
-    recentActivity: 'Sai test case Bài 02 (15 phút trước)',
+    recentActivity: 'Sai test case: Kiểm tra tính hợp lệ của chuỗi ngoặc (15 phút trước)',
   },
   {
     studentId: '2151050028',
@@ -823,3 +880,702 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     recentActivity: 'Nộp bài hôm qua',
   },
 ];
+
+// ==================== I18N LOCALIZATION MAPPERS & HELPERS ====================
+
+export const EXERCISE_TITLE_MAP: Record<string, string> = {
+  'Tìm số nguyên tố trong mảng': 'Find Prime Numbers in Array',
+  'Kiểm tra tính hợp lệ của chuỗi ngoặc': 'Valid Parentheses Check',
+  'Kiểm tra tính hợp lệ chuỗi ngoặc': 'Valid Parentheses Check',
+  'Tìm hai số có tổng bằng Target (Two Sum)': 'Two Sum Problem',
+  'Tìm cặp số Two Sum': 'Two Sum Problem',
+  'Sắp xếp mảng bằng QuickSort': 'QuickSort Array Implementation',
+  'Tìm đường đi ngắn nhất Dijkstra': "Dijkstra's Shortest Path",
+  'Cây nhị phân tìm kiếm (BST)': 'Binary Search Tree (BST) Operations',
+  'Sắp xếp mảng QuickSort & MergeSort': 'QuickSort & MergeSort Implementation',
+  'Kiểm tra Đồ thị Hai phía (Bipartite Graph)': 'Bipartite Graph Verification',
+  ...EXERCISE_TITLE_TRANSLATIONS,
+};
+
+export const TIME_AGO_MAP: Record<string, string> = {
+  'Vừa xong': 'Just now',
+  '1 phút trước': '1 min ago',
+  '3 phút trước': '3 mins ago',
+  '6 phút trước': '6 mins ago',
+  '11 phút trước': '11 mins ago',
+  '12 phút trước': '12 mins ago',
+  '15 phút trước': '15 mins ago',
+  '22 phút trước': '22 mins ago',
+  '28 phút trước': '28 mins ago',
+  '45 phút trước': '45 mins ago',
+  '1 giờ trước': '1 hour ago',
+  '2 giờ trước': '2 hours ago',
+  'Hôm qua': 'Yesterday',
+};
+
+export const GRADE_BRACKET_MAP: Record<string, string> = {
+  '< 5.0 (Yếu)': '< 5.0 (Fail / Poor)',
+  '5.0 - 6.4 (TB)': '5.0 - 6.4 (Average)',
+  '6.5 - 7.9 (Khá)': '6.5 - 7.9 (Good)',
+  '8.0 - 8.9 (Giỏi)': '8.0 - 8.9 (Very Good)',
+  '9.0 - 10.0 (Xuất sắc)': '9.0 - 10.0 (Excellent)',
+};
+
+export const DAY_OF_WEEK_MAP: Record<string, string> = {
+  'T2': 'Mon',
+  'T3': 'Tue',
+  'T4': 'Wed',
+  'T5': 'Thu',
+  'T6': 'Fri',
+  'T7': 'Sat',
+  'CN': 'Sun',
+};
+
+export const ROSTER_ACTIVITY_MAP: Record<string, string> = {
+  'Nộp bài: Tìm số nguyên tố trong mảng đạt 10/10 (12 phút trước)': 'Submitted: Find Prime Numbers in Array: 10/10 (12 mins ago)',
+  'Nộp bài: Kiểm tra tính hợp lệ của chuỗi ngoặc đạt 10/10 (28 phút trước)': 'Submitted: Valid Parentheses Check: 10/10 (28 mins ago)',
+  'Nộp bài: Two Sum đạt 10/10 (1 giờ trước)': 'Submitted: Two Sum Problem: 10/10 (1 hour ago)',
+  'Bị lỗi TLE: Tìm số nguyên tố trong mảng (45 phút trước)': 'TLE on: Find Prime Numbers in Array (45 mins ago)',
+  'Bế tắc Two Sum, hỏi AI 4 lần chưa giải xong': 'Stuck on Two Sum Problem, 4 AI queries pending',
+  'Sai test case: Kiểm tra tính hợp lệ của chuỗi ngoặc (15 phút trước)': 'Failed test case on: Valid Parentheses Check (15 mins ago)',
+  'Nộp bài 01 đạt 10/10 (12 phút trước)': 'Submitted: Find Prime Numbers in Array: 10/10 (12 mins ago)',
+  'Nộp bài 02 đạt 10/10 (28 phút trước)': 'Submitted: Valid Parentheses Check: 10/10 (28 mins ago)',
+  'Nộp bài 03 đạt 10/10 (1 giờ trước)': 'Submitted: Two Sum Problem: 10/10 (1 hour ago)',
+  'Bị lỗi TLE Bài 01 (45 phút trước)': 'TLE on: Find Prime Numbers in Array (45 mins ago)',
+  'Bế tắc Bài 03, hỏi AI 4 lần chưa giải xong': 'Stuck on Two Sum Problem, 4 AI queries pending',
+  'Sai test case Bài 02 (15 phút trước)': 'Failed test case on: Valid Parentheses Check (15 mins ago)',
+  'Đã hoàn thành 3/4 bài tập': 'Completed 3/4 assignments',
+  'Nộp bài hôm qua': 'Submitted yesterday',
+};
+
+export const ASSIGNMENT_DESC_MAP: Record<string, string> = {
+  'Viết chương trình tìm tất cả các số nguyên tố trong mảng số nguyên dương N phần tử. Tối ưu thuật toán kiểm tra số nguyên tố.':
+    'Write a program to find all prime numbers in an array of positive integers of length N. Optimize primality testing.',
+  'Sử dụng cấu trúc dữ liệu Ngăn xếp (Stack) để kiểm tra tính hợp lệ của chuỗi chứa các ký tự ngoặc đơn (), ngoặc vuông [], và ngoặc nhọn {}.':
+    'Use a Stack data structure to validate expressions containing parenthesis (), brackets [], and braces {}.',
+  'Cho mảng số nguyên nums và số nguyên target, tìm chỉ số của hai số sao cho tổng của chúng bằng target trong độ phức tạp thời gian O(N).':
+    'Given an integer array nums and target integer, find indices of the two numbers that sum up to target in O(N) time.',
+  'Cài đặt thuật toán chia để trị QuickSort và MergeSort. Đo lường số phép so sánh và thời gian thực thi trên mảng ngẫu nhiên 10^5 phần tử.':
+    'Implement QuickSort and MergeSort divide-and-conquer algorithms. Benchmark comparisons and runtime on 10^5 elements.',
+  'Áp dụng thuật toán tìm kiếm theo chiều rộng (BFS) hoặc DFS để tô màu 2 màu cho các đỉnh của đồ thị vô hướng.':
+    'Apply BFS or DFS traversal to determine if an undirected graph can be 2-colored (Bipartite graph verification).',
+};
+
+export const AI_LOG_SUMMARY_MAP: Record<string, { prompt: string; hint: string; insight: string }> = {
+  '1': {
+    prompt: "I'm encountering an error on line 6 inside the while loop, why is this happening?",
+    hint: 'Socratic guidance on array boundary N - 1 when inspecting arr[i+1], guiding student to adjust loop to i < len(arr) - 1.',
+    insight: 'Student understands adjacent element comparison concept but overlooked boundary index checks when i reaches array end.',
+  },
+  '2': {
+    prompt: 'I used a stack but test case "([)]" still returns True.',
+    hint: 'Prompted about LIFO order of the most recent opening bracket compared to the current closing bracket.',
+    insight: 'Student grasps stack mechanism but missed mapping dictionary verification between opening and closing brackets.',
+  },
+  '3': {
+    prompt: 'My function works for small numbers but times out on large test cases without completing.',
+    hint: 'Suggested checking divisors up to square root of n (isqrt) instead of linear scan to reduce Big-O from O(N) to O(sqrt(N)).',
+    insight: 'Student struggles with Big-O time complexity optimization. Submitted 5 consecutive times retaining O(N) loop.',
+  },
+  '4': {
+    prompt: 'Why is it giving a SyntaxError after the for statement?',
+    hint: 'Pointed out Python block syntax rules requiring a colon after control flow statements.',
+    insight: 'Basic syntax oversight caused by typing fast or transitioning from C++ to Python.',
+  },
+  '5': {
+    prompt: 'When array has duplicate values, my hash map overwrites the previous index.',
+    hint: 'Suggested checking if complement exists before recording current index into hash map.',
+    insight: 'Student pre-built entire dictionary rather than using a one-pass look-up-and-insert approach.',
+  },
+};
+
+export const AI_LOG_TRANSCRIPT_MAP: Record<string, TranscriptMessage[]> = {
+  '1': [
+    {
+      sender: 'student',
+      text: "I'm getting an IndexError: list index out of range on line 2, why is that?",
+      codeSnippet: 'if arr[i] > arr[i+1]:',
+      time: '14:20',
+    },
+    {
+      sender: 'ai',
+      text: "Hello! Let's examine the value of `i` during the last iteration. When `i = len(arr) - 1`, what will `i + 1` evaluate to? Does that index exist in the array?",
+      time: '14:21',
+    },
+    {
+      sender: 'student',
+      text: "Oh! At that point i + 1 equals len(arr), which exceeds the array length!",
+      time: '14:23',
+    },
+    {
+      sender: 'ai',
+      text: "Spot on! So how would you adjust the `range(...)` bounds so that `i + 1` never exceeds the last element?",
+      time: '14:24',
+    },
+    {
+      sender: 'student',
+      text: "I changed it to range(len(arr) - 1) and passed 10/10 test cases now. Thanks bot!",
+      time: '14:26',
+    },
+  ],
+  '2': [
+    {
+      sender: 'student',
+      text: 'I used a stack but test case "([)]" still returns True.',
+      time: '14:02',
+    },
+    {
+      sender: 'ai',
+      text: "When encountering closing bracket `]`, what is the top element of the stack (most recent open bracket)? Does it match the type of `]`?",
+      time: '14:03',
+    },
+    {
+      sender: 'student',
+      text: "The top of the stack is `(`, which does not match `]`!",
+      time: '14:05',
+    },
+    {
+      sender: 'ai',
+      text: "Correct! In nested brackets, the nearest open bracket must close first. You can use a mapping dictionary to check matching pairs.",
+      time: '14:06',
+    },
+    {
+      sender: 'student',
+      text: "Added the mapping dict and all test cases passed!",
+      time: '14:10',
+    },
+  ],
+  '3': [
+    {
+      sender: 'student',
+      text: "I hit Time Limit Exceeded on test case 8, but my algorithm logic seems right?",
+      time: '13:40',
+    },
+    {
+      sender: 'ai',
+      text: "Your logic produces correct outputs, but with n = 1,000,000, `for i in range(2, n)` runs 1 million times. If n is composite, can its smallest factor exceed sqrt(n)?",
+      time: '13:42',
+    },
+    {
+      sender: 'student',
+      text: "Why square root of n? My professor hasn't covered this mathematical property yet.",
+      time: '13:45',
+    },
+    {
+      sender: 'ai',
+      text: "If n = a * b and both a and b were greater than sqrt(n), their product a * b would exceed n (contradiction). Hence at least one factor <= sqrt(n). Try using `math.isqrt(n)`!",
+      time: '13:47',
+    },
+    {
+      sender: 'student',
+      text: "Added math.isqrt but got NameError because I haven't imported math. Fixing it now.",
+      time: '13:52',
+    },
+  ],
+  '4': [
+    {
+      sender: 'student',
+      text: "Why does it report SyntaxError after the for loop?",
+      codeSnippet: 'for i in range(len(nums))',
+      time: '13:10',
+    },
+    {
+      sender: 'ai',
+      text: "In Python, after control flow statements like `for`, `if`, `while`, `def`, which character is required to open a block?",
+      time: '13:11',
+    },
+    {
+      sender: 'student',
+      text: "Ah! I forgot the colon `:`!",
+      time: '13:12',
+    },
+  ],
+  '5': [
+    {
+      sender: 'student',
+      text: "When the array has duplicate values, my hash map overwrites indices. Two Sum has test [3, 3] with target 6.",
+      time: '12:20',
+    },
+    {
+      sender: 'ai',
+      text: "Instead of pre-populating the dictionary for all elements, what happens if you check whether `target - num` is already present while iterating through each element?",
+      time: '12:22',
+    },
+  ],
+};
+
+export function translateExerciseTitle(title: string, isVie: boolean): string {
+  if (!title) return '';
+  // Strip any 'Bài XX: ', 'Problem XX: ', 'Bài XX (C): ' prefixes
+  const clean = title
+    .replace(/^Bài\s*\d+\s*(?:\([^)]*\))?:\s*/i, '')
+    .replace(/^Problem\s*\d+\s*(?:\([^)]*\))?:\s*/i, '')
+    .trim();
+
+  if (isVie) {
+    return clean;
+  }
+
+  if (EXERCISE_TITLE_TRANSLATIONS && EXERCISE_TITLE_TRANSLATIONS[clean]) {
+    return EXERCISE_TITLE_TRANSLATIONS[clean];
+  }
+  if (EXERCISE_TITLE_MAP[clean]) {
+    return EXERCISE_TITLE_MAP[clean];
+  }
+  if (EXERCISE_TITLE_MAP[title]) {
+    return EXERCISE_TITLE_MAP[title].replace(/^Problem\s*\d+\s*(?:\([^)]*\))?:\s*/i, '').trim();
+  }
+
+  return clean;
+}
+
+export function translateTimeAgo(time: string, isVie: boolean): string {
+  if (isVie) return time;
+  if (TIME_AGO_MAP[time]) return TIME_AGO_MAP[time];
+  const minuteMatch = time.match(/(\d+)\s*phút\s*trước/i);
+  if (minuteMatch) {
+    const mins = minuteMatch[1];
+    return `${mins} min${Number(mins) > 1 ? 's' : ''} ago`;
+  }
+  const hourMatch = time.match(/(\d+)\s*giờ\s*trước/i);
+  if (hourMatch) {
+    const hrs = hourMatch[1];
+    return `${hrs} hour${Number(hrs) > 1 ? 's' : ''} ago`;
+  }
+  if (time.toLowerCase().includes('hôm qua')) return 'Yesterday';
+  if (time.toLowerCase().includes('vừa xong')) return 'Just now';
+  return time;
+}
+
+export function translateGradeBracket(bracket: string, isVie: boolean): string {
+  if (isVie) return bracket;
+  return GRADE_BRACKET_MAP[bracket] || bracket;
+}
+
+export function translateDayOfWeek(day: string, isVie: boolean): string {
+  if (isVie) return day;
+  return DAY_OF_WEEK_MAP[day] || day;
+}
+
+export function translateRecentActivity(act: string, isVie: boolean): string {
+  if (isVie) return act;
+  return ROSTER_ACTIVITY_MAP[act] || act;
+}
+
+export function translateAssignmentDesc(desc: string, isVie: boolean): string {
+  if (isVie) return desc;
+  return ASSIGNMENT_DESC_MAP[desc] || desc;
+}
+
+export function translateLogSummary(
+  id: number | string,
+  fallbackPrompt: string,
+  fallbackHint: string,
+  fallbackInsight: string,
+  isVie: boolean
+) {
+  if (isVie) {
+    return {
+      prompt: fallbackPrompt,
+      hint: fallbackHint,
+      insight: fallbackInsight,
+    };
+  }
+  const mapped = AI_LOG_SUMMARY_MAP[String(id)];
+  return {
+    prompt: mapped ? mapped.prompt : fallbackPrompt,
+    hint: mapped ? mapped.hint : fallbackHint,
+    insight: mapped ? mapped.insight : fallbackInsight,
+  };
+}
+
+export function translateTranscript(
+  id: number | string,
+  messages: TranscriptMessage[],
+  isVie: boolean
+): TranscriptMessage[] {
+  if (isVie) return messages;
+  const mapped = AI_LOG_TRANSCRIPT_MAP[String(id)];
+  return mapped || messages;
+}
+
+/**
+ * Generate rich student submissions for any exercise in the 9 courses
+ */
+/**
+ * Generate rich student submissions for any exercise in the 9 courses
+ */
+export function getTeacherSubmissionsForExercise(
+  exerciseId: number,
+  _courseId: string,
+  exerciseTitle: string = 'Bài tập thực hành',
+  boilerplateCode: string = '',
+  exerciseLang: string = 'python'
+): LiveSubmission[] {
+  const cleanTitle = exerciseTitle
+    .replace(/^Bài\s*\d+\s*(?:\([^)]*\))?:\s*/i, '')
+    .replace(/^Problem\s*\d+\s*(?:\([^)]*\))?:\s*/i, '')
+    .trim();
+
+  // 1. Lấy bài nộp thật từ người dùng đã giải bài tập này
+  const realSubs = getRealStudentSubmissionsForTeacher().filter(
+    (s) => s.exerciseId === exerciseId
+  ).map((s) => ({
+    ...s,
+    exerciseTitle: cleanTitle,
+  }));
+  const realStudentIds = new Set(realSubs.map((s) => s.studentId));
+
+  const existing = MOCK_LIVE_SUBMISSIONS.filter((s) => s.exerciseId === exerciseId && !realStudentIds.has(s.studentId));
+  if (existing.length >= 6) {
+    return [
+      ...realSubs,
+      ...existing.map(sub => ({
+        ...sub,
+        exerciseTitle: cleanTitle
+      }))
+    ];
+  }
+
+  const langLabel =
+    exerciseLang === 'cpp'
+      ? 'C++ 17'
+      : exerciseLang === 'c'
+      ? 'C (GCC 11)'
+      : exerciseLang === 'java'
+      ? 'Java 17'
+      : exerciseLang === 'sql'
+      ? 'PostgreSQL'
+      : 'Python 3';
+
+  const isPy = exerciseLang === 'python' || langLabel.includes('Python');
+  const isCpp = exerciseLang === 'cpp' || langLabel.includes('C++');
+
+  const rosterStudents = [
+    { name: 'Hoàng Bảo Ngọc', id: '2151050115', status: 'accepted', score: 10, passed: 10, ms: 38, plag: 2, time: '3 phút trước' },
+    { name: 'Trần Thị Mai', id: '2151050045', status: 'accepted', score: 10, passed: 10, ms: 45, plag: 4, time: '12 phút trước' },
+    { name: 'Phạm Đức Anh', id: '2151050033', status: 'accepted', score: 10, passed: 10, ms: 52, plag: 1, time: '25 phút trước' },
+    { name: 'Hoàng Minh Tú', id: '2151050115', status: 'accepted', score: 10, passed: 10, ms: 60, plag: 5, time: '40 phút trước' },
+    { name: 'Đỗ Thùy Linh', id: '2151050074', status: 'accepted', score: 10, passed: 10, ms: 34, plag: 3, time: '55 phút trước' },
+    { name: 'Vũ Thị Hồng Nhung', id: '2151050067', status: 'wrong_answer', score: 7, passed: 7, ms: 75, plag: 6, time: '1 giờ trước' },
+    { name: 'Lê Hoàng Nam', id: '2151050089', status: 'time_limit', score: 4, passed: 4, ms: 1420, plag: 0, time: '1 giờ trước' },
+    { name: 'Đặng Quốc Huy', id: '2151050102', status: 'compile_error', score: 0, passed: 0, ms: 0, plag: 0, time: '2 giờ trước' },
+    { name: 'Bùi Tuấn Kiệt', id: '2151050028', status: 'accepted', score: 10, passed: 10, ms: 41, plag: 3, time: '3 giờ trước' },
+    { name: 'Phạm Quốc Bảo', id: '2151050058', status: 'wrong_answer', score: 8, passed: 8, ms: 68, plag: 8, time: '4 giờ trước' },
+  ];
+
+  const generated: LiveSubmission[] = rosterStudents.map((st, index) => {
+    let studentCode = '';
+
+    if (isPy) {
+      if (st.status === 'accepted') {
+        studentCode = `import math
+import sys
+
+# Giải thuật hoàn chỉnh tối ưu - Đạt 10/10 test cases
+${boilerplateCode || `def solve(data):
+    if not data:
+        return []
+    return [x for x in data if x is not None]`}
+`;
+      } else if (st.status === 'wrong_answer') {
+        studentCode = `import math
+
+# Lỗi thuật toán: Bỏ sót điều kiện biên cho giá trị rỗng hoặc số âm
+${boilerplateCode ? boilerplateCode.replace(/return .*/, 'return -1  # Sai sót logic biên') : `def solve(data):
+    return data[0] if data else 0`}
+`;
+      } else if (st.status === 'time_limit') {
+        studentCode = `import math
+
+# Thuật toán duyệt cạn O(N^3) lặp vô hạn gây Time Limit Exceeded
+def solve_tle():
+    count = 0
+    while True:
+        count += 1
+        if count > 80000000:
+            break
+    return count
+
+${boilerplateCode || 'solve_tle()'}`;
+      } else {
+        studentCode = `def solve(data)
+    # SyntaxError: thiếu dấu hai chấm sau khai báo hàm
+    for item in data
+        print(item)
+`;
+      }
+    } else if (isCpp) {
+      if (st.status === 'accepted') {
+        studentCode = `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+// Cài đặt tối ưu - Vượt qua 10/10 test cases
+${boilerplateCode || `int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout << "Passed\n";
+    return 0;
+}`}
+`;
+      } else if (st.status === 'wrong_answer') {
+        studentCode = `#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Lỗi biên: Trả về sai khi mảng rỗng hoặc chứa số âm
+int main() {
+    cout << -1 << "\n";
+    return 0;
+}
+`;
+      } else if (st.status === 'time_limit') {
+        studentCode = `#include <iostream>
+
+using namespace std;
+
+// Vòng lặp quá tải gây Time Limit Exceeded (> 1000ms)
+int main() {
+    volatile long long sum = 0;
+    for (long long i = 0; i < 2000000000LL; i++) {
+        sum += i;
+    }
+    cout << sum << "\n";
+    return 0;
+}
+`;
+      } else {
+        studentCode = `#include <iostream>
+
+using namespace std;
+
+int main() {
+    cout << "Syntax error missing semicolon"
+    return 0
+}
+`;
+      }
+    } else {
+      // Default fallback
+      studentCode = boilerplateCode || `// Solution for: ${cleanTitle}\n`;
+    }
+
+    return {
+      id: exerciseId * 1000 + index + 1,
+      studentName: st.name,
+      studentId: st.id,
+      classGroup: 'K71A-CNTT',
+      exerciseId: exerciseId,
+      exerciseTitle: cleanTitle,
+      language: langLabel,
+      testCasesPassed: st.passed,
+      totalTestCases: 10,
+      score: st.score,
+      executionTimeMs: st.ms,
+      memoryMb: 14.2,
+      status: st.status as 'accepted' | 'wrong_answer' | 'time_limit' | 'compile_error',
+      timeAgo: st.time,
+      plagiarismScore: st.plag,
+      submittedCode: studentCode,
+    };
+  });
+
+  return [...existing, ...generated.filter(g => !existing.some(e => e.studentId === g.studentId))];
+}
+
+export interface CourseLeaderboardEntry {
+  rank: number;
+  name: string;
+  studentId: string;
+  classGroup: string;
+  avatarColor: string;
+  solvedCount: number;
+  totalExercises: number;
+  totalScore: number;
+  avgRuntimeMs: number;
+  mainLanguage: string;
+  isCurrentUser?: boolean;
+}
+
+export interface ExerciseLeaderboardEntry {
+  rank: number;
+  name: string;
+  studentId: string;
+  classGroup: string;
+  avatarColor: string;
+  language: string;
+  score: number;
+  maxScore: number;
+  executionTimeMs: number;
+  memoryMb: number;
+  timeAgo: string;
+  submittedCode: string;
+  isCurrentUser?: boolean;
+}
+
+export function getCourseLeaderboard(
+  courseId: string,
+  totalExercises: number = 10,
+  currentUserStudentId?: string
+): CourseLeaderboardEntry[] {
+  const defaultLanguageMap: Record<string, string> = {
+    algorithms: 'Python 3',
+    'data-structures': 'C++ 17',
+    mathematics: 'Python 3',
+    ai: 'Python 3',
+    c: 'C (GCC 11)',
+    cpp: 'C++ 17',
+    java: 'Java 17',
+    python: 'Python 3',
+    sql: 'PostgreSQL',
+  };
+  const primaryLang = defaultLanguageMap[courseId] || 'Python 3';
+
+  const baseStudents = [
+    { name: 'Trần Thị Mai', id: '2151050045', classGroup: 'K71A-CNTT', color: 'bg-indigo-600', solvedOffset: 0, ms: 24, lang: primaryLang === 'Python 3' ? 'C++ 17' : primaryLang },
+    { name: 'Hoàng Bảo Ngọc', id: '2151050115', classGroup: 'K71A-CNTT', color: 'bg-emerald-600', solvedOffset: -1, ms: 28, lang: primaryLang },
+    { name: 'Đỗ Thùy Linh', id: '2151050074', classGroup: 'K71A-CNTT', color: 'bg-pink-600', solvedOffset: -2, ms: 32, lang: primaryLang },
+    { name: 'Phạm Đức Anh', id: '2151050033', classGroup: 'K71A-CNTT', color: 'bg-amber-600', solvedOffset: -2, ms: 36, lang: primaryLang === 'C (GCC 11)' ? 'C++ 17' : 'Java 17' },
+    { name: 'Hoàng Minh Tú', id: '2151050115', classGroup: 'K71A-CNTT', color: 'bg-cyan-600', solvedOffset: -3, ms: 39, lang: primaryLang },
+    { name: 'Bùi Tuấn Kiệt', id: '2151050028', classGroup: 'K71A-CNTT', color: 'bg-violet-600', solvedOffset: -3, ms: 42, lang: primaryLang },
+    { name: 'Vũ Thị Hồng Nhung', id: '2151050067', classGroup: 'K71A-CNTT', color: 'bg-rose-600', solvedOffset: -4, ms: 45, lang: primaryLang },
+    { name: 'Phạm Quốc Bảo', id: '2151050058', classGroup: 'K71A-CNTT', color: 'bg-teal-600', solvedOffset: -5, ms: 49, lang: primaryLang },
+    { name: 'Lê Hoàng Nam', id: '2151050089', classGroup: 'K71A-CNTT', color: 'bg-blue-600', solvedOffset: -5, ms: 56, lang: primaryLang },
+    { name: 'Đặng Quốc Huy', id: '2151050102', classGroup: 'K71A-CNTT', color: 'bg-purple-600', solvedOffset: -6, ms: 64, lang: primaryLang },
+  ];
+
+  const list = baseStudents.map((st) => {
+    let solved = Math.max(1, Math.min(totalExercises, totalExercises + st.solvedOffset));
+    let ms = st.ms;
+    if (currentUserStudentId && st.id === currentUserStudentId) {
+      try {
+        const raw = localStorage.getItem(`ai_mentor_solved_exercise_ids_${currentUserStudentId}`);
+        const solvedIds = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(solvedIds) && solvedIds.length > 0) {
+          solved = Math.min(totalExercises, solvedIds.length);
+          ms = Math.max(18, ms - 6);
+        } else {
+          solved = 0;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    const score = solved * 10;
+    return {
+      rank: 0,
+      name: st.name,
+      studentId: st.id,
+      classGroup: st.classGroup,
+      avatarColor: st.color,
+      solvedCount: solved,
+      totalExercises,
+      totalScore: score,
+      avgRuntimeMs: ms,
+      mainLanguage: st.lang,
+      isCurrentUser: Boolean(currentUserStudentId && st.id === currentUserStudentId),
+    };
+  });
+
+  list.sort((a, b) => {
+    if (b.solvedCount !== a.solvedCount) return b.solvedCount - a.solvedCount;
+    if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+    return a.avgRuntimeMs - b.avgRuntimeMs;
+  });
+
+  return list.map((entry, idx) => ({
+    ...entry,
+    rank: idx + 1,
+  }));
+}
+
+export function getExerciseLeaderboard(
+  exerciseId: number,
+  courseId: string,
+  exerciseTitle: string = 'Bài tập thực hành',
+  boilerplateCode: string = '',
+  exerciseLang: string = 'python',
+  userLatestSubmission?: {
+    name?: string;
+    studentId?: string;
+    executionTimeMs?: number;
+    memoryMb?: number;
+    language?: string;
+    score?: number;
+    timeAgo?: string;
+    submittedCode?: string;
+  },
+  currentUserStudentId?: string
+): ExerciseLeaderboardEntry[] {
+  const allSubmissions = getTeacherSubmissionsForExercise(
+    exerciseId,
+    courseId,
+    exerciseTitle,
+    boilerplateCode,
+    exerciseLang
+  );
+
+  const accepted = allSubmissions.filter(s => s.status === 'accepted' || s.score >= 8);
+
+  const entries: ExerciseLeaderboardEntry[] = accepted.map(s => ({
+    rank: 0,
+    name: s.studentName,
+    studentId: s.studentId,
+    classGroup: s.classGroup || 'K71A-CNTT',
+    avatarColor: (currentUserStudentId && s.studentId === currentUserStudentId) ? 'bg-emerald-600' : 'bg-indigo-600',
+    language: s.language,
+    score: s.score,
+    maxScore: s.totalTestCases || 10,
+    executionTimeMs: s.executionTimeMs,
+    memoryMb: s.memoryMb || 14.2,
+    timeAgo: s.timeAgo,
+    submittedCode: s.submittedCode,
+    isCurrentUser: Boolean(
+      (currentUserStudentId && s.studentId === currentUserStudentId) ||
+      (userLatestSubmission?.studentId && s.studentId === userLatestSubmission.studentId)
+    ),
+  }));
+
+  if (userLatestSubmission && userLatestSubmission.score !== undefined) {
+    const activeStudentId = userLatestSubmission.studentId || currentUserStudentId;
+    const existingIndex = entries.findIndex(
+      e => (activeStudentId && e.studentId === activeStudentId)
+    );
+    const userEntry: ExerciseLeaderboardEntry = {
+      rank: 0,
+      name: userLatestSubmission.name || 'Học viên',
+      studentId: activeStudentId || '',
+      classGroup: 'K71A-CNTT',
+      avatarColor: 'bg-emerald-600',
+      language: userLatestSubmission.language || (exerciseLang === 'cpp' ? 'C++ 17' : 'Python 3'),
+      score: userLatestSubmission.score,
+      maxScore: 10,
+      executionTimeMs: userLatestSubmission.executionTimeMs || 28,
+      memoryMb: userLatestSubmission.memoryMb || 14.1,
+      timeAgo: userLatestSubmission.timeAgo || 'Vừa xong',
+      submittedCode: userLatestSubmission.submittedCode || boilerplateCode,
+      isCurrentUser: true,
+    };
+    if (existingIndex >= 0) {
+      entries[existingIndex] = userEntry;
+    } else {
+      entries.push(userEntry);
+    }
+  }
+
+  entries.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (a.executionTimeMs !== b.executionTimeMs) return a.executionTimeMs - b.executionTimeMs;
+    return a.memoryMb - b.memoryMb;
+  });
+
+  return entries.map((entry, idx) => ({
+    ...entry,
+    rank: idx + 1,
+  }));
+}
+

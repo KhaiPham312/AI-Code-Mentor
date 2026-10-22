@@ -15,9 +15,35 @@ import {
 import {
   AppView,
   SettingsTab,
+  RouteOptions,
   parseCurrentRoute,
   syncBrowserUrl,
+  resolveHomeRoute,
 } from './services/navigation';
+
+export function clearSessionState(): void {
+  clearAuthSession();
+  const keysToRemove = [
+    'auth_token',
+    'ai_mentor_user',
+    'ai_mentor_teacher_class_id',
+    'ai_mentor_teacher_tab',
+    'ai_mentor_teacher_course_tab',
+    'ai_mentor_teacher_exercise_tab',
+    'ai_mentor_teacher_drilldown',
+    'ai_mentor_student_course_view_mode',
+    'ai_mentor_ide_active_tab',
+  ];
+  keysToRemove.forEach((k) => {
+    try {
+      localStorage.removeItem(k);
+    } catch {
+      // ignore
+    }
+  });
+  // Note: Deliberately preserve user submissions and drafts across logout
+  // so switching roles or re-logging into student accounts does not wipe submission records.
+}
 
 export function App() {
   // Current user state with localStorage initialization
@@ -33,7 +59,6 @@ export function App() {
     return null;
   });
 
-  // Main view router: 'dashboard' | 'ide' | 'settings' | 'submissions'
   // Khởi tạo trực tiếp từ URL hiện tại để khi F5 vẫn giữ nguyên trang & bài tập đang làm
   const [currentView, setCurrentView] = useState<AppView>(() => parseCurrentRoute().view);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>(() => parseCurrentRoute().settingsTab);
@@ -90,15 +115,11 @@ export function App() {
     setCurrentTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Helper điều hướng tập trung và cập nhật browser URL
+  // Helper điều hướng tập trung và cập nhật browser URL qua History API
   const navigateTo = useCallback(
     (
       view: AppView,
-      options?: {
-        exerciseId?: number;
-        settingsTab?: SettingsTab;
-        trackId?: string | null;
-      },
+      options?: RouteOptions,
       replace: boolean = false
     ) => {
       setCurrentView(view);
@@ -142,6 +163,10 @@ export function App() {
           exerciseId: initial.exerciseId,
           settingsTab: initial.settingsTab,
           trackId: initial.trackId,
+          teacherTab: initial.teacherTab,
+          teacherCourse: initial.teacherCourse,
+          teacherExercise: initial.teacherExercise,
+          teacherView: initial.teacherView,
         },
         true
       );
@@ -151,44 +176,42 @@ export function App() {
   // Listen for 401 Unauthorized globally
   useEffect(() => {
     const handleUnauthorized = () => {
+      clearSessionState();
       setCurrentUser(null);
-      navigateTo('dashboard', {}, true);
+      window.history.replaceState(null, '', '/login');
+      setCurrentView('dashboard');
     };
     window.addEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized);
     return () => {
       window.removeEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized);
     };
-  }, [navigateTo]);
+  }, []);
 
   const handleLoginSuccess = (user: User, token: string) => {
     setAuthToken(token);
-    localStorage.setItem('auth_token', token);
-    localStorage.setItem('ai_mentor_user', JSON.stringify(user));
+    try {
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('ai_mentor_user', JSON.stringify(user));
+    } catch {
+      // ignore
+    }
     setCurrentUser(user);
 
-    // Nếu người dùng truy cập trực tiếp vào một URL cụ thể trước đó, giữ nguyên view đó
-    const initial = parseCurrentRoute();
-    if (initial.view !== 'dashboard') {
-      navigateTo(
-        initial.view,
-        {
-          exerciseId: initial.exerciseId,
-          settingsTab: initial.settingsTab,
-          trackId: initial.trackId,
-        },
-        true
-      );
-    } else {
-      navigateTo('dashboard', { trackId: initial.trackId }, true);
-    }
+    // Reset old course/drilldown states so fresh login lands clean
+    setSelectedTrackId(null);
+
+    // Navigate cleanly to role-based home without stale trackId or drilldown params
+    const home = resolveHomeRoute(user.role);
+    window.history.replaceState(null, '', home);
+    setCurrentView(user.role === 'teacher' ? 'teacher' : 'dashboard');
   };
 
   const handleLogout = () => {
-    clearAuthSession();
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('ai_mentor_user');
+    clearSessionState();
     setCurrentUser(null);
-    navigateTo('dashboard', {}, true);
+    setSelectedTrackId(null);
+    window.history.replaceState(null, '', '/login');
+    setCurrentView('dashboard');
   };
 
   const handleUpdateUser = (updatedUser: User) => {
@@ -201,6 +224,15 @@ export function App() {
   };
 
   const handleOpenIDE = (exerciseId: number = 1) => {
+    navigateTo('ide', { exerciseId });
+  };
+
+  const handleTeacherPreviewIDE = (exerciseId: number = 1) => {
+    try {
+      sessionStorage.setItem('ai_mentor_teacher_return_url', window.location.pathname + window.location.search);
+    } catch {
+      // ignore
+    }
     navigateTo('ide', { exerciseId });
   };
 
@@ -218,12 +250,74 @@ export function App() {
   };
 
   const handleBackToDashboard = (trackId?: string) => {
+    if (currentUser?.role === 'teacher') {
+      let returnUrl = '/teacher';
+      try {
+        const saved = sessionStorage.getItem('ai_mentor_teacher_return_url');
+        if (saved) {
+          returnUrl = saved;
+          sessionStorage.removeItem('ai_mentor_teacher_return_url');
+        }
+      } catch {
+        // ignore
+      }
+      window.history.pushState(null, '', returnUrl);
+      const parsed = parseCurrentRoute();
+      setCurrentView(parsed.view);
+      return;
+    }
     navigateTo('dashboard', { trackId: trackId || null });
   };
 
-  // 1. Unauthenticated -> Auth / Login Page
-  if (!currentUser) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  // Route paths inspection
+  const rawPath = typeof window !== 'undefined' ? window.location.pathname.replace(/\/+$/, '') || '/' : '/';
+  const rawHash = typeof window !== 'undefined' ? window.location.hash : '';
+
+  const isResetPasswordRoute =
+    rawPath === '/auth/reset-password' ||
+    rawPath === '/reset-password' ||
+    rawHash.startsWith('#/auth/reset-password') ||
+    rawHash.startsWith('#/reset-password');
+
+  const isAuthLoginOrForgot =
+    rawPath === '/login' ||
+    rawPath === '/auth/forgot-password' ||
+    rawPath === '/forgot-password' ||
+    rawHash.startsWith('#/login') ||
+    rawHash.startsWith('#/auth/forgot-password') ||
+    rawHash.startsWith('#/forgot-password');
+
+  // 1. Nếu đã đăng nhập mà truy cập /login hoặc /auth/forgot-password -> replace về trang chủ theo role
+  useEffect(() => {
+    if (currentUser && isAuthLoginOrForgot && !isResetPasswordRoute) {
+      const homePath = resolveHomeRoute(currentUser.role);
+      window.history.replaceState(null, '', homePath);
+      setCurrentView(currentUser.role === 'teacher' ? 'teacher' : 'dashboard');
+    }
+  }, [currentUser, isAuthLoginOrForgot, isResetPasswordRoute]);
+
+  // 2. Phân quyền: Student vào /teacher -> về /dashboard; Teacher vào /dashboard -> về /teacher
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.role === 'student' && (currentView === 'teacher' || rawPath === '/teacher')) {
+        window.history.replaceState(null, '', '/dashboard');
+        setCurrentView('dashboard');
+      } else if (currentUser.role === 'teacher' && (currentView === 'dashboard' || rawPath === '/dashboard')) {
+        window.history.replaceState(null, '', '/teacher');
+        setCurrentView('teacher');
+      }
+    }
+  }, [currentUser, currentView, rawPath]);
+
+  // 1. Unauthenticated or explicit Reset Password from Gmail
+  if (!currentUser || isResetPasswordRoute) {
+    return (
+      <LoginPage
+        onLoginSuccess={handleLoginSuccess}
+        currentLang={currentLang}
+        onLanguageChange={handleLanguageChange}
+      />
+    );
   }
 
   // 2. Dedicated Settings Page (/settings)
@@ -234,6 +328,7 @@ export function App() {
         onUpdateUser={handleUpdateUser}
         onBackToDashboard={handleBackToDashboard}
         currentLang={currentLang}
+        onLanguageChange={handleLanguageChange}
         currentTheme={currentTheme}
         onThemeToggle={handleThemeToggle}
         initialTab={settingsTab}
@@ -258,7 +353,7 @@ export function App() {
     );
   }
 
-  // 3. 1:1 HackerRank Student Workspace IDE
+  // 3. 1:1 HackerRank Student Workspace IDE (/ide)
   if (currentView === 'ide') {
     return (
       <StudentWorkspace
@@ -267,17 +362,20 @@ export function App() {
         onBackToDashboard={handleBackToDashboard}
         currentTheme={currentTheme}
         onThemeToggle={handleThemeToggle}
+        currentLang={currentLang}
+        onLanguageChange={handleLanguageChange}
       />
     );
   }
 
-  // 4. Role-based views: Teacher Dashboard
+  // 4. Role-based views: Teacher Dashboard (/teacher)
   if (currentUser.role === 'teacher') {
     return (
       <TeacherDashboard
         user={currentUser}
         onLogout={handleLogout}
-        onPreviewStudentIDE={handleOpenIDE}
+        onOpenSettings={handleOpenSettings}
+        onPreviewStudentIDE={handleTeacherPreviewIDE}
         currentTheme={currentTheme}
         onThemeToggle={handleThemeToggle}
         currentLang={currentLang}
@@ -286,7 +384,7 @@ export function App() {
     );
   }
 
-  // 5. Main Student Dashboard
+  // 5. Main Student Dashboard (/dashboard)
   return (
     <DashboardPreview
       user={currentUser}
@@ -295,6 +393,7 @@ export function App() {
       onOpenSettings={handleOpenSettings}
       onOpenSubmissions={handleOpenSubmissions}
       initialTrackId={selectedTrackId}
+      onTrackChange={(trackId) => navigateTo('dashboard', { trackId })}
       currentLang={currentLang}
       onLanguageChange={handleLanguageChange}
       currentTheme={currentTheme}

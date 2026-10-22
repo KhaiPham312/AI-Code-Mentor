@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -13,12 +13,15 @@ import {
   checkEmailExists,
 } from '../../services/mockAuth';
 import { loginUser, registerUser } from '../../services/authService';
+import { ApiError } from '../../services/apiClient';
 import { User, UserRole } from '../../types/auth';
-import { Language, translations } from './i18n';
+import { Language, translations, getAuthErrorMessage } from './i18n';
 
 interface LoginFormProps {
   onLoginSuccess: (user: User, token: string) => void;
   lang: Language;
+  onNavigateToForgot?: () => void;
+  initialIdentifier?: string;
 }
 
 interface FieldErrors {
@@ -29,20 +32,43 @@ interface FieldErrors {
   loginIdentifier?: string;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({
+  onLoginSuccess,
+  lang,
+  onNavigateToForgot,
+  initialIdentifier,
+}) => {
   const t = translations[lang];
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   // Input states
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [loginIdentifier, setLoginIdentifier] = useState('student');
+  const [loginIdentifier, setLoginIdentifier] = useState(initialIdentifier || 'student');
   const [password, setPassword] = useState('123456');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<UserRole>('student');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Sync if initialIdentifier is provided from reset password flow
+  useEffect(() => {
+    if (initialIdentifier) {
+      setLoginIdentifier(initialIdentifier);
+      setPassword(''); // clear old password so user inputs their new password
+    }
+  }, [initialIdentifier]);
+
+  const registerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (registerTimerRef.current) {
+        clearTimeout(registerTimerRef.current);
+      }
+    };
+  }, []);
 
   // Status and error states
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -156,7 +182,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
             password,
             role,
           });
-        } catch (beErr: any) {
+        } catch (beErr: unknown) {
+          if (beErr instanceof ApiError && (beErr.status === 400 || beErr.status === 409 || beErr.status === 422)) {
+            throw beErr;
+          }
           console.warn('Backend register failed, trying mock fallback:', beErr);
           result = await mockRegister(fullName, email, password, role);
         }
@@ -169,7 +198,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
         );
 
         // Switch to login form with pre-filled registered username
-        setTimeout(() => {
+        registerTimerRef.current = setTimeout(() => {
           setAuthMode('login');
           setLoginIdentifier(result.user.username || email.trim().toLowerCase());
           setPassword('');
@@ -182,9 +211,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
         let loginResult: { token: string; user: User };
         try {
           loginResult = await loginUser(loginIdentifier, password);
-        } catch (beErr: any) {
+        } catch (beErr: unknown) {
           // Nếu backend trả về lỗi tài khoản / mật khẩu cụ thể hoặc kết nối
-          if (beErr?.status === 401 || beErr?.status === 400) {
+          if (beErr instanceof ApiError && (beErr.status === 401 || beErr.status === 400)) {
             throw beErr;
           }
           console.warn('Backend login connection failed, trying mock fallback:', beErr);
@@ -194,8 +223,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
         onLoginSuccess(loginResult.user, loginResult.token);
       }
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setGeneralError(err.message);
+      if (err instanceof ApiError && (err.status === 401 || err.status === 400)) {
+        setGeneralError(
+          err.message && err.message !== 'INVALID_CREDENTIALS' && err.message.length > 3
+            ? getAuthErrorMessage(err.message, lang)
+            : t.errInvalidCredentials
+        );
+      } else if (err instanceof Error) {
+        setGeneralError(getAuthErrorMessage(err.message, lang));
       } else {
         setGeneralError(
           lang === 'vie'
@@ -454,10 +489,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, lang }) =>
               <span>{t.rememberMe}</span>
             </label>
             <a
-              href="#forgot-password"
+              href="#/forgot-password"
+              id="link-forgot-password"
               onClick={(e) => {
                 e.preventDefault();
-                alert(t.forgotPasswordAlert);
+                if (onNavigateToForgot) {
+                  onNavigateToForgot();
+                } else {
+                  window.location.hash = '#/forgot-password';
+                }
               }}
               className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors focus-visible:outline-none"
             >

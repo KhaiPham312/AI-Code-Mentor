@@ -7,12 +7,7 @@ export type SkillIconType =
   | 'cpp'
   | 'java'
   | 'python'
-  | 'sql'
-  | 'databases'
-  | 'linux-shell'
-  | 'fp'
-  | 'regex'
-  | 'react';
+  | 'sql';
 
 export interface SkillTrack {
   id: string;
@@ -106,50 +101,5 @@ export const SKILL_TRACKS: SkillTrack[] = [
     descEng: 'Queries, complex JOINs, aggregation, window functions and indexing.',
     iconType: 'sql',
     color: '#0284c7', // sky
-  },
-  {
-    id: 'databases',
-    nameVie: 'Hệ cơ sở dữ liệu (Databases)',
-    nameEng: 'Databases',
-    descVie: 'Thiết kế lược đồ ERD, chuẩn hóa 1NF-3NF, Indexing và tối ưu truy vấn.',
-    descEng: 'Schema design, normalization, transactions, ACID properties & indexing.',
-    iconType: 'databases',
-    color: '#6366f1', // indigo
-  },
-  {
-    id: 'linux-shell',
-    nameVie: 'Hệ điều hành Linux (Linux Shell)',
-    nameEng: 'Linux Shell',
-    descVie: 'Lệnh Bash, đường ống dẫn Pipe, xử lý tệp tin grep/awk/sed và viết shell script.',
-    descEng: 'Bash scripting, pipes and redirects, text processing with grep, awk & sed.',
-    iconType: 'linux-shell',
-    color: '#64748b', // slate
-  },
-  {
-    id: 'fp',
-    nameVie: 'Lập trình hàm (Functional Programming)',
-    nameEng: 'Functional Programming',
-    descVie: 'Hàm thuần túy Pure Functions, đệ quy, Map/Filter/Reduce và tính bất biến.',
-    descEng: 'Pure functions, recursion, lambda calculus, immutability & monads.',
-    iconType: 'fp',
-    color: '#14b8a6', // teal
-  },
-  {
-    id: 'regex',
-    nameVie: 'Biểu thức chính quy (Regex)',
-    nameEng: 'Regex',
-    descVie: 'Khớp mẫu chuỗi, nhóm bắt giữ (Capturing groups), lookahead và validation dữ liệu.',
-    descEng: 'Pattern matching, character classes, lookarounds & string validation.',
-    iconType: 'regex',
-    color: '#a855f7', // violet
-  },
-  {
-    id: 'react',
-    nameVie: 'Lập trình Web React (React)',
-    nameEng: 'React',
-    descVie: 'Xây dựng component, Hooks (useState, useEffect, useMemo), Props và quản lý state.',
-    descEng: 'Component architecture, Hooks, Props, virtual DOM & unidirectional data flow.',
-    iconType: 'react',
-    color: '#06b6d4', // cyan
   },
 ];

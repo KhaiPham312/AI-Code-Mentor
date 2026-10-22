@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { LiveSubmission } from '../../services/mockTeacherData';
+import {
+  LiveSubmission,
+  translateExerciseTitle,
+  translateTimeAgo,
+} from '../../services/mockTeacherData';
 import { Language, ThemeMode } from '../dashboard/dashboardI18n';
+import { StatusBadge } from '../common/StatusBadge';
 import {
   X,
   Code,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  Clock,
   ShieldCheck,
   Copy,
   Check,
@@ -43,39 +44,6 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getStatusBadge = () => {
-    switch (submission.status) {
-      case 'accepted':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Accepted ({submission.testCasesPassed}/{submission.totalTestCases})</span>
-          </span>
-        );
-      case 'wrong_answer':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1.5">
-            <XCircle className="w-3.5 h-3.5" />
-            <span>Wrong Answer ({submission.testCasesPassed}/{submission.totalTestCases})</span>
-          </span>
-        );
-      case 'time_limit':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            <span>Time Limit Exceeded</span>
-          </span>
-        );
-      case 'compile_error':
-        return (
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1.5">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>Compilation Error</span>
-          </span>
-        );
-    }
-  };
-
   const codeLines = submission.submittedCode.split('\n');
 
   return (
@@ -109,14 +77,22 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                 <h3 className="font-bold text-base">
                   {isVie ? 'Mã Nguồn Bài Nộp Của Sinh Viên' : 'Student Submitted Code Review'}
                 </h3>
-                {getStatusBadge()}
+                <StatusBadge
+                  status={submission.status}
+                  detail={
+                    submission.status === 'accepted' || submission.status === 'wrong_answer'
+                      ? `(${submission.testCasesPassed}/${submission.totalTestCases})`
+                      : undefined
+                  }
+                  size="sm"
+                />
               </div>
               <p
                 className={`text-xs mt-0.5 ${
                   isDark ? 'text-slate-400' : 'text-neutral-500'
                 }`}
               >
-                {submission.studentName} ({submission.studentId}) • {submission.exerciseTitle} • {submission.timeAgo}
+                {submission.studentName} ({submission.studentId}) • {translateExerciseTitle(submission.exerciseTitle, isVie)} • {translateTimeAgo(submission.timeAgo, isVie)}
               </p>
             </div>
           </div>
@@ -148,7 +124,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                 <span className="text-[10px] text-slate-400 block font-medium">
                   {isVie ? 'Thời gian chạy' : 'Execution Time'}
                 </span>
-                <span className="font-bold font-mono">
+                <span className="font-bold font-sans">
                   {submission.executionTimeMs} ms
                 </span>
               </div>
@@ -164,7 +140,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                 <span className="text-[10px] text-slate-400 block font-medium">
                   {isVie ? 'Bộ nhớ tiêu thụ' : 'Memory Peak'}
                 </span>
-                <span className="font-bold font-mono">
+                <span className="font-bold font-sans">
                   {submission.memoryMb} MB
                 </span>
               </div>
@@ -180,8 +156,8 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                 <span className="text-[10px] text-slate-400 block font-medium">
                   {isVie ? 'Kiểm tra đạo văn' : 'Plagiarism Scan'}
                 </span>
-                <span className="font-bold text-emerald-500">
-                  {submission.plagiarismScore}% {isVie ? 'trùng lặp (Tự làm)' : 'similarity'}
+                <span className="font-bold text-emerald-500 font-sans">
+                  {submission.plagiarismScore}% {isVie ? 'trùng lặp (Tự làm)' : 'similarity (Original work)'}
                 </span>
               </div>
             </div>
@@ -196,7 +172,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                 <span className="text-[10px] text-slate-400 block font-medium">
                   {isVie ? 'Ngôn ngữ' : 'Language'}
                 </span>
-                <span className="font-bold font-mono">{submission.language}</span>
+                <span className="font-bold font-sans">{submission.language}</span>
               </div>
             </div>
           </div>
@@ -205,7 +181,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
           <div className="border rounded-xl overflow-hidden shadow-xs border-slate-200 dark:border-slate-800">
             {/* Code Toolbar */}
             <div
-              className={`px-4 py-2.5 border-b flex items-center justify-between text-xs font-mono ${
+              className={`px-4 py-2.5 border-b flex items-center justify-between text-xs font-sans ${
                 isDark ? 'bg-[#0a0f18] border-slate-800 text-slate-400' : 'bg-slate-100 border-slate-200 text-neutral-600'
               }`}
             >
@@ -266,7 +242,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
           <div className="text-xs text-slate-400">
             {isVie
               ? `Điểm hệ số: ${submission.score} / 10.0`
-              : `Score: ${submission.score} / 10.0`}
+              : `Graded Score: ${submission.score} / 10.0`}
           </div>
 
           <div className="flex items-center space-x-2">

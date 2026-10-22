@@ -1,73 +1,48 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { RotateCcw, Code, Sun, Moon, ChevronDown } from 'lucide-react';
+import {
+  LanguageOption,
+  getLanguageOptionsForContext,
+  getInitialOptionForExercise,
+} from '../../services/languageTracks';
+import { Language, ideTranslations } from './ideI18n';
+
+export type { LanguageOption };
 
 interface CodeEditorProps {
   code: string;
   onChange: (value: string) => void;
   onRun?: () => void;
   exerciseLanguage?: string;
+  category?: string;
+  trackIds?: string[];
+  courseId?: string;
+  selectedLanguageId?: string;
+  onLanguageChange?: (newOption: LanguageOption) => void;
   onResetBoilerplate?: () => void;
   systemTheme?: 'dark' | 'light';
   onThemeToggle?: () => void;
+  currentLang?: Language;
 }
-
-interface LanguageOption {
-  value: string;
-  label: string;
-  filename: string;
-  monacoLang: string;
-}
-
-export const getLanguageOptionsForExercise = (exerciseLang: string = 'python'): LanguageOption[] => {
-  const normalized = exerciseLang.toLowerCase();
-  if (normalized.includes('python')) {
-    return [
-      { value: 'python3', label: 'Python 3 (3.11)', filename: 'solution.py', monacoLang: 'python' },
-      { value: 'pypy3', label: 'PyPy 3', filename: 'solution.py', monacoLang: 'python' },
-    ];
-  }
-  if (normalized === 'c') {
-    return [
-      { value: 'c11', label: 'C (gcc 11)', filename: 'solution.c', monacoLang: 'c' },
-    ];
-  }
-  if (normalized.includes('cpp') || normalized.includes('c++')) {
-    return [
-      { value: 'cpp17', label: 'C++ 17 (gcc)', filename: 'solution.cpp', monacoLang: 'cpp' },
-      { value: 'cpp20', label: 'C++ 20 (clang)', filename: 'solution.cpp', monacoLang: 'cpp' },
-    ];
-  }
-  if (normalized.includes('java')) {
-    return [
-      { value: 'java17', label: 'Java 17 (OpenJDK)', filename: 'Solution.java', monacoLang: 'java' },
-    ];
-  }
-  if (normalized.includes('sql') || normalized.includes('db')) {
-    return [
-      { value: 'postgresql', label: 'PostgreSQL 15', filename: 'solution.sql', monacoLang: 'sql' },
-      { value: 'mysql', label: 'MySQL 8.0', filename: 'solution.sql', monacoLang: 'sql' },
-    ];
-  }
-  if (normalized.includes('javascript') || normalized.includes('react') || normalized.includes('js')) {
-    return [
-      { value: 'nodejs', label: 'JavaScript (Node.js 18)', filename: 'solution.js', monacoLang: 'javascript' },
-    ];
-  }
-  return [
-    { value: exerciseLang, label: exerciseLang.toUpperCase(), filename: `solution.${exerciseLang}`, monacoLang: 'plaintext' },
-  ];
-};
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({
   code,
   onChange,
   onRun,
   exerciseLanguage = 'python',
+  category,
+  trackIds,
+  courseId,
+  selectedLanguageId,
+  onLanguageChange,
   onResetBoilerplate,
   systemTheme = 'dark',
   onThemeToggle,
+  currentLang = 'vie',
 }) => {
+  const t = ideTranslations[currentLang];
+
   // Monaco Theme (vs-dark / vs-light) - synced with system theme by default
   const [editorTheme, setEditorTheme] = useState<'vs-dark' | 'vs-light'>(() => {
     if (systemTheme) {
@@ -99,21 +74,39 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     return () => observer.disconnect();
   }, []);
 
-  // Locked Language Dropdown matching problem metadata
+  // Language options matching HackerRank course standards
   const languageOptions = useMemo(
-    () => getLanguageOptionsForExercise(exerciseLanguage),
-    [exerciseLanguage]
+    () => getLanguageOptionsForContext(courseId, category, exerciseLanguage, trackIds),
+    [courseId, category, exerciseLanguage, trackIds]
   );
+
+  const initialOpt = useMemo(
+    () => getInitialOptionForExercise(languageOptions, exerciseLanguage),
+    [languageOptions, exerciseLanguage]
+  );
+
   const [selectedLangOption, setSelectedLangOption] = useState<string>(
-    languageOptions[0]?.value || 'python3'
+    selectedLanguageId || initialOpt.id
   );
 
   useEffect(() => {
-    setSelectedLangOption(languageOptions[0]?.value || 'python3');
-  }, [languageOptions]);
+    if (selectedLanguageId && languageOptions.some((o) => o.id === selectedLanguageId)) {
+      setSelectedLangOption(selectedLanguageId);
+    } else {
+      setSelectedLangOption(initialOpt.id);
+    }
+  }, [selectedLanguageId, initialOpt, languageOptions]);
 
   const activeOption =
-    languageOptions.find((opt) => opt.value === selectedLangOption) || languageOptions[0];
+    languageOptions.find((opt) => opt.id === selectedLangOption) || initialOpt;
+
+  const handleSelectLanguage = (optionId: string) => {
+    setSelectedLangOption(optionId);
+    const chosen = languageOptions.find((opt) => opt.id === optionId);
+    if (chosen && onLanguageChange) {
+      onLanguageChange(chosen);
+    }
+  };
 
   const isDark = editorTheme === 'vs-dark';
 
@@ -145,12 +138,12 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
         {/* RIGHT CONTROLS: Locked Language, Theme Toggle (vs-dark / vs-light), Icon-only Reset */}
         <div className="flex items-center space-x-2 sm:space-x-3">
-          {/* Locked Language Selector */}
+          {/* HackerRank Language & Version Selector */}
           <div className="relative">
             <select
-              value={selectedLangOption}
-              onChange={(e) => setSelectedLangOption(e.target.value)}
-              aria-label="Khóa ngôn ngữ theo bài tập"
+              value={activeOption.id}
+              onChange={(e) => handleSelectLanguage(e.target.value)}
+              aria-label={t.selectLanguage}
               className={`appearance-none text-xs rounded-lg px-2.5 py-1 pr-6 cursor-pointer font-semibold focus:outline-none border transition-colors ${
                 isDark
                   ? 'bg-[#252526] text-emerald-400 border-slate-700 hover:border-emerald-500'
@@ -158,7 +151,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               }`}
             >
               {languageOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
+                <option key={opt.id} value={opt.id}>
                   {opt.label}
                 </option>
               ))}
@@ -183,8 +176,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 }
               }
             }}
-            title={isDark ? 'Chuyển sang Theme Sáng (vs-light)' : 'Chuyển sang Theme Tối (vs-dark)'}
-            className={`p-1.5 rounded-lg border transition-colors ${
+            title={isDark ? t.themeToggleTooltipLight : t.themeToggleTooltipDark}
+            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
               isDark
                 ? 'text-amber-400 hover:text-amber-300 bg-slate-800/80 border-slate-700 hover:bg-slate-700'
                 : 'text-slate-700 hover:text-slate-900 bg-gray-200/80 border-gray-300 hover:bg-gray-300'
@@ -198,8 +191,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             <button
               type="button"
               onClick={onResetBoilerplate}
-              title="Khôi phục mã nguồn ban đầu (Reset)"
-              className={`p-1.5 rounded-lg border transition-colors ${
+              title={t.resetTooltip}
+              className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
                 isDark
                   ? 'text-slate-400 hover:text-white bg-slate-800/80 border-slate-700 hover:bg-slate-700'
                   : 'text-gray-600 hover:text-gray-900 bg-gray-200/80 border-gray-300 hover:bg-gray-300'

@@ -13,9 +13,9 @@ export interface RequestOptions extends RequestInit {
 
 export class ApiError extends Error {
   status: number;
-  data: any;
+  data: unknown;
 
-  constructor(message: string, status: number, data?: any) {
+  constructor(message: string, status: number, data?: unknown) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
@@ -82,7 +82,7 @@ export function notifyUnauthorized(): void {
 /**
  * Hàm gọi API tập trung
  */
-export async function apiClient<T = any>(
+export async function apiClient<T = unknown>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
@@ -143,9 +143,9 @@ export async function apiClient<T = any>(
     // 4. Xử lý phản hồi 401 Unauthorized
     if (response.status === 401) {
       notifyUnauthorized();
-      let errorDetail = 'Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.';
+      let errorDetail = 'SESSION_EXPIRED';
       try {
-        const errorJson = await response.json();
+        const errorJson = (await response.json()) as { detail?: string };
         if (errorJson?.detail) errorDetail = errorJson.detail;
       } catch {
         // bỏ qua nếu response body không phải json
@@ -156,17 +156,24 @@ export async function apiClient<T = any>(
     // 5. Kiểm tra mã trạng thái HTTP khác lỗi
     if (!response.ok) {
       let errorDetail = `Yêu cầu thất bại với mã lỗi ${response.status}`;
-      let errorData: any = null;
+      let errorData: unknown = null;
       try {
         errorData = await response.json();
         if (typeof errorData === 'string') {
           errorDetail = errorData;
-        } else if (errorData?.detail) {
-          errorDetail = typeof errorData.detail === 'string'
-            ? errorData.detail
-            : JSON.stringify(errorData.detail);
-        } else if (errorData?.message) {
-          errorDetail = errorData.message;
+        } else if (
+          typeof errorData === 'object' &&
+          errorData !== null &&
+          'detail' in errorData
+        ) {
+          const detail = (errorData as { detail: unknown }).detail;
+          errorDetail = typeof detail === 'string' ? detail : JSON.stringify(detail);
+        } else if (
+          typeof errorData === 'object' &&
+          errorData !== null &&
+          'message' in errorData
+        ) {
+          errorDetail = String((errorData as { message: unknown }).message);
         }
       } catch {
         errorDetail = response.statusText || errorDetail;
@@ -186,10 +193,10 @@ export async function apiClient<T = any>(
     }
 
     return (await response.text()) as unknown as T;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
 
-    if (error.name === 'AbortError') {
+    if (error instanceof Error && error.name === 'AbortError') {
       throw new ApiError(
         `Yêu cầu đến máy chủ quá hạn (${timeoutMs / 1000}s). Vui lòng kiểm tra lại kết nối mạng.`,
         408
@@ -201,8 +208,9 @@ export async function apiClient<T = any>(
     }
 
     // Lỗi mạng hoặc mất kết nối với server
+    const networkMsg = error instanceof Error ? error.message : 'NETWORK_ERROR';
     throw new ApiError(
-      error?.message || 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại backend.',
+      networkMsg,
       0,
       error
     );
@@ -211,31 +219,31 @@ export async function apiClient<T = any>(
 
 // Shortcut methods tiện lợi
 export const api = {
-  get: <T = any>(endpoint: string, options?: RequestOptions) =>
+  get: <T = unknown>(endpoint: string, options?: RequestOptions) =>
     apiClient<T>(endpoint, { ...options, method: 'GET' }),
 
-  post: <T = any>(endpoint: string, body?: any, options?: RequestOptions) =>
+  post: <T = unknown, B = unknown>(endpoint: string, body?: B, options?: RequestOptions) =>
     apiClient<T>(endpoint, {
       ...options,
       method: 'POST',
       body: body instanceof FormData ? body : JSON.stringify(body),
     }),
 
-  put: <T = any>(endpoint: string, body?: any, options?: RequestOptions) =>
+  put: <T = unknown, B = unknown>(endpoint: string, body?: B, options?: RequestOptions) =>
     apiClient<T>(endpoint, {
       ...options,
       method: 'PUT',
       body: body instanceof FormData ? body : JSON.stringify(body),
     }),
 
-  patch: <T = any>(endpoint: string, body?: any, options?: RequestOptions) =>
+  patch: <T = unknown, B = unknown>(endpoint: string, body?: B, options?: RequestOptions) =>
     apiClient<T>(endpoint, {
       ...options,
       method: 'PATCH',
       body: body instanceof FormData ? body : JSON.stringify(body),
     }),
 
-  delete: <T = any>(endpoint: string, options?: RequestOptions) =>
+  delete: <T = unknown>(endpoint: string, options?: RequestOptions) =>
     apiClient<T>(endpoint, { ...options, method: 'DELETE' }),
 };
 

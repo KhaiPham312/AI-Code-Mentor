@@ -23,6 +23,7 @@ interface SettingsPageProps {
   onUpdateUser: (updatedUser: User) => void;
   onBackToDashboard: () => void;
   currentLang: Language;
+  onLanguageChange?: (lang: Language) => void;
   currentTheme: ThemeMode;
   onThemeToggle: () => void;
   initialTab?: 'profile' | 'password' | 'appearance';
@@ -34,6 +35,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   onUpdateUser,
   onBackToDashboard,
   currentLang,
+  onLanguageChange,
   currentTheme,
   onThemeToggle,
   initialTab = 'profile',
@@ -192,18 +194,67 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
           </nav>
         </div>
 
-        {/* User Mini Profile Tag */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-white font-bold text-xs flex items-center justify-center overflow-hidden">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-            ) : (
-              displayName.charAt(0)
-            )}
+        {/* Actions: Language Switcher, Theme Toggle & User Mini Profile Tag */}
+        <div className="flex items-center gap-3">
+          {/* Language Switcher VIE | ENG */}
+          {onLanguageChange && (
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700/60 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => onLanguageChange('vie')}
+                className={`px-2 py-1 rounded-md transition-all ${
+                  currentLang === 'vie'
+                    ? 'bg-white dark:bg-slate-700 text-[#1BA94C] dark:text-[#00EA64] font-bold shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                }`}
+              >
+                VIE
+              </button>
+              <button
+                type="button"
+                onClick={() => onLanguageChange('eng')}
+                className={`px-2 py-1 rounded-md transition-all ${
+                  currentLang === 'eng'
+                    ? 'bg-white dark:bg-slate-700 text-[#1BA94C] dark:text-[#00EA64] font-bold shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                }`}
+              >
+                ENG
+              </button>
+            </div>
+          )}
+
+          {/* Theme Toggle */}
+          {onThemeToggle && (
+            <button
+              type="button"
+              onClick={onThemeToggle}
+              aria-label={currentTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+              className="p-1.5 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 transition-colors focus:outline-none"
+            >
+              {currentTheme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-700" />
+              )}
+            </button>
+          )}
+
+          <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 hidden sm:block" />
+
+          {/* User Mini Profile Tag */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-white font-bold text-xs flex items-center justify-center overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                displayName.charAt(0)
+              )}
+            </div>
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 hidden md:inline">
+              {displayName}
+            </span>
           </div>
-          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 hidden md:inline">
-            {displayName}
-          </span>
         </div>
       </header>
 
@@ -223,7 +274,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               </div>
               <div className="min-w-0">
                 <h2 className="text-sm font-bold text-gray-900 dark:text-white truncate">{displayName}</h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Your personal account</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {currentLang === 'vie' ? 'Tài khoản cá nhân' : 'Your personal account'}
+                </p>
               </div>
             </div>
 
@@ -239,7 +292,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 }`}
               >
                 <UserIcon className="w-4 h-4 flex-shrink-0" />
-                <span>{currentLang === 'vie' ? 'Hồ sơ công khai' : 'Public profile'}</span>
+                <span>{currentLang === 'vie' ? 'Hồ sơ công khai' : 'Public Profile'}</span>
               </button>
 
               <button
@@ -252,7 +305,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 }`}
               >
                 <KeyRound className="w-4 h-4 flex-shrink-0" />
-                <span>{currentLang === 'vie' ? 'Mật khẩu & Xác thực' : 'Password and authentication'}</span>
+                <span>{currentLang === 'vie' ? 'Mật khẩu & Xác thực' : 'Password & Security'}</span>
               </button>
 
               <button
@@ -278,7 +331,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 {/* Section Header */}
                 <div className="pb-4 border-b border-gray-200 dark:border-gray-800">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white font-sans">
-                    {currentLang === 'vie' ? 'Hồ sơ công khai' : 'Public profile'}
+                    {currentLang === 'vie' ? 'Hồ sơ công khai' : 'Public Profile'}
                   </h3>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                     {currentLang === 'vie'
@@ -320,10 +373,18 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
                     <div className="space-y-1.5">
                       <h4 className="text-sm font-bold text-gray-900 dark:text-white">
-                        {currentLang === 'vie' ? 'Ảnh đại diện sinh viên' : 'Profile picture'}
+                        {user.role === 'teacher'
+                          ? currentLang === 'vie'
+                            ? 'Ảnh đại diện giảng viên'
+                            : 'Instructor Profile Picture'
+                          : currentLang === 'vie'
+                          ? 'Ảnh đại diện sinh viên'
+                          : 'Student Profile Picture'}
                       </h4>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        PNG, JPG hoặc WebP. Kích thước khuyến nghị 256x256 px.
+                        {currentLang === 'vie'
+                          ? 'PNG, JPG hoặc WebP. Kích thước khuyến nghị 256x256 px.'
+                          : 'PNG, JPG or WebP. Recommended size 256x256 px.'}
                       </p>
                       <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 cursor-pointer transition">
                         <Camera className="w-3.5 h-3.5" />
@@ -341,20 +402,28 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                   {/* Name Input */}
                   <div>
                     <label className="block text-xs font-bold text-gray-900 dark:text-white mb-2">
-                      {currentLang === 'vie' ? 'Họ và tên (Name)' : 'Name'}
+                      {currentLang === 'vie' ? 'Họ và tên (Name)' : 'Full Name'}
                     </label>
                     <input
                       type="text"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       required
-                      placeholder="Nguyễn Văn A"
+                      placeholder={
+                        user.role === 'teacher'
+                          ? currentLang === 'vie'
+                            ? 'TS. Phạm Văn Khải'
+                            : 'Dr. Pham Van Khai'
+                          : currentLang === 'vie'
+                          ? 'Nguyễn Văn Minh'
+                          : 'Nguyen Van Minh'
+                      }
                       className="w-full max-w-lg h-11 px-3.5 text-xs rounded-xl bg-white dark:bg-[#151f2e] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00EA64]/40 focus:border-[#1BA94C]"
                     />
                     <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5">
                       {currentLang === 'vie'
                         ? 'Tên này sẽ xuất hiện trên giấy chứng nhận và giao diện IDE.'
-                        : 'Your name will appear on certificates and the Web IDE header.'}
+                        : 'Your name will appear on certificates and the workspace header.'}
                     </p>
                   </div>
 
@@ -371,7 +440,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        placeholder="student_k72"
+                        placeholder={user.role === 'teacher' ? 'dr_khai_cs' : 'student_k72'}
                         className="w-full h-11 pl-8 pr-3.5 text-xs rounded-xl bg-white dark:bg-[#151f2e] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-[#00EA64]/40 focus:border-[#1BA94C]"
                       />
                     </div>
@@ -386,7 +455,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                       rows={4}
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
-                      placeholder="Chia sẻ ngắn về mục tiêu học tập, kỹ năng lập trình của bạn..."
+                      placeholder={
+                        currentLang === 'vie'
+                          ? 'Chia sẻ ngắn về mục tiêu học tập, kỹ năng lập trình của bạn...'
+                          : 'Briefly share your learning goals or coding experience...'
+                      }
                       className="w-full max-w-lg p-3.5 text-xs rounded-xl bg-white dark:bg-[#151f2e] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#00EA64]/40 focus:border-[#1BA94C]"
                     />
                   </div>
@@ -395,15 +468,33 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                   <div className="max-w-lg p-4 rounded-xl bg-slate-50 dark:bg-[#121926] border border-gray-200 dark:border-gray-800 text-xs space-y-2.5">
                     <div className="flex items-center gap-2 text-emerald-600 dark:text-[#00EA64] font-bold">
                       <School className="w-4 h-4" />
-                      <span>Trường Đại học Sư phạm Hà Nội (HNUE)</span>
+                      <span>
+                        {currentLang === 'vie'
+                          ? 'Trường Đại học Sư phạm Hà Nội (HNUE)'
+                          : 'Hanoi National University of Education (HNUE)'}
+                      </span>
                     </div>
                     <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                      <span>Email trường:</span>
+                      <span>{currentLang === 'vie' ? 'Email trường:' : 'Institutional Email:'}</span>
                       <span className="font-mono text-gray-900 dark:text-white font-semibold">{user.email}</span>
                     </div>
                     <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                      <span>Lớp sinh hoạt:</span>
-                      <span className="text-gray-900 dark:text-white font-semibold">{user.classGroup || 'K72 CNTT A'}</span>
+                      <span>
+                        {user.role === 'teacher'
+                          ? currentLang === 'vie'
+                            ? 'Đơn vị công tác:'
+                            : 'Department:'
+                          : currentLang === 'vie'
+                          ? 'Lớp sinh hoạt:'
+                          : 'Class Group:'}
+                      </span>
+                      <span className="text-gray-900 dark:text-white font-semibold">
+                        {user.role === 'teacher'
+                          ? currentLang === 'vie'
+                            ? 'Bộ môn KHMT • Giảng viên'
+                            : 'CS Dept • Lecturer'
+                          : user.classGroup || 'K72 CNTT A'}
+                      </span>
                     </div>
                   </div>
 
@@ -414,7 +505,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                       className="px-6 py-2.5 rounded-xl bg-[#1BA94C] hover:bg-[#15893d] text-white font-semibold text-xs tracking-wide shadow-md shadow-emerald-700/20 active:scale-95 transition-all flex items-center gap-2"
                     >
                       <Check className="w-4 h-4" />
-                      <span>{currentLang === 'vie' ? 'Lưu thay đổi hồ sơ' : 'Update profile'}</span>
+                      <span>{currentLang === 'vie' ? 'Lưu thay đổi hồ sơ' : 'Save Changes'}</span>
                     </button>
                   </div>
                 </form>
@@ -427,12 +518,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 {/* Section Header */}
                 <div className="pb-4 border-b border-gray-200 dark:border-gray-800">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white font-sans">
-                    {currentLang === 'vie' ? 'Mật khẩu & Xác thực' : 'Password and authentication'}
+                    {currentLang === 'vie' ? 'Mật khẩu & Xác thực' : 'Password & Security'}
                   </h3>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                     {currentLang === 'vie'
-                      ? 'Cập nhật mật khẩu thường xuyên để tăng cường an toàn cho tài khoản nộp bài.'
-                      : 'Change your password to ensure secure submission access.'}
+                      ? 'Cập nhật mật khẩu thường xuyên để tăng cường an toàn cho tài khoản.'
+                      : 'Update your password regularly to keep your account safe.'}
                   </p>
                 </div>
 
@@ -456,7 +547,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                   {/* Current Password */}
                   <div>
                     <label className="block text-xs font-bold text-gray-900 dark:text-white mb-2">
-                      {currentLang === 'vie' ? 'Mật khẩu hiện tại (Old password)' : 'Old password'}
+                      {currentLang === 'vie' ? 'Mật khẩu hiện tại (Old password)' : 'Current Password'}
                     </label>
                     <div className="relative">
                       <input
@@ -479,7 +570,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                   {/* New Password */}
                   <div>
                     <label className="block text-xs font-bold text-gray-900 dark:text-white mb-2">
-                      {currentLang === 'vie' ? 'Mật khẩu mới (New password)' : 'New password'}
+                      {currentLang === 'vie' ? 'Mật khẩu mới (New password)' : 'New Password'}
                     </label>
                     <div className="relative">
                       <input
@@ -510,7 +601,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                           {newPassword.length >= 6
                             ? currentLang === 'vie'
                               ? 'Độ dài đạt chuẩn an toàn'
-                              : 'Valid length'
+                              : 'Strong password length'
                             : currentLang === 'vie'
                             ? 'Cần thêm ký tự'
                             : 'Too short'}
@@ -522,7 +613,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                   {/* Confirm Password */}
                   <div>
                     <label className="block text-xs font-bold text-gray-900 dark:text-white mb-2">
-                      {currentLang === 'vie' ? 'Xác nhận mật khẩu mới' : 'Confirm new password'}
+                      {currentLang === 'vie' ? 'Xác nhận mật khẩu mới' : 'Confirm New Password'}
                     </label>
                     <div className="relative">
                       <input
@@ -572,7 +663,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                       ) : (
                         <KeyRound className="w-4 h-4" />
                       )}
-                      <span>{currentLang === 'vie' ? 'Cập nhật mật khẩu' : 'Change Password'}</span>
+                      <span>{currentLang === 'vie' ? 'Cập nhật mật khẩu' : 'Update Password'}</span>
                     </button>
                   </div>
                 </form>
@@ -585,7 +676,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 {/* Section Header */}
                 <div className="pb-4 border-b border-gray-200 dark:border-gray-800">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white font-sans">
-                    {currentLang === 'vie' ? 'Tùy chỉnh giao diện' : 'Appearance'}
+                    {currentLang === 'vie' ? 'Tùy chỉnh giao diện' : 'Appearance Settings'}
                   </h3>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                     {currentLang === 'vie'
@@ -622,7 +713,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                       <div className="flex items-center gap-2">
                         <Moon className="w-4 h-4 text-emerald-400" />
                         <span className="text-xs font-bold text-gray-900 dark:text-white">
-                          Dark Mode (Mặc định)
+                          {currentLang === 'vie' ? 'Giao diện tối (Mặc định)' : 'Dark Mode (Default)'}
                         </span>
                       </div>
                       {currentTheme === 'dark' && (
@@ -660,7 +751,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                       <div className="flex items-center gap-2">
                         <Sun className="w-4 h-4 text-amber-500" />
                         <span className="text-xs font-bold text-gray-900 dark:text-white">
-                          Light Mode
+                          {currentLang === 'vie' ? 'Giao diện sáng' : 'Light Mode'}
                         </span>
                       </div>
                       {currentTheme === 'light' && (

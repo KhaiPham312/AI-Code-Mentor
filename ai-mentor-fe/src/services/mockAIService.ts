@@ -70,7 +70,8 @@ export const generateSocraticResponse = async (
   code: string,
   terminalError?: string,
   exerciseContext?: ExerciseAIContext,
-  onChunk?: (text: string) => void
+  onChunk?: (text: string) => void,
+  lang: 'vie' | 'eng' = 'vie'
 ): Promise<string> => {
   const promptLower = userPrompt.toLowerCase().trim();
   const userName = getCurrentUserName();
@@ -90,7 +91,34 @@ export const generateSocraticResponse = async (
       promptLower
     );
 
-  if (isGreetingWord) {
+  if (lang === 'eng') {
+    if (isGreetingWord) {
+      if (exerciseTitle) {
+        fullResponse = `Hello ${userName}! 👋 Glad to be working with you today!
+
+You are currently working on **"${exerciseTitle}"** (${exerciseCategory || 'Programming'}).
+Would you like a step-by-step hint, a walkthrough of the optimal algorithm, or an explanation of the constraints? Feel free to ask anytime! ✨`;
+      } else {
+        fullResponse = `Hello ${userName}! 👋 Nice to meet you!
+
+What would you like to explore today? We can dive into graph algorithms, dynamic programming, system design, or review and optimize your code! 🚀`;
+      }
+    } else if (intent === 'explain_error') {
+      fullResponse = `🔍 **Error Diagnosis & Debugging:**
+${err ? `Analyzing the reported terminal output:\n\`\`\`\n${err}\n\`\`\`\n` : ''}Common causes include out-of-bounds indices, unhandled empty inputs, or edge cases. Verify your loop bounds and base cases!`;
+    } else if (intent === 'analyze_complexity') {
+      fullResponse = `⏱️ **Time & Space Complexity Breakdown:**
+- **Time Complexity:** Optimal solutions for **"${exerciseTitle || 'this problem'}"** typically run in $O(N)$ or $O(N \\log N)$. Avoiding nested linear scans ensures solutions stay well within the execution time limits.
+- **Space Complexity:** Aim for $O(1)$ auxiliary space if in-place modification is permitted, or $O(N)$ if hashing or memoization is required.`;
+    } else if (intent === 'hint_next_step') {
+      fullResponse = `💡 **Socratic Guidance & Next Step:**
+1. What invariant or property remains true after each step?
+2. Consider edge cases: what happens when the collection is empty or contains duplicates?
+3. How can a Hash Map or Two Pointers reduce redundant operations?`;
+    } else {
+      fullResponse = `Great observation! In problem-solving, breaking the algorithm down into preconditions, invariant state, and postconditions leads to robust code. Let me know which specific edge case or data structure you would like to examine!`;
+    }
+  } else if (isGreetingWord) {
     if (exerciseTitle) {
       fullResponse = `Chào ${userName}! 👋 Rất vui được đồng hành cùng bạn hôm nay!
 

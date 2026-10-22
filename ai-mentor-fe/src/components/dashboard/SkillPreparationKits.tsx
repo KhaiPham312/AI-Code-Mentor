@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Language, dashboardTranslations } from './dashboardI18n';
 import {
   ArrowRight,
@@ -6,12 +6,12 @@ import {
   Cpu,
   Award,
   Binary,
-  Globe,
   Database,
   ChevronDown,
-  Sparkles,
 } from 'lucide-react';
 import gsap from 'gsap';
+import { COMPREHENSIVE_EXERCISES } from '../../services/mockExercisesData';
+import { getUserSolvedExerciseIds, getUserStorageKey } from '../../services/userStorage';
 
 interface SkillPreparationKitsProps {
   currentLang: Language;
@@ -26,116 +26,162 @@ export const SkillPreparationKits: React.FC<SkillPreparationKitsProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const allKits = [
-    {
-      id: 'dsa',
-      title:
-        currentLang === 'vie'
-          ? 'Cấu trúc dữ liệu & Giải thuật'
-          : 'Data Structures & Algorithms',
-      desc:
-        currentLang === 'vie'
-          ? 'Nắm vững mảng, danh sách liên kết, ngăn xếp, hàng đợi, cây nhị phân, đồ thị và các giải thuật tìm kiếm, sắp xếp tối ưu.'
-          : 'Master arrays, linked lists, stacks, queues, binary trees, graph algorithms, searching and sorting.',
-      tags: ['Python', 'C++', 'Java', 'Big-O'],
-      level: currentLang === 'vie' ? 'Cơ bản đến Nâng cao' : 'Beginner to Advanced',
-      progress: 65,
-      progressLabel: currentLang === 'vie' ? '26 / 40 bài hoàn thành' : '26 / 40 completed',
-      icon: Layers,
-      color: 'emerald',
-      trackId: 'data-structures',
-    },
-    {
-      id: 'oop',
-      title:
-        currentLang === 'vie'
-          ? 'Lập trình Hướng đối tượng & Python nâng cao'
-          : 'OOP & Advanced Python',
-      desc:
-        currentLang === 'vie'
-          ? 'Kỹ thuật kế thừa, đa hình, đóng gói, đệ quy nâng cao, Generator, Decorator và phân tích độ phức tạp thời gian Big-O.'
-          : 'Inheritance, polymorphism, encapsulation, advanced recursion, generators, decorators & complexity analysis.',
-      tags: ['Python 3', 'OOP', 'Recursion'],
-      level: currentLang === 'vie' ? 'Trung cấp' : 'Intermediate',
-      progress: 35,
-      progressLabel: currentLang === 'vie' ? '7 / 20 bài hoàn thành' : '7 / 20 completed',
-      icon: Cpu,
-      color: 'blue',
-      trackId: 'python',
-    },
-    {
-      id: 'cpp-core',
-      title:
-        currentLang === 'vie'
-          ? 'Lập trình C / C++ chuyên sâu'
-          : 'Advanced C / C++ Systems',
-      desc:
-        currentLang === 'vie'
-          ? 'Con trỏ bộ nhớ, quản lý cấp phát động heap/stack, STL containers, generic templates và con trỏ thông minh.'
-          : 'Pointer arithmetic, dynamic memory allocation, STL algorithms, templates & smart pointers.',
-      tags: ['C', 'C++ 17', 'Pointers', 'STL'],
-      level: currentLang === 'vie' ? 'Trung cấp đến Nâng cao' : 'Intermediate to Advanced',
-      progress: 40,
-      progressLabel: currentLang === 'vie' ? '8 / 20 bài hoàn thành' : '8 / 20 completed',
-      icon: Binary,
-      color: 'indigo',
-      trackId: 'cpp',
-    },
-    {
-      id: 'fullstack',
-      title:
-        currentLang === 'vie'
-          ? 'Lập trình Web Fullstack với React & Node.js'
-          : 'Fullstack Web with React & Node.js',
-      desc:
-        currentLang === 'vie'
-          ? 'Xây dựng giao diện Single Page App hiện đại với React Hooks, TypeScript, Tailwind và kết nối API xử lý dữ liệu.'
-          : 'Modern single-page applications with React Hooks, TypeScript, state management & REST APIs.',
-      tags: ['React', 'TypeScript', 'Node.js', 'REST API'],
-      level: currentLang === 'vie' ? 'Trung cấp' : 'Intermediate',
-      progress: 50,
-      progressLabel: currentLang === 'vie' ? '10 / 20 bài hoàn thành' : '10 / 20 completed',
-      icon: Globe,
-      color: 'cyan',
-      trackId: 'react',
-    },
-    {
-      id: 'sql-db',
-      title:
-        currentLang === 'vie'
-          ? 'Cơ sở dữ liệu SQL & Thiết kế hệ thống'
-          : 'SQL Databases & System Design',
-      desc:
-        currentLang === 'vie'
-          ? 'Truy vấn SELECT JOIN nhiều bảng, GROUP BY, Aggregate functions, Indexing và thiết kế chuẩn hóa lược đồ ERD.'
-          : 'Complex multi-table JOINs, aggregations, window functions, indexing & ERD normalization.',
-      tags: ['PostgreSQL', 'MySQL', 'ERD', 'Indexing'],
-      level: currentLang === 'vie' ? 'Cơ bản đến Trung cấp' : 'Beginner to Intermediate',
-      progress: 60,
-      progressLabel: currentLang === 'vie' ? '12 / 20 bài hoàn thành' : '12 / 20 completed',
-      icon: Database,
-      color: 'amber',
-      trackId: 'sql',
-    },
-    {
-      id: 'exam',
-      title:
-        currentLang === 'vie'
-          ? 'Luyện phỏng vấn & Chấm thi thực hành HNUE'
-          : 'HNUE Assessment & Mock Interview',
-      desc:
-        currentLang === 'vie'
-          ? 'Lộ trình bài tập mô phỏng kỳ thi đánh giá năng lực lập trình HNUE với thời gian thực và test cases ẩn nghiêm ngặt.'
-          : 'Simulated examination track with strict time constraints, hidden edge cases & automated evaluation.',
-      tags: ['Mô phỏng kỳ thi', 'Chấm tự động', 'Hidden Tests'],
-      level: currentLang === 'vie' ? 'Nâng cao' : 'Advanced',
-      progress: 20,
-      progressLabel: currentLang === 'vie' ? '2 / 10 đề hoàn thành' : '2 / 10 completed',
-      icon: Award,
-      color: 'purple',
-      trackId: 'algorithms',
-    },
-  ];
+  const getKitStats = (trackIds: string[]) => {
+    const matchedExercises = COMPREHENSIVE_EXERCISES.filter(
+      (ex) => ex.trackIds && ex.trackIds.some((t) => trackIds.includes(t))
+    );
+    const total = matchedExercises.length;
+    let solved = 0;
+    if (typeof window !== 'undefined') {
+      const userKey = getUserStorageKey();
+      const solvedIds = getUserSolvedExerciseIds(userKey);
+      solved = matchedExercises.filter((ex) => solvedIds.includes(ex.id)).length;
+    }
+    const hasRealProgress = solved > 0;
+    const progressPercent = total > 0 ? Math.round((solved / total) * 100) : 0;
+    return {
+      total,
+      solved,
+      hasRealProgress,
+      progressPercent,
+    };
+  };
+
+  const allKits = useMemo(() => {
+    const dsaStats = getKitStats(['data-structures', 'algorithms']);
+    const oopStats = getKitStats(['python']);
+    const cppStats = getKitStats(['c', 'cpp']);
+    const sqlStats = getKitStats(['sql']);
+    const examStats = getKitStats(['algorithms']);
+
+    return [
+      {
+        id: 'dsa',
+        title:
+          currentLang === 'vie'
+            ? 'Cấu trúc dữ liệu & Giải thuật'
+            : 'Data Structures & Algorithms',
+        desc:
+          currentLang === 'vie'
+            ? 'Nắm vững mảng, danh sách liên kết, ngăn xếp, hàng đợi, cây nhị phân, đồ thị và các giải thuật tìm kiếm, sắp xếp tối ưu.'
+            : 'Master arrays, linked lists, stacks, queues, binary trees, graph algorithms, searching and sorting.',
+        tags: ['Python', 'C++', 'Java', 'Big-O'],
+        level: currentLang === 'vie' ? 'Cơ bản đến Nâng cao' : 'Beginner to Advanced',
+        progress: dsaStats.progressPercent,
+        progressLabel: dsaStats.hasRealProgress
+          ? currentLang === 'vie'
+            ? `${dsaStats.solved} / ${dsaStats.total} bài hoàn thành`
+            : `${dsaStats.solved} / ${dsaStats.total} completed`
+          : currentLang === 'vie'
+          ? `${dsaStats.total} bài tập`
+          : `${dsaStats.total} exercises`,
+        hasRealProgress: dsaStats.hasRealProgress,
+        icon: Layers,
+        color: 'emerald',
+        trackId: 'data-structures',
+      },
+      {
+        id: 'oop',
+        title:
+          currentLang === 'vie'
+            ? 'Lập trình Hướng đối tượng & Python nâng cao'
+            : 'OOP & Advanced Python',
+        desc:
+          currentLang === 'vie'
+            ? 'Kỹ thuật kế thừa, đa hình, đóng gói, đệ quy nâng cao, Generator, Decorator và phân tích độ phức tạp thời gian Big-O.'
+            : 'Inheritance, polymorphism, encapsulation, advanced recursion, generators, decorators & complexity analysis.',
+        tags: ['Python 3', 'OOP', 'Recursion'],
+        level: currentLang === 'vie' ? 'Trung cấp' : 'Intermediate',
+        progress: oopStats.progressPercent,
+        progressLabel: oopStats.hasRealProgress
+          ? currentLang === 'vie'
+            ? `${oopStats.solved} / ${oopStats.total} bài hoàn thành`
+            : `${oopStats.solved} / ${oopStats.total} completed`
+          : currentLang === 'vie'
+          ? `${oopStats.total} bài tập`
+          : `${oopStats.total} exercises`,
+        hasRealProgress: oopStats.hasRealProgress,
+        icon: Cpu,
+        color: 'blue',
+        trackId: 'python',
+      },
+      {
+        id: 'cpp-core',
+        title:
+          currentLang === 'vie'
+            ? 'Lập trình C / C++ chuyên sâu'
+            : 'Advanced C / C++ Systems',
+        desc:
+          currentLang === 'vie'
+            ? 'Con trỏ bộ nhớ, quản lý cấp phát động heap/stack, STL containers, generic templates và con trỏ thông minh.'
+            : 'Pointer arithmetic, dynamic memory allocation, STL algorithms, templates & smart pointers.',
+        tags: ['C', 'C++ 17', 'Pointers', 'STL'],
+        level: currentLang === 'vie' ? 'Trung cấp đến Nâng cao' : 'Intermediate to Advanced',
+        progress: cppStats.progressPercent,
+        progressLabel: cppStats.hasRealProgress
+          ? currentLang === 'vie'
+            ? `${cppStats.solved} / ${cppStats.total} bài hoàn thành`
+            : `${cppStats.solved} / ${cppStats.total} completed`
+          : currentLang === 'vie'
+          ? `${cppStats.total} bài tập`
+          : `${cppStats.total} exercises`,
+        hasRealProgress: cppStats.hasRealProgress,
+        icon: Binary,
+        color: 'indigo',
+        trackId: 'cpp',
+      },
+      {
+        id: 'sql-db',
+        title:
+          currentLang === 'vie'
+            ? 'Cơ sở dữ liệu SQL & Thiết kế hệ thống'
+            : 'SQL Databases & System Design',
+        desc:
+          currentLang === 'vie'
+            ? 'Truy vấn SELECT JOIN nhiều bảng, GROUP BY, Aggregate functions, Indexing và thiết kế chuẩn hóa lược đồ ERD.'
+            : 'Complex multi-table JOINs, aggregations, window functions, indexing & ERD normalization.',
+        tags: ['PostgreSQL', 'MySQL', 'ERD', 'Indexing'],
+        level: currentLang === 'vie' ? 'Cơ bản đến Trung cấp' : 'Beginner to Intermediate',
+        progress: sqlStats.progressPercent,
+        progressLabel: sqlStats.hasRealProgress
+          ? currentLang === 'vie'
+            ? `${sqlStats.solved} / ${sqlStats.total} bài hoàn thành`
+            : `${sqlStats.solved} / ${sqlStats.total} completed`
+          : currentLang === 'vie'
+          ? `${sqlStats.total} bài tập`
+          : `${sqlStats.total} exercises`,
+        hasRealProgress: sqlStats.hasRealProgress,
+        icon: Database,
+        color: 'amber',
+        trackId: 'sql',
+      },
+      {
+        id: 'exam',
+        title:
+          currentLang === 'vie'
+            ? 'Luyện phỏng vấn & Chấm thi thực hành HNUE'
+            : 'HNUE Assessment & Mock Interview',
+        desc:
+          currentLang === 'vie'
+            ? 'Lộ trình bài tập mô phỏng kỳ thi đánh giá năng lực lập trình HNUE với thời gian thực và test cases ẩn nghiêm ngặt.'
+            : 'Simulated examination track with strict time constraints, hidden edge cases & automated evaluation.',
+        tags: ['Mô phỏng kỳ thi', 'Chấm tự động', 'Hidden Tests'],
+        level: currentLang === 'vie' ? 'Nâng cao' : 'Advanced',
+        progress: examStats.progressPercent,
+        progressLabel: examStats.hasRealProgress
+          ? currentLang === 'vie'
+            ? `${examStats.solved} / ${examStats.total} bài hoàn thành`
+            : `${examStats.solved} / ${examStats.total} completed`
+          : currentLang === 'vie'
+          ? `${examStats.total} bài tập`
+          : `${examStats.total} exercises`,
+        hasRealProgress: examStats.hasRealProgress,
+        icon: Award,
+        color: 'purple',
+        trackId: 'algorithms',
+      },
+    ];
+  }, [currentLang]);
 
   // Animate newly revealed cards with GSAP
   useEffect(() => {
@@ -197,10 +243,6 @@ export const SkillPreparationKits: React.FC<SkillPreparationKitsProps> = ({
       {/* SECTION HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b pb-3 border-slate-200 dark:border-gray-800">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 text-[#1BA94C] dark:text-[#00EA64] border border-emerald-200 dark:border-emerald-800/50 mb-1">
-            <Sparkles className="w-3 h-3" />
-            <span>Preparation Tracks</span>
-          </div>
           <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white font-sans">
             {t.kitsSectionTitle}
           </h2>
@@ -221,8 +263,8 @@ export const SkillPreparationKits: React.FC<SkillPreparationKitsProps> = ({
                 ? 'Thu gọn (3 lộ trình)'
                 : 'Collapse (3 tracks)'
               : currentLang === 'vie'
-              ? 'Xem tất cả 6 lộ trình'
-              : 'View all 6 tracks'}
+              ? 'Xem tất cả 5 lộ trình'
+              : 'View all 5 tracks'}
           </span>
           <ChevronDown
             className={`w-3.5 h-3.5 transition-transform duration-200 ${
@@ -289,22 +331,35 @@ export const SkillPreparationKits: React.FC<SkillPreparationKitsProps> = ({
 
               {/* CARD BOTTOM: PROGRESS BAR & RESUME BUTTON */}
               <div className="mt-5 pt-4 border-t border-slate-100 dark:border-gray-800/80">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">
-                    {kit.progress}%
-                  </span>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[170px]">
-                    {kit.progressLabel}
-                  </span>
-                </div>
+                {kit.hasRealProgress ? (
+                  <>
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">
+                        {kit.progress}%
+                      </span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[170px]">
+                        {kit.progressLabel}
+                      </span>
+                    </div>
 
-                {/* Progress bar container */}
-                <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-3.5">
-                  <div
-                    className={`h-full rounded-full transition-all duration-700 ease-out ${colors.bar}`}
-                    style={{ width: `${kit.progress}%` }}
-                  />
-                </div>
+                    {/* Progress bar container */}
+                    <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-3.5">
+                      <div
+                        className={`h-full rounded-full transition-all duration-700 ease-out ${colors.bar}`}
+                        style={{ width: `${kit.progress}%` }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-between text-xs mb-3.5 pt-0.5">
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                      {currentLang === 'vie' ? 'Quy mô lộ trình' : 'Track scale'}
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                      {kit.progressLabel}
+                    </span>
+                  </div>
+                )}
 
                 <button
                   type="button"

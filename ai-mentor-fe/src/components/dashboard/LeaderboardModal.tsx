@@ -2,10 +2,14 @@ import React from 'react';
 import { Language, dashboardTranslations } from './dashboardI18n';
 import { Trophy, X, Flame, CheckCircle2 } from 'lucide-react';
 
+import { User } from '../../types/auth';
+import { getUserSolvedExerciseIds, getUserStorageKey } from '../../services/userStorage';
+
 interface LeaderboardModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentLang: Language;
+  user?: User | null;
 }
 
 interface LeaderboardStudent {
@@ -23,15 +27,33 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
   isOpen,
   onClose,
   currentLang,
+  user,
 }) => {
   if (!isOpen) return null;
   const t = dashboardTranslations[currentLang];
+
+  const userKey = getUserStorageKey(user);
+  const solvedCount = getUserSolvedExerciseIds(userKey).length;
+  const rawName = user?.name ? user.name.replace(/\s*\([^)]*\)/g, '').trim() : '';
+  const currentStudentName = rawName
+    ? `${rawName} (${currentLang === 'vie' ? 'Bạn' : 'You'})`
+    : (currentLang === 'vie' ? 'Bạn' : 'You');
+  const avatarLetter = rawName ? rawName.charAt(0).toUpperCase() : 'U';
 
   const students: LeaderboardStudent[] = [
     { rank: 1, name: 'Trần Quang Huy', avatar: 'H', classGroup: 'K72 CNTT A', solvedCount: 58, score: 2840, streak: 14 },
     { rank: 2, name: 'Lê Hoàng Long', avatar: 'L', classGroup: 'K72 CNTT A', solvedCount: 52, score: 2590, streak: 12 },
     { rank: 3, name: 'Phạm Thu Trang', avatar: 'T', classGroup: 'K72 CNTT B', solvedCount: 47, score: 2310, streak: 9 },
-    { rank: 4, name: 'Nguyễn Văn Minh (Bạn)', avatar: 'M', classGroup: 'K72 CNTT A', solvedCount: 18, score: 1450, streak: 5, isCurrentUser: true },
+    {
+      rank: 4,
+      name: currentStudentName,
+      avatar: avatarLetter,
+      classGroup: 'K72 CNTT A',
+      solvedCount: solvedCount,
+      score: solvedCount * 80 + (solvedCount > 0 ? 10 : 0),
+      streak: solvedCount > 0 ? 5 : 0,
+      isCurrentUser: true,
+    },
     { rank: 5, name: 'Đỗ Minh Đức', avatar: 'D', classGroup: 'K72 CNTT A', solvedCount: 16, score: 1200, streak: 4 },
     { rank: 6, name: 'Vũ Thị Mai', avatar: 'M', classGroup: 'K72 CNTT B', solvedCount: 14, score: 1050, streak: 3 },
   ];

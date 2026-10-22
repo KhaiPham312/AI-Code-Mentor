@@ -9,6 +9,7 @@ export interface User {
   avatar?: string;
   studentId?: string;
   classGroup?: string;
+  department?: string;
   bio?: string;
 }
 
