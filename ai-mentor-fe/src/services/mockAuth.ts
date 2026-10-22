@@ -1,6 +1,7 @@
 import { User, UserRole } from '../types/auth';
 
-const STORAGE_USERS_KEY = 'ai_mentor_users_list';
+const STORAGE_USERS_KEY = 'ai_mentor_users_db';
+const LEGACY_STORAGE_USERS_KEY = 'ai_mentor_users_list';
 
 export interface StoredAccount {
   user: User;
@@ -43,10 +44,19 @@ export const DEFAULT_ACCOUNTS: StoredAccount[] = [
   },
 ];
 
-// Seed and retrieve accounts from localStorage
+// Seed and retrieve accounts from localStorage with key 'ai_mentor_users_db'
 export function getStoredAccounts(): StoredAccount[] {
   try {
-    const raw = localStorage.getItem(STORAGE_USERS_KEY);
+    let raw = localStorage.getItem(STORAGE_USERS_KEY);
+    // Migration: check legacy key if primary key doesn't exist
+    if (!raw) {
+      const legacyRaw = localStorage.getItem(LEGACY_STORAGE_USERS_KEY);
+      if (legacyRaw) {
+        raw = legacyRaw;
+        localStorage.setItem(STORAGE_USERS_KEY, legacyRaw);
+      }
+    }
+
     if (!raw) {
       localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(DEFAULT_ACCOUNTS));
       return [...DEFAULT_ACCOUNTS];
@@ -228,6 +238,55 @@ export async function changeUserPassword(
   accounts[accIndex].password = newPassword;
   saveStoredAccounts(accounts);
   return { success: true, message: 'Đổi mật khẩu thành công!' };
+}
+
+// Find account by either username or email (case-insensitive)
+export function findAccountByIdentifier(identifier: string): StoredAccount | null {
+  const trimmed = identifier.trim().toLowerCase();
+  if (!trimmed) return null;
+  const accounts = getStoredAccounts();
+  const found = accounts.find(
+    (acc) =>
+      (acc.user.username || '').toLowerCase() === trimmed ||
+      acc.user.email.toLowerCase() === trimmed
+  );
+  return found || null;
+}
+
+// Reset password for Forgot Password flow
+export async function resetPassword(
+  accountOrEmail: string,
+  newPassword: string
+): Promise<{ success: boolean; message: string; user: User }> {
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  const trimmed = accountOrEmail.trim().toLowerCase();
+  if (!trimmed) {
+    throw new Error('Vui lòng cung cấp email hoặc tên đăng nhập!');
+  }
+  if (newPassword.length < 6) {
+    throw new Error('Mật khẩu mới phải có tối thiểu 6 ký tự!');
+  }
+
+  const accounts = getStoredAccounts();
+  const accIndex = accounts.findIndex(
+    (acc) =>
+      (acc.user.username || '').toLowerCase() === trimmed ||
+      acc.user.email.toLowerCase() === trimmed
+  );
+
+  if (accIndex === -1) {
+    throw new Error('Không tìm thấy tài khoản với email hoặc tên đăng nhập này!');
+  }
+
+  // Update password in DB - replaces old password completely
+  accounts[accIndex].password = newPassword;
+  saveStoredAccounts(accounts);
+
+  return {
+    success: true,
+    message: 'Đặt lại mật khẩu thành công!',
+    user: accounts[accIndex].user,
+  };
 }
 
 // Backward compatibility helper

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TeacherAssignment } from '../../services/mockTeacherData';
+import { Difficulty } from '../../types/exercise';
 import { Language, ThemeMode } from '../dashboard/dashboardI18n';
 import {
   X,
@@ -29,6 +30,8 @@ interface TeacherAssignmentModalProps {
   selectedClassId: string;
 }
 
+import { CANONICAL_COURSES } from '../../services/languageTracks';
+
 export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
   isOpen,
   onClose,
@@ -41,9 +44,9 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
   const isVie = currentLang === 'vie';
 
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('Algorithms');
-  const [language, setLanguage] = useState('python');
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [category, setCategory] = useState<string>('algorithms');
+  const [primaryLanguage, setPrimaryLanguage] = useState<string>('C++17');
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [targetClass, setTargetClass] = useState(selectedClassId);
   const [deadline, setDeadline] = useState('2026-10-25T23:59');
   const [description, setDescription] = useState('');
@@ -74,6 +77,18 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
 
   if (!isOpen) return null;
 
+  const currentCourseConfig =
+    CANONICAL_COURSES.find((c) => c.id === category) || CANONICAL_COURSES[0];
+  const availableLanguageOptions = currentCourseConfig.options;
+
+  const handleCategoryChange = (catId: string) => {
+    setCategory(catId);
+    const cfg = CANONICAL_COURSES.find((c) => c.id === catId);
+    if (cfg) {
+      setPrimaryLanguage(cfg.defaultLangLabel);
+    }
+  };
+
   const handleAddTestCase = () => {
     const newId = testCases.length + 1;
     setTestCases([
@@ -92,7 +107,11 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
     setTestCases(testCases.filter((tc) => tc.id !== id));
   };
 
-  const handleUpdateTestCase = (id: number, field: keyof TestCaseInput, value: any) => {
+  const handleUpdateTestCase = <K extends keyof TestCaseInput>(
+    id: number,
+    field: K,
+    value: TestCaseInput[K]
+  ) => {
     setTestCases(
       testCases.map((tc) => (tc.id === id ? { ...tc, [field]: value } : tc))
     );
@@ -107,9 +126,9 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
 
     onSaveAssignment({
       title,
-      category,
-      language,
+      category: currentCourseConfig ? currentCourseConfig.name : category,
       difficulty,
+      language: primaryLanguage,
       classGroup: targetClass,
       deadline: `${deadline.replace('T', ' ')}`,
       deadlineDate: deadline,
@@ -163,7 +182,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               >
                 {isVie
                   ? 'Thiết lập yêu cầu thuật toán, cấu hình AI Mentor & Test Cases'
-                  : 'Define algorithmic requirements, AI Mentor rules & Test Cases'}
+                  : 'Configure algorithm requirements, AI Socratic rules & test cases'}
               </p>
             </div>
           </div>
@@ -186,7 +205,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
           {/* Title */}
           <div>
             <label className="block font-bold mb-1">
-              {isVie ? 'Tiêu đề bài tập:' : 'Assignment Title:'}
+              {isVie ? 'Tiêu đề bài tập:' : 'Problem Title:'}
             </label>
             <input
               type="text"
@@ -203,86 +222,66 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
           </div>
 
           {/* Category, Language, Difficulty, Class in Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          {/* Category, Difficulty, Class in Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold mb-1">
-                {isVie ? 'Danh mục:' : 'Category:'}
+              <label className="block font-bold mb-1 font-sans">
+                {isVie ? 'Danh mục chủ đề (Khóa học):' : 'Topic / Course:'}
               </label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
                   isDark
                     ? 'bg-slate-800/80 border-slate-700 text-white'
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
                 }`}
               >
-                <option value="Algorithms">Algorithms (Giải thuật)</option>
-                <option value="Data Structures">Data Structures (Cấu trúc dữ liệu)</option>
-                <option value="Database">Database (Cơ sở dữ liệu)</option>
-                <option value="OOP">Lập trình Hướng đối tượng</option>
-                <option value="Graph Theory">Graph Theory (Đồ thị)</option>
-                <option value="Dynamic Programming">Dynamic Programming (QHD)</option>
+                {CANONICAL_COURSES.map((cfg) => (
+                  <option key={cfg.id} value={cfg.id}>
+                    {cfg.name}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div>
-              <label className="block font-bold mb-1 text-indigo-500 dark:text-indigo-400">
-                {isVie ? 'Ngôn ngữ:' : 'Language:'}
-              </label>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className={`w-full p-2.5 rounded-lg border font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  isDark
-                    ? 'bg-indigo-950/40 border-indigo-700/60 text-indigo-300'
-                    : 'bg-indigo-50 border-indigo-300 text-indigo-900'
-                }`}
-              >
-                <option value="python">Python 3</option>
-                <option value="cpp">C++ (GCC 17)</option>
-                <option value="sql">SQL (PostgreSQL / SQLite)</option>
-                <option value="c">C (GCC 11)</option>
-                <option value="java">Java 17</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block font-bold mb-1">
+              <label className="block font-bold mb-1 font-sans">
                 {isVie ? 'Độ khó:' : 'Difficulty:'}
               </label>
               <select
                 value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value as any)}
-                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                onChange={(e) => setDifficulty(e.target.value as Difficulty)}
+                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
                   isDark
                     ? 'bg-slate-800/80 border-slate-700 text-white'
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
                 }`}
               >
-                <option value="easy">Cơ bản (Easy)</option>
-                <option value="medium">Trung bình (Medium)</option>
-                <option value="hard">Nâng cao (Hard)</option>
+                <option value="easy">{isVie ? 'Dễ' : 'Easy'}</option>
+                <option value="medium">{isVie ? 'Trung bình' : 'Medium'}</option>
+                <option value="hard">{isVie ? 'Khó' : 'Hard'}</option>
               </select>
             </div>
 
             <div>
-              <label className="block font-bold mb-1">
-                {isVie ? 'Lớp áp dụng:' : 'Assigned Class:'}
+              <label className="block font-bold mb-1 font-sans">
+                {isVie ? 'Lớp áp dụng:' : 'Target Class:'}
               </label>
               <select
                 value={targetClass}
                 onChange={(e) => setTargetClass(e.target.value)}
-                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
                   isDark
                     ? 'bg-slate-800/80 border-slate-700 text-white'
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
                 }`}
               >
-                <option value="K71A-CNTT">Lớp K71A - CNTT</option>
-                <option value="K71B-CNTT">Lớp K71B - CNTT</option>
-                <option value="K72A-KHMT">Lớp K72A - KHMT</option>
-                <option value="ALL">Tất cả các lớp</option>
+                <option value="K71A-CNTT">{isVie ? 'Lớp K71A – Công nghệ Thông tin (Cấu trúc dữ liệu)' : 'Class K71A – Information Technology (Data Structures)'}</option>
+                <option value="K72A-KHMT">{isVie ? 'Lớp K72A – Khoa học Máy tính (Thuật toán)' : 'Class K72A – Computer Science (Algorithms)'}</option>
+                <option value="K73A-CNTT">{isVie ? 'Lớp K73A – Công nghệ Thông tin (Lập trình C++)' : 'Class K73A – Information Technology (C++ Programming)'}</option>
+                <option value="K73B-KHMT">{isVie ? 'Lớp K73B – Khoa học Máy tính (Lập trình Python)' : 'Class K73B – Computer Science (Python Programming)'}</option>
+                <option value="ALL">{isVie ? 'Tất cả các lớp' : 'All Classes'}</option>
               </select>
             </div>
           </div>
@@ -290,7 +289,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
           {/* Deadline & Language */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold mb-1 flex items-center gap-1.5">
+              <label className="block font-bold mb-1 flex items-center gap-1.5 font-sans">
                 <Calendar className="w-3.5 h-3.5 text-indigo-500" />
                 <span>{isVie ? 'Hạn chót nộp bài (Deadline):' : 'Submission Deadline:'}</span>
               </label>
@@ -298,7 +297,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
                 type="datetime-local"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
                   isDark
                     ? 'bg-slate-800/80 border-slate-700 text-white'
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
@@ -307,20 +306,26 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
             </div>
 
             <div>
-              <label className="block font-bold mb-1 flex items-center gap-1.5">
+              <label className="block font-bold mb-1 flex items-center gap-1.5 font-sans">
                 <Code className="w-3.5 h-3.5 text-emerald-500" />
-                <span>{isVie ? 'Ngôn ngữ lập trình chính:' : 'Primary Language:'}</span>
+                <span>{isVie ? 'Ngôn ngữ lập trình chính:' : 'Primary Programming Language:'}</span>
               </label>
-              <input
-                type="text"
-                disabled
-                value="Python 3.11 (Hỗ trợ C++ 17 & Java 17)"
-                className={`w-full p-2.5 rounded-lg border font-mono opacity-80 ${
+              <select
+                value={primaryLanguage}
+                onChange={(e) => setPrimaryLanguage(e.target.value)}
+                aria-label="Chọn ngôn ngữ lập trình chính"
+                className={`w-full p-2.5 rounded-lg border font-sans font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                   isDark
-                    ? 'bg-slate-800/40 border-slate-700 text-slate-300'
-                    : 'bg-slate-100 border-slate-300 text-neutral-700'
+                    ? 'bg-slate-800/80 border-slate-700 text-white'
+                    : 'bg-slate-50 border-slate-300 text-neutral-900'
                 }`}
-              />
+              >
+                {availableLanguageOptions.map((opt) => (
+                  <option key={opt.id} value={opt.label}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -349,7 +354,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
             }`}
           >
             <span className="font-bold text-[11px] uppercase tracking-wider block text-indigo-400">
-              {isVie ? 'Chính sách giám sát AI & Chống gian lận' : 'AI Policy & Integrity Rules'}
+              {isVie ? 'Chính sách giám sát AI & Chống gian lận' : 'AI SUPERVISION & ANTI-CHEATING POLICY'}
             </span>
 
             <div className="flex items-center justify-between">
@@ -379,7 +384,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
                 <ShieldCheck className="w-4 h-4 text-cyan-500" />
                 <div>
                   <span className="font-semibold block">
-                    {isVie ? 'Kiểm tra đạo văn & độ tương đồng code' : 'Code Similarity & Plagiarism Scan'}
+                    {isVie ? 'Kiểm tra đạo văn & độ tương đồng code' : 'Enable Plagiarism & Code Similarity Check'}
                   </span>
                   <span className="text-[10px] text-slate-400 block">
                     {isVie
@@ -400,23 +405,23 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
           {/* Test Cases Builder */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="font-bold flex items-center gap-1.5">
+              <span className="font-bold flex items-center gap-1.5 font-sans">
                 <Layers className="w-3.5 h-3.5 text-indigo-500" />
                 <span>{isVie ? 'Bộ dữ liệu kiểm thử (Test Cases):' : 'Test Cases Suite:'}</span>
-                <span className="text-[10px] text-slate-400 font-mono">({testCases.length})</span>
+                <span className="text-[10px] text-slate-400 font-sans font-medium">({testCases.length})</span>
               </span>
 
               <button
                 type="button"
                 onClick={handleAddTestCase}
-                className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1"
+                className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1 font-sans"
               >
                 <Plus className="w-3 h-3" />
                 <span>{isVie ? 'Thêm Test Case' : 'Add Case'}</span>
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 font-sans">
               {testCases.map((tc, idx) => (
                 <div
                   key={tc.id}
@@ -426,7 +431,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
                 >
                   <div className="flex items-center justify-between text-[11px]">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold font-mono">#{idx + 1}</span>
+                      <span className="font-bold font-sans">#{idx + 1}</span>
                       <label className="flex items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white">
                         <input
                           type="checkbox"
@@ -515,7 +520,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               className="px-5 py-2 rounded-lg font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-md shadow-indigo-900/30 flex items-center gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{isVie ? 'Lưu & Phát hành bài tập' : 'Save & Publish Assignment'}</span>
+              <span>{isVie ? 'Lưu & Phát hành bài tập' : 'Publish Assignment'}</span>
             </button>
           </div>
         </form>

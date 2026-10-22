@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { User } from '../../types/auth';
 import { Language, ThemeMode } from '../dashboard/dashboardI18n';
+import { StatusBadge } from '../common/StatusBadge';
+import { getUserSubmissions, getUserStorageKey } from '../../services/userStorage';
+import { COMPREHENSIVE_EXERCISES } from '../../services/mockExercisesData';
 import {
   CheckCircle2,
-  XCircle,
-  Clock,
   Code2,
   ChevronRight,
   Search,
@@ -21,6 +22,8 @@ import {
   BarChart3,
   X,
 } from 'lucide-react';
+
+export type SubmissionStatusFilter = 'all' | 'accepted' | 'wrong_answer' | 'time_limit';
 
 export interface SubmissionItem {
   id: string;
@@ -39,7 +42,7 @@ export interface SubmissionItem {
   code: string;
 }
 
-const MOCK_SUBMISSIONS: SubmissionItem[] = [
+export const MOCK_SUBMISSIONS: SubmissionItem[] = [
   {
     id: 'sub-801',
     exerciseId: 1,
@@ -322,7 +325,7 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
   const cleanName = (user.name || '').replace(/\s*\([^)]*\)/g, '').trim() || user.name;
 
   // Filter states
-  const [statusFilter, setStatusFilter] = useState<'all' | 'accepted' | 'wrong_answer' | 'time_limit'>('all');
+  const [statusFilter, setStatusFilter] = useState<SubmissionStatusFilter>('all');
   const [langFilter, setLangFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -330,9 +333,39 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
   const [activeCodeModal, setActiveCodeModal] = useState<SubmissionItem | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const userKey = getUserStorageKey(user);
+
+  // Read real submissions of the current student
+  const submissionsList = useMemo(() => {
+    const rawSubs = getUserSubmissions(userKey);
+    return rawSubs.map((sub): SubmissionItem => {
+      const ex = COMPREHENSIVE_EXERCISES.find((e) => e.id === sub.exerciseId);
+      const exLang = (sub.language || (ex?.language === 'cpp' ? 'C++' : ex?.language === 'sql' ? 'SQL' : ex?.language === 'java' ? 'Java' : 'Python')) as SubmissionItem['language'];
+      const status: SubmissionItem['status'] = sub.status === 'passed' ? 'accepted' : sub.status === 'error' ? 'time_limit' : 'wrong_answer';
+      const score = sub.score !== undefined ? sub.score * 10 : (sub.status === 'passed' ? 100 : Math.round((sub.passedTests / Math.max(1, sub.totalTests)) * 100));
+
+      return {
+        id: `sub-real-${sub.id}`,
+        exerciseId: sub.exerciseId,
+        problemTitle: isVie ? (sub.exerciseTitle || ex?.title || `Bài tập #${sub.exerciseId}`) : (ex?.titleEn || sub.exerciseTitle || ex?.title || `Exercise #${sub.exerciseId}`),
+        topic: sub.category || ex?.category || (isVie ? 'Luyện tập' : 'Practice'),
+        trackId: ex?.trackIds?.[0] || 'algorithms',
+        language: exLang,
+        status,
+        passedTests: sub.passedTests,
+        totalTests: sub.totalTests,
+        score,
+        executionTimeMs: sub.executionTimeMs,
+        memoryMb: sub.memoryMb || 14.1,
+        submittedAt: sub.submittedAt,
+        code: sub.code,
+      };
+    });
+  }, [userKey, isVie]);
+
   // Filtered submissions
   const filteredList = useMemo(() => {
-    return MOCK_SUBMISSIONS.filter((sub) => {
+    return submissionsList.filter((sub) => {
       const matchStatus = statusFilter === 'all' || sub.status === statusFilter;
       const matchLang = langFilter === 'all' || sub.language.toLowerCase() === langFilter.toLowerCase();
       const matchSearch =
@@ -340,12 +373,15 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
         sub.topic.toLowerCase().includes(searchQuery.toLowerCase());
       return matchStatus && matchLang && matchSearch;
     });
-  }, [statusFilter, langFilter, searchQuery]);
+  }, [submissionsList, statusFilter, langFilter, searchQuery]);
 
-  // Key KPI stats
-  const totalSubmissions = MOCK_SUBMISSIONS.length;
-  const acceptedCount = MOCK_SUBMISSIONS.filter((s) => s.status === 'accepted').length;
-  const accuracyRate = Math.round((acceptedCount / totalSubmissions) * 100);
+  // Key KPI stats - Zero division safe (edge case new user)
+  const totalSubmissions = submissionsList.length;
+  const acceptedCount = submissionsList.filter((s) => s.status === 'accepted').length;
+  const accuracyRate = totalSubmissions > 0 ? Math.round((acceptedCount / totalSubmissions) * 100) : 0;
+  const avgExecutionTime = totalSubmissions > 0
+    ? (submissionsList.reduce((acc, s) => acc + s.executionTimeMs, 0) / totalSubmissions).toFixed(1)
+    : '0';
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -527,10 +563,10 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
               <Cpu className="w-4 h-4 text-cyan-500" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-2">
-              18.4 ms
+              {avgExecutionTime} ms
             </div>
             <span className="text-[11px] text-cyan-600 dark:text-cyan-400 mt-1 block">
-              {isVie ? 'Rất nhanh và tối ưu' : 'Highly optimized'}
+              {totalSubmissions > 0 ? (isVie ? 'Rất nhanh và tối ưu' : 'Highly optimized') : (isVie ? 'Chưa có dữ liệu' : 'No runtime data')}
             </span>
           </div>
 
@@ -542,10 +578,12 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
               <BarChart3 className="w-4 h-4 text-amber-500" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-2">
-              Top 5%
+              {totalSubmissions > 0 ? `Top ${Math.max(5, 100 - accuracyRate)}%` : '-'}
             </div>
             <span className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 block">
-              {isVie ? 'Thứ 3 / 68 sinh viên' : 'Rank 3 / 68 students'}
+              {totalSubmissions > 0
+                ? (isVie ? `Đã đạt ${acceptedCount}/${totalSubmissions} bài` : `Passed ${acceptedCount}/${totalSubmissions} submissions`)
+                : (isVie ? 'Chưa xếp hạng' : 'Unranked')}
             </span>
           </div>
         </div>
@@ -574,13 +612,13 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
             {/* Status Select */}
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
+              onChange={(e) => setStatusFilter(e.target.value as SubmissionStatusFilter)}
               className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-[#0b0f17] border border-slate-200 dark:border-gray-700/80 text-slate-700 dark:text-slate-200 focus:outline-none focus:border-[#1BA94C]"
             >
               <option value="all">{isVie ? 'Tất cả trạng thái' : 'All Statuses'}</option>
-              <option value="accepted">Accepted (Thành công)</option>
-              <option value="wrong_answer">Wrong Answer (Sai kết quả)</option>
-              <option value="time_limit">Time Limit Exceeded (Quá giờ)</option>
+              <option value="accepted">Accepted</option>
+              <option value="wrong_answer">Wrong Answer</option>
+              <option value="time_limit">Time Limit Exceeded</option>
             </select>
 
             {/* Language Select */}
@@ -656,22 +694,7 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
 
                         {/* Status Badge */}
                         <td className="py-3.5 px-4">
-                          {sub.status === 'accepted' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-[#00EA64] border border-emerald-200 dark:border-emerald-800/60">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#00EA64]" />
-                              <span>Accepted</span>
-                            </span>
-                          ) : sub.status === 'wrong_answer' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60">
-                              <XCircle className="w-3.5 h-3.5 text-rose-500" />
-                              <span>Wrong Answer</span>
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60">
-                              <Clock className="w-3.5 h-3.5 text-amber-500" />
-                              <span>Time Limit</span>
-                            </span>
-                          )}
+                          <StatusBadge status={sub.status} size="sm" />
                         </td>
 
                         {/* Score & Test cases */}

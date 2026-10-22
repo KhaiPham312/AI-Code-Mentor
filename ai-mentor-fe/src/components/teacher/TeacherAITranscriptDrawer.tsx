@@ -1,5 +1,11 @@
 import React from 'react';
-import { StudentAIAuditLog } from '../../services/mockTeacherData';
+import {
+  StudentAIAuditLog,
+  translateExerciseTitle,
+  translateTimeAgo,
+  translateLogSummary,
+  translateTranscript,
+} from '../../services/mockTeacherData';
 import { Language, ThemeMode } from '../dashboard/dashboardI18n';
 import {
   X,
@@ -80,7 +86,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
                   isDark ? 'text-slate-400' : 'text-neutral-500'
                 }`}
               >
-                {log.studentName} ({log.studentId}) • {log.timeAgo}
+                {log.studentName} ({log.studentId}) • {translateTimeAgo(log.timeAgo, isVie)}
               </p>
             </div>
           </div>
@@ -117,7 +123,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
                 >
                   {isVie ? 'Bài tập đang thực hành' : 'Current Exercise'}
                 </span>
-                <h4 className="text-sm font-bold mt-0.5">{log.exerciseTitle}</h4>
+                <h4 className="text-sm font-bold mt-0.5">{translateExerciseTitle(log.exerciseTitle, isVie)}</h4>
               </div>
               {onPreviewStudentIDE && (
                 <button
@@ -145,11 +151,11 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
             >
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
               <div>
-                <span className="font-bold font-mono block">{log.errorType}</span>
-                <span className="text-[11px] font-mono leading-relaxed block mt-0.5">
+                <span className="font-bold font-sans block">{log.errorType}</span>
+                <span className="text-[11px] font-sans leading-relaxed block mt-0.5">
                   {log.errorDetails}
                 </span>
-                <span className="text-[10px] mt-1 block opacity-80">
+                <span className="text-[10px] mt-1 block opacity-80 font-sans">
                   {isVie
                     ? `Sinh viên đã thử ${log.attemptCount} lần liên tiếp`
                     : `Student attempted ${log.attemptCount} consecutive times`}
@@ -166,23 +172,23 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
                 : 'bg-emerald-50 border-emerald-200 text-emerald-900'
             }`}
           >
-            <div className="flex items-center gap-2 font-bold text-xs">
+            <div className="flex items-center gap-2 font-bold text-xs font-sans">
               <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
               <span>{isVie ? 'Phân tích Tư duy Sư phạm (AI Insights)' : 'Pedagogical Evaluation'}</span>
             </div>
             <p className="text-xs leading-relaxed font-sans opacity-95">
-              {log.pedagogicalInsight}
+              {translateLogSummary(log.id, log.studentPrompt, log.aiHintSummary, log.pedagogicalInsight, isVie).insight}
             </p>
           </div>
 
           {/* Code Snapshot at Time of Error */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 font-sans">
                 <Code className="w-3.5 h-3.5 text-indigo-500" />
                 <span>{isVie ? 'Đoạn mã lúc phát sinh lỗi' : 'Code Snapshot at Error'}</span>
               </span>
-              <span className="text-[11px] font-mono text-slate-500">Python 3.11</span>
+              <span className="text-[11px] font-sans text-slate-500 font-medium">Python 3.11</span>
             </div>
             <pre
               className={`p-3.5 rounded-xl border text-xs font-mono whitespace-pre-wrap leading-relaxed overflow-x-auto ${
@@ -197,13 +203,13 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
 
           {/* Chronological Chat Conversation Stream */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5 font-sans">
               <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
               <span>{isVie ? 'Dòng trao đổi trực tiếp với AI' : 'Live Dialogue Flow'}</span>
             </h4>
 
             <div className="space-y-4">
-              {log.transcript.map((msg, idx) => (
+              {translateTranscript(log.id, log.transcript, isVie).map((msg, idx) => (
                 <div
                   key={idx}
                   className={`flex flex-col ${
@@ -213,7 +219,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
                   <div className="flex items-center gap-1.5 mb-1 px-1">
                     {msg.sender === 'student' ? (
                       <>
-                        <span className="text-[10px] font-semibold text-slate-400">
+                        <span className="text-[10px] font-semibold text-slate-400 font-sans">
                           {log.studentName}
                         </span>
                         <User className="w-3 h-3 text-slate-400" />
@@ -221,12 +227,12 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
                     ) : (
                       <>
                         <Bot className="w-3 h-3 text-emerald-500" />
-                        <span className="text-[10px] font-semibold text-emerald-500">
+                        <span className="text-[10px] font-semibold text-emerald-500 font-sans">
                           AI Socratic Mentor
                         </span>
                       </>
                     )}
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="text-[10px] text-slate-400 font-sans">
                       {msg.time}
                     </span>
                   </div>

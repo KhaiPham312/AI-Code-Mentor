@@ -106,6 +106,11 @@ export const dashboardTranslations = {
     scoreCol: 'Điểm',
     streakCol: 'Streak',
     closeBtn: 'Đóng',
+
+    // Footer
+    footerFaculty: 'Khoa Công nghệ Thông tin, Trường Đại học Sư phạm Hà Nội (HNUE)',
+    footerOnlineStatus: 'Hệ thống trực tuyến 100%',
+    footerVersion: 'Phiên bản 2.5.0',
   },
   eng: {
     // Navbar
@@ -211,5 +216,10 @@ export const dashboardTranslations = {
     scoreCol: 'Score',
     streakCol: 'Streak',
     closeBtn: 'Close',
+
+    // Footer
+    footerFaculty: 'Faculty of Information Technology, Hanoi National University of Education (HNUE)',
+    footerOnlineStatus: '100% Online Systems Operational',
+    footerVersion: 'Version 2.5.0',
   },
 };

@@ -9,20 +9,15 @@ import {
   Brain,
   Coffee,
   Database,
-  Server,
-  HardDrive,
-  Variable,
-  Search,
-  Atom,
   ChevronRight,
   CheckCircle2,
-  Sparkles,
 } from 'lucide-react';
 
 interface PracticeSkillsGridProps {
   currentLang: Language;
   exercises: Exercise[];
   onSelectTrack: (trackId: string) => void;
+  solvedExerciseIds?: number[];
 }
 
 /**
@@ -60,16 +55,6 @@ const renderSkillIcon = (iconType: SkillIconType, color: string) => {
       );
     case 'sql':
       return <Database className="w-5 h-5" style={{ color }} />;
-    case 'databases':
-      return <Server className="w-5 h-5" style={{ color }} />;
-    case 'linux-shell':
-      return <HardDrive className="w-5 h-5" style={{ color }} />;
-    case 'fp':
-      return <Variable className="w-5 h-5" style={{ color }} />;
-    case 'regex':
-      return <Search className="w-5 h-5" style={{ color }} />;
-    case 'react':
-      return <Atom className="w-5 h-5" style={{ color }} />;
     default:
       return <Layers className="w-5 h-5" style={{ color }} />;
   }
@@ -79,6 +64,7 @@ export const PracticeSkillsGrid: React.FC<PracticeSkillsGridProps> = ({
   currentLang,
   exercises,
   onSelectTrack,
+  solvedExerciseIds = [],
 }) => {
   const t = dashboardTranslations[currentLang];
 
@@ -87,8 +73,8 @@ export const PracticeSkillsGrid: React.FC<PracticeSkillsGridProps> = ({
     const trackExercises = exercises.filter(
       (ex) => ex.trackIds && ex.trackIds.includes(trackId)
     );
-    const count = trackExercises.length > 0 ? trackExercises.length : 3;
-    const solved = trackExercises.filter((ex) => ex.status === 'solved').length;
+    const count = trackExercises.length;
+    const solved = trackExercises.filter((ex) => solvedExerciseIds.includes(ex.id)).length;
     return { count, solved };
   };
 
@@ -97,16 +83,9 @@ export const PracticeSkillsGrid: React.FC<PracticeSkillsGridProps> = ({
       {/* SECTION HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b pb-4 border-slate-200 dark:border-gray-800">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 text-[#1BA94C] dark:text-[#00EA64] border border-emerald-200 dark:border-emerald-800/50 mb-1.5">
-            <Sparkles className="w-3 h-3" />
-            <span>HackerRank Practice Tracks</span>
-          </div>
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white font-sans">
             {t.practiceSkillsTitle}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
-            {t.practiceSkillsSub}
-          </p>
         </div>
 
         <div className="inline-flex items-center gap-2 self-start sm:self-auto px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
@@ -172,20 +151,20 @@ export const PracticeSkillsGrid: React.FC<PracticeSkillsGridProps> = ({
                   </span>
                 </span>
 
-                {stats.solved > 0 && (
-                  <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                      isCompleted
-                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-[#1BA94C] dark:text-[#00EA64] border border-emerald-200 dark:border-emerald-800/50'
-                        : 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50'
-                    }`}
-                  >
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span>
-                      {stats.solved}/{stats.count} {t.solvedLabel}
-                    </span>
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                    isCompleted
+                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-[#1BA94C] dark:text-[#00EA64] border border-emerald-200 dark:border-emerald-800/50'
+                      : stats.solved > 0
+                      ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>
+                    {stats.solved}/{stats.count} {t.solvedLabel}
                   </span>
-                )}
+                </span>
               </div>
             </div>
           );
