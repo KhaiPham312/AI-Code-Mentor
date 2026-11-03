@@ -8,12 +8,14 @@ Hệ thống Trợ giảng Lập trình Thông minh theo phương pháp gợi m�
 
 Dự án gồm 2 phần chính:
 - **`ai-mentor-fe`**: Frontend xây dựng bằng **React 19**, **Vite**, **TypeScript**, **TailwindCSS**, Monaco Editor và KaTeX.
-- **`ai-mentor-be`**: Backend API xây dựng bằng **FastAPI**, **SQLAlchemy**, **Alembic**, **Pydantic** và **SQLite** (hoặc PostgreSQL), tích hợp Google Gemini AI.
+- **`ai-mentor-be`**: Backend API xây dựng bằng **FastAPI**, **SQLAlchemy**, **Alembic**, **Pydantic** và **PostgreSQL** (có kết nối Connection Pool chịu tải 500+ CCU, dự phòng SQLite), tích hợp Google Gemini AI.
+- **`docker-compose.yml`**: Khởi chạy nhanh cụm dịch vụ PostgreSQL 16 container hóa sẵn sàng cho môi trường tải cao.
 
 ```text
 AI-Code-Mentor/
 ├── ai-mentor-fe/       # Mã nguồn giao diện Frontend (React + Vite)
 ├── ai-mentor-be/       # Mã nguồn dịch vụ Backend API (FastAPI)
+├── docker-compose.yml  # Cấu hình container PostgreSQL 16
 └── README.md           # Hướng dẫn khởi chạy toàn bộ hệ thống
 ```
 
@@ -23,8 +25,9 @@ AI-Code-Mentor/
 
 Trước khi bắt đầu, đảm bảo máy tính đã cài đặt:
 1. **Node.js** (Khuyến nghị phiên bản `>= 20.x` hoặc `22.x`) và **npm**.
-2. **Python** (Khuyến nghị phiên bản `>= 3.10` hoặc `3.11`/`3.12`).
-3. **Git**.
+2. **Python** (Khuyến nghị phiên bản `>= 3.10` hoặc `3.11`/`3.12`/`3.14`).
+3. **Docker** & **Docker Compose** (Khuyến nghị dùng để chạy PostgreSQL chịu tải cao).
+4. **Git**.
 
 ---
 
@@ -39,14 +42,21 @@ cd AI-Code-Mentor
 
 ---
 
-### BƯỚC 2: Cài đặt và khởi chạy Backend (`ai-mentor-be`)
+### BƯỚC 2: Khởi chạy CSDL & Backend (`ai-mentor-be`)
 
-1. **Di chuyển vào thư mục backend:**
+1. **Khởi chạy PostgreSQL bằng Docker (Khuyến nghị cho hiệu năng cao):**
+   Tại thư mục gốc dự án:
+   ```bash
+   docker compose up -d
+   ```
+   *(Container PostgreSQL 16 sẽ tự động chạy tại cổng `5432` với cấu hình tối ưu connection pool).*
+
+2. **Di chuyển vào thư mục backend:**
    ```bash
    cd ai-mentor-be
    ```
 
-2. **Khởi tạo và kích hoạt môi trường ảo (Virtualenv):**
+3. **Khởi tạo và kích hoạt môi trường ảo (Virtualenv):**
    - Trên **Linux / macOS**:
      ```bash
      python3 -m venv venv
@@ -58,26 +68,31 @@ cd AI-Code-Mentor
      venv\Scripts\activate
      ```
 
-3. **Cài đặt các thư viện cần thiết:**
+4. **Cài đặt các thư viện cần thiết:**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Tạo file cấu hình môi trường `.env`:**
+5. **Tạo file cấu hình môi trường `.env`:**
    ```bash
    cp .env.example .env
    ```
-   *(Tùy chọn: Mở file `.env` và điền `GEMINI_API_KEY` nếu bạn muốn sử dụng mô hình Google Gemini thật).*
+   *(File `.env.example` đã cấu hình sẵn kết nối tới PostgreSQL container. Mở file `.env` và điền `GEMINI_API_KEY` nếu bạn muốn sử dụng mô hình Google Gemini thật).*
 
-5. **Khởi tạo cơ sở dữ liệu và nạp dữ liệu mẫu:**
+6. **Khởi tạo cơ sở dữ liệu và nạp dữ liệu mẫu:**
    ```bash
-   alembic upgrade head
    python scripts/seed_data.py
    ```
 
-6. **Khởi chạy Backend Server:**
-   ```bash
-   uvicorn app.main:app --reload --port 8000
+7. **Khởi chạy Backend Server:**
+   - Khi phát triển cục bộ:
+     ```bash
+     uvicorn app.main:app --reload --port 8000
+     ```
+   - Khi kiểm thử tải cao (Multi-worker):
+     ```bash
+     gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+     ```
    ```
    * Backend API hoạt động tại: **`http://localhost:8000`**
    * Tài liệu API tương tác (Swagger UI): **`http://localhost:8000/docs`**
@@ -117,12 +132,13 @@ Mở một **Terminal mới** (giữ nguyên terminal Backend đang chạy):
 
 ## 🔑 Tài Khoản Đăng Nhập Mẫu (Seed Data)
 
-Hệ thống đã có sẵn 2 tài khoản mẫu để bạn trải nghiệm ngay:
+Hệ thống đã có sẵn 3 tài khoản mẫu ứng với 3 vai trò để bạn trải nghiệm:
 
-| Vai trò | Tên đăng nhập | Email | Mật khẩu |
-| :--- | :--- | :--- | :--- |
-| **Học sinh (Student)** | `student` | `student@hnue.edu.vn` | `123456` |
-| **Giáo viên (Teacher)** | `teacher` | `teacher@hnue.edu.vn` | `123456` |
+| Vai trò | Tên đăng nhập | Email | Mật khẩu | Chức năng chính |
+| :--- | :--- | :--- | :--- | :--- |
+| **Học sinh (Student)** | `student` | `student@hnue.edu.vn` | `123456` | Web IDE, Làm bài, nộp bài, Chat Socratic AI |
+| **Giáo viên (Teacher)** | `teacher` | `teacher@hnue.edu.vn` | `123456` | Quản lý lớp, quản lý bài tập, theo dõi tiến độ |
+| **Quản trị viên (Admin)** | `admin` | `admin@hnue.edu.vn` | `123456` | Quản lý người dùng, nhật ký Sandbox, cấu hình AI |
 
 > *Ghi chú: Bạn cũng có thể bấm nút **"Đăng ký"** trên màn hình để tạo một tài khoản mới bất kỳ.*
 

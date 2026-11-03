@@ -78,10 +78,10 @@
     "semantic_hash": "04582209c2e4192f3f9cfefd307d54cc"
   },
   "ai-mentor-be/app/db/session.py": {
-    "mtime": 1791556797.97912,
-    "seen": 1793461594.8143077,
-    "ast_hash": "6932450895217902b3eee63d961bfebd",
-    "semantic_hash": "6932450895217902b3eee63d961bfebd"
+    "mtime": 1793723837.9661276,
+    "seen": 1793723946.0077243,
+    "ast_hash": "4ad2b0e1b002b92fc6a08e28845612fa",
+    "semantic_hash": ""
   },
   "ai-mentor-be/app/main.py": {
     "mtime": 1791557027.3060515,
@@ -702,9 +702,9 @@
     "semantic_hash": ""
   },
   "ai-mentor-be/requirements.txt": {
-    "mtime": 1791557486.245967,
-    "seen": 1793718126.6742706,
-    "ast_hash": "33c99a0618e658d0bb122e3c50dc4484",
+    "mtime": 1793723784.9172907,
+    "seen": 1793723946.0079634,
+    "ast_hash": "39314e4a6f287386419e70b153116033",
     "semantic_hash": ""
   },
   "ai-mentor-fe/README.md": {
@@ -717,6 +717,12 @@
     "mtime": 1792677908.839105,
     "seen": 1793718126.67428,
     "ast_hash": "41828b91a507c04de1c95301973fad10",
+    "semantic_hash": ""
+  },
+  "docker-compose.yml": {
+    "mtime": 1793723791.2192712,
+    "seen": 1793723946.0079472,
+    "ast_hash": "fbd13427161ca978a189f75c0a6a5eaf",
     "semantic_hash": ""
   },
   "ai-mentor-fe/package-lock.json": {

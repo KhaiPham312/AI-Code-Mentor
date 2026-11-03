@@ -1,4 +1,11 @@
 {
+  "9": "postgres",
   "12": "AI Code Mentor System",
-  "13": "StudentWorkspace.tsx"
+  "13": "StudentWorkspace.tsx",
+  "16": "languageTracks.ts",
+  "19": "ProblemDescription.tsx",
+  "20": "submissions.py",
+  "21": "TerminalPanel.tsx",
+  "22": "exerciseService.ts",
+  "36": "chat_with_ai_mentor"
 }
