@@ -44,12 +44,12 @@ cd AI-Code-Mentor
 
 ### BƯỚC 2: Khởi chạy CSDL & Backend (`ai-mentor-be`)
 
-1. **Khởi chạy PostgreSQL bằng Docker (Khuyến nghị cho hiệu năng cao):**
+1. **Khởi chạy PostgreSQL & Redis bằng Docker (Khuyến nghị cho hiệu năng cao):**
    Tại thư mục gốc dự án:
    ```bash
    docker compose up -d
    ```
-   *(Container PostgreSQL 16 sẽ tự động chạy tại cổng `5432` với cấu hình tối ưu connection pool).*
+   *(Cả 2 container PostgreSQL 16 và Redis 7 sẽ tự động chạy ngầm phục vụ CSDL và hàng đợi chấm code).*
 
 2. **Di chuyển vào thư mục backend:**
    ```bash
@@ -84,14 +84,20 @@ cd AI-Code-Mentor
    python scripts/seed_data.py
    ```
 
-7. **Khởi chạy Backend Server:**
-   - Khi phát triển cục bộ:
+7. **Khởi chạy Backend Server & Celery Judge Worker:**
+   - **Chạy Backend Server:**
+     - Khi phát triển cục bộ:
+       ```bash
+       uvicorn app.main:app --reload --port 8000
+       ```
+     - Khi chạy tải cao (Multi-worker):
+       ```bash
+       ./start_server.sh
+       ```
+   - **Chạy Celery Judge Worker (Xử lý chấm bài bất đồng bộ qua Redis):**
+     Mở một terminal mới trong thư mục `ai-mentor-be/`:
      ```bash
-     uvicorn app.main:app --reload --port 8000
-     ```
-   - Khi kiểm thử tải cao (Multi-worker):
-     ```bash
-     gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+     ./start_judge_worker.sh
      ```
    ```
    * Backend API hoạt động tại: **`http://localhost:8000`**

@@ -54,16 +54,16 @@
     "semantic_hash": "abf0cb30f597663c1ed2938730238abc"
   },
   "ai-mentor-be/app/api/v1/endpoints/submissions.py": {
-    "mtime": 1793369083.9548185,
-    "seen": 1793461594.8143022,
-    "ast_hash": "60b8d1d24002a6b3c52d96a5b17a37ec",
-    "semantic_hash": "60b8d1d24002a6b3c52d96a5b17a37ec"
+    "mtime": 1793724998.4260318,
+    "seen": 1793725169.0624452,
+    "ast_hash": "c925c2132de7a7842960e725685bddee",
+    "semantic_hash": ""
   },
   "ai-mentor-be/app/core/config.py": {
-    "mtime": 1792677908.8383763,
-    "seen": 1793461594.8143034,
-    "ast_hash": "b750d57df0000b3f98aba119c59b7344",
-    "semantic_hash": "b750d57df0000b3f98aba119c59b7344"
+    "mtime": 1793724959.970548,
+    "seen": 1793725169.0624542,
+    "ast_hash": "44681f0091ece201310623810515b24a",
+    "semantic_hash": ""
   },
   "ai-mentor-be/app/core/security.py": {
     "mtime": 1791556791.0010347,
@@ -78,8 +78,8 @@
     "semantic_hash": "04582209c2e4192f3f9cfefd307d54cc"
   },
   "ai-mentor-be/app/db/session.py": {
-    "mtime": 1793723837.9661276,
-    "seen": 1793723946.0077243,
+    "mtime": 1793724096.427415,
+    "seen": 1793724469.2618365,
     "ast_hash": "4ad2b0e1b002b92fc6a08e28845612fa",
     "semantic_hash": ""
   },
@@ -192,10 +192,10 @@
     "semantic_hash": "c07e9a6e39edcacdfe29be3ef0f73cbb"
   },
   "ai-mentor-be/tests/test_api.py": {
-    "mtime": 1792678044.2878647,
-    "seen": 1793461594.8143313,
-    "ast_hash": "566897186744355f4eaf1cf09a379d73",
-    "semantic_hash": "566897186744355f4eaf1cf09a379d73"
+    "mtime": 1793725098.774765,
+    "seen": 1793725169.0625253,
+    "ast_hash": "690e33ba10ef7fe5a519c43daa77221f",
+    "semantic_hash": ""
   },
   "ai-mentor-fe/package.json": {
     "mtime": 1791904695.473351,
@@ -528,10 +528,10 @@
     "semantic_hash": "2b879d7dc0890c700ce6da0e2b2ee710"
   },
   "ai-mentor-fe/src/services/exerciseService.ts": {
-    "mtime": 1792677908.844406,
-    "seen": 1793461594.8143992,
-    "ast_hash": "966b6b45178f75225626689d9d0ee771",
-    "semantic_hash": "966b6b45178f75225626689d9d0ee771"
+    "mtime": 1793725030.5916138,
+    "seen": 1793725169.062668,
+    "ast_hash": "8528bed10f932d964f70f6512e13fabf",
+    "semantic_hash": ""
   },
   "ai-mentor-fe/src/services/languageTracks.ts": {
     "mtime": 1792677908.8460143,
@@ -690,9 +690,9 @@
     "semantic_hash": "a2760511c65806022ad20adf74370ff3"
   },
   "README.md": {
-    "mtime": 1791907811.6805606,
-    "seen": 1793718126.6742463,
-    "ast_hash": "9f2d8024c9aef62fdbd4f9ed7afd2dd8",
+    "mtime": 1793725150.5091522,
+    "seen": 1793725169.0627198,
+    "ast_hash": "1eae4a6692ce0d9dd9d66dff67e28040",
     "semantic_hash": ""
   },
   "ai-mentor-be/README.md": {
@@ -702,9 +702,9 @@
     "semantic_hash": ""
   },
   "ai-mentor-be/requirements.txt": {
-    "mtime": 1793723784.9172907,
-    "seen": 1793723946.0079634,
-    "ast_hash": "39314e4a6f287386419e70b153116033",
+    "mtime": 1793724930.7859523,
+    "seen": 1793725169.0627308,
+    "ast_hash": "c4f6812bb8d1023c1bbe6ae3eb091ee0",
     "semantic_hash": ""
   },
   "ai-mentor-fe/README.md": {
@@ -720,9 +720,45 @@
     "semantic_hash": ""
   },
   "docker-compose.yml": {
-    "mtime": 1793723791.2192712,
-    "seen": 1793723946.0079472,
-    "ast_hash": "fbd13427161ca978a189f75c0a6a5eaf",
+    "mtime": 1793724936.2778754,
+    "seen": 1793725169.0627143,
+    "ast_hash": "320b10bb5c7f27657c78ca5e56728f4e",
+    "semantic_hash": ""
+  },
+  "ai-mentor-be/gunicorn_conf.py": {
+    "mtime": 1793724586.5858152,
+    "seen": 1793725169.062515,
+    "ast_hash": "1a96d55c1097f550af398be1066d5090",
+    "semantic_hash": ""
+  },
+  "ai-mentor-be/start_server.sh": {
+    "mtime": 1793724477.8095675,
+    "seen": 1793725169.062523,
+    "ast_hash": "fde417588b4e5c69ec62ace4c926efa7",
+    "semantic_hash": ""
+  },
+  "ai-mentor-be/app/core/celery_app.py": {
+    "mtime": 1793724972.1543825,
+    "seen": 1793725169.0624502,
+    "ast_hash": "28285f0b5972822df4826659c691314b",
+    "semantic_hash": ""
+  },
+  "ai-mentor-be/app/tasks/__init__.py": {
+    "mtime": 1793724983.8642251,
+    "seen": 1793725169.0625062,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "ai-mentor-be/app/tasks/judge_tasks.py": {
+    "mtime": 1793724980.8302658,
+    "seen": 1793725169.062509,
+    "ast_hash": "52dbb006a5ab0654978a15a6f1a6ced1",
+    "semantic_hash": ""
+  },
+  "ai-mentor-be/start_judge_worker.sh": {
+    "mtime": 1793725011.4158616,
+    "seen": 1793725169.0625203,
+    "ast_hash": "1bb5070c6603dc4bbfa21becff38e00a",
     "semantic_hash": ""
   },
   "ai-mentor-fe/package-lock.json": {

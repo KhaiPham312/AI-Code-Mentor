@@ -78,10 +78,10 @@
     "semantic_hash": "04582209c2e4192f3f9cfefd307d54cc"
   },
   "ai-mentor-be/app/db/session.py": {
-    "mtime": 1791556797.97912,
-    "seen": 1793461594.8143077,
-    "ast_hash": "6932450895217902b3eee63d961bfebd",
-    "semantic_hash": "6932450895217902b3eee63d961bfebd"
+    "mtime": 1793724096.427415,
+    "seen": 1793724469.2618365,
+    "ast_hash": "4ad2b0e1b002b92fc6a08e28845612fa",
+    "semantic_hash": ""
   },
   "ai-mentor-be/app/main.py": {
     "mtime": 1791557027.3060515,
@@ -690,9 +690,9 @@
     "semantic_hash": "a2760511c65806022ad20adf74370ff3"
   },
   "README.md": {
-    "mtime": 1791907811.6805606,
-    "seen": 1793718126.6742463,
-    "ast_hash": "9f2d8024c9aef62fdbd4f9ed7afd2dd8",
+    "mtime": 1793724238.9832957,
+    "seen": 1793724469.2620761,
+    "ast_hash": "22953f5ddb5923b741cd8e7850fd722c",
     "semantic_hash": ""
   },
   "ai-mentor-be/README.md": {
@@ -702,9 +702,9 @@
     "semantic_hash": ""
   },
   "ai-mentor-be/requirements.txt": {
-    "mtime": 1791557486.245967,
-    "seen": 1793718126.6742706,
-    "ast_hash": "33c99a0618e658d0bb122e3c50dc4484",
+    "mtime": 1793724374.4069164,
+    "seen": 1793724469.2620854,
+    "ast_hash": "0f4ece1cc1ae03a227b41a917f160415",
     "semantic_hash": ""
   },
   "ai-mentor-fe/README.md": {
@@ -717,6 +717,24 @@
     "mtime": 1792677908.839105,
     "seen": 1793718126.67428,
     "ast_hash": "41828b91a507c04de1c95301973fad10",
+    "semantic_hash": ""
+  },
+  "docker-compose.yml": {
+    "mtime": 1793723955.8997648,
+    "seen": 1793724469.2620711,
+    "ast_hash": "08683f70f5e07979f179e04a52c4755f",
+    "semantic_hash": ""
+  },
+  "ai-mentor-be/gunicorn_conf.py": {
+    "mtime": 1793724378.744796,
+    "seen": 1793724469.261895,
+    "ast_hash": "7ad5d56a788d461db51e546701f01636",
+    "semantic_hash": ""
+  },
+  "ai-mentor-be/start_server.sh": {
+    "mtime": 1793724395.9463267,
+    "seen": 1793724469.2619004,
+    "ast_hash": "69b6bfa33f77009106a36f7aeaa65f15",
     "semantic_hash": ""
   },
   "ai-mentor-fe/package-lock.json": {

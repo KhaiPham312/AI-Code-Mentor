@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite:///./database/ai_mentor.db"
 
+    # Redis & Task Queue
+    REDIS_URL: str = "redis://localhost:6379/0"
+    USE_ASYNC_QUEUE: bool = True
+
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:5173",

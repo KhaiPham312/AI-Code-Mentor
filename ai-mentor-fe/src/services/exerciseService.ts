@@ -475,19 +475,41 @@ export async function executeStudentCode(
 
 /**
  * Nộp bài chính thức (Submit Code against both sample & hidden test cases)
+ * Tích hợp Asynchronous Polling nếu backend trả về trạng thái 'pending' hoặc 'running'
  */
 export async function submitStudentCodeBackend(
   exerciseId: number,
   code: string,
-  language: string = 'python'
+  language: string = 'python',
+  onStatusUpdate?: (status: string) => void
 ): Promise<SubmissionRecord> {
   const exercise = fetchExerciseByIdSync(exerciseId);
   try {
-    const data = await api.post<BackendSubmissionItem>('/submissions', {
+    let data = await api.post<BackendSubmissionItem>('/submissions', {
       exercise_id: exerciseId,
       source_code: code,
       language: language,
     });
+
+    // Nếu backend đang chấm bất đồng bộ (Celery + Redis Queue), tiến hành poll trạng thái
+    if (data.status === 'pending' || data.status === 'running') {
+      if (onStatusUpdate) onStatusUpdate(data.status);
+      const submissionId = data.id;
+      const maxAttempts = 30; // 30 x 500ms = 15s timeout
+      let attempts = 0;
+
+      while (attempts < maxAttempts && (data.status === 'pending' || data.status === 'running')) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        attempts++;
+        try {
+          const pollRes = await api.get<BackendSubmissionItem>(`/submissions/${submissionId}/status`);
+          data = pollRes;
+          if (onStatusUpdate) onStatusUpdate(data.status);
+        } catch {
+          break;
+        }
+      }
+    }
 
     return {
       id: data.id,

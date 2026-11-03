@@ -131,6 +131,18 @@ if __name__ == '__main__':
     )
     assert sub_res.status_code == 201
     sub_data = sub_res.json()
+    assert sub_data["status"] in ["pending", "passed"]
+
+    # If asynchronous queue is active, execute worker task synchronously for test verification
+    if sub_data["status"] == "pending":
+        from app.tasks.judge_tasks import grade_submission_task
+        grade_submission_task(sub_data["id"])
+
+        # Poll status
+        status_res = client.get(f"/api/v1/submissions/{sub_data['id']}/status", headers=headers)
+        assert status_res.status_code == 200
+        sub_data = status_res.json()
+
     assert sub_data["status"] == "passed"
     assert sub_data["passed_tests"] == 4  # All 4 tests (2 sample + 2 hidden)
     assert sub_data["total_tests"] == 4

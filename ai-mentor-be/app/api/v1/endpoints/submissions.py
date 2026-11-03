@@ -87,6 +87,8 @@ def run_sample_code(
     )
 
 
+from app.core.config import settings
+
 @router.post("", response_model=SubmissionDetail, status_code=status.HTTP_201_CREATED)
 def submit_code(
     sub_in: SubmissionCreate,
@@ -107,7 +109,34 @@ def submit_code(
             detail="Bài tập chưa có test cases để chấm điểm"
         )
 
-    # Run on ALL test cases (sample + hidden)
+    # 1. Khởi tạo record Submission với trạng thái pending ban đầu
+    db_submission = Submission(
+        user_id=current_user.id,
+        exercise_id=exercise.id,
+        source_code=sub_in.source_code,
+        language=sub_in.language,
+        status="pending",
+        passed_tests=0,
+        total_tests=len(all_test_cases),
+        execution_time_ms=0,
+        error_message=None,
+        results_detail=None,
+    )
+    db.add(db_submission)
+    db.commit()
+    db.refresh(db_submission)
+
+    # 2. Asynchronous Queue Processing (Celery + Redis)
+    if settings.USE_ASYNC_QUEUE:
+        try:
+            from app.tasks.judge_tasks import grade_submission_task
+            grade_submission_task.delay(db_submission.id)
+            return db_submission
+        except Exception as e:
+            # Fallback sang chấm trực tiếp nếu Redis/Celery tạm thời gián đoạn
+            pass
+
+    # 3. Fallback Synchronous Processing (nếu tắt queue hoặc queue lỗi)
     run_summary = CodeRunner.run_tests(
         code=sub_in.source_code,
         test_cases=all_test_cases,
@@ -116,7 +145,6 @@ def submit_code(
         is_sample_only=False
     )
 
-    # Trích xuất error message nếu có lỗi hoặc vi phạm bảo mật
     first_error = None
     if run_summary.get("results"):
         for r in run_summary["results"]:
@@ -124,23 +152,40 @@ def submit_code(
                 first_error = r["error_message"]
                 break
 
-    db_submission = Submission(
-        user_id=current_user.id,
-        exercise_id=exercise.id,
-        source_code=sub_in.source_code,
-        language=sub_in.language,
-        status=run_summary["status"],
-        passed_tests=run_summary["passed_tests"],
-        total_tests=run_summary["total_tests"],
-        execution_time_ms=run_summary["execution_time_ms"],
-        error_message=first_error,
-        results_detail=json.dumps(run_summary["results"]),
-    )
-    db.add(db_submission)
+    db_submission.status = run_summary["status"]
+    db_submission.passed_tests = run_summary["passed_tests"]
+    db_submission.total_tests = run_summary["total_tests"]
+    db_submission.execution_time_ms = run_summary["execution_time_ms"]
+    db_submission.error_message = first_error
+    db_submission.results_detail = json.dumps(run_summary["results"])
     db.commit()
     db.refresh(db_submission)
 
     return db_submission
+
+
+@router.get("/{submission_id}/status", response_model=SubmissionDetail)
+def get_submission_status(
+    submission_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Endpoint phục vụ Polling trạng thái chấm bài bất đồng bộ từ Frontend.
+    Khi status trả về 'passed' / 'failed' / 'error', client sẽ dừng xoay loading.
+    """
+    submission = db.query(Submission).filter(
+        Submission.id == submission_id,
+        Submission.user_id == current_user.id
+    ).first()
+
+    if not submission:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Không tìm thấy bài nộp hoặc bạn không có quyền xem"
+        )
+
+    return submission
 
 
 @router.get("/history", response_model=List[SubmissionResponse])

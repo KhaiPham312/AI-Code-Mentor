@@ -24,3 +24,4 @@ errorlog = "-"
 preload_app = False  # Avoid DB connection sharing across forked processes
 max_requests = 2000  # Restart workers periodically to prevent memory leaks
 max_requests_jitter = 200
+

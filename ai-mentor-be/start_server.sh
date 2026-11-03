@@ -16,3 +16,4 @@ echo "🌐 API URL: http://0.0.0.0:8000"
 echo "📖 Swagger Docs: http://0.0.0.0:8000/docs"
 
 exec gunicorn app.main:app -c gunicorn_conf.py
+
