@@ -1,0 +1,698 @@
+{
+  "ai-mentor-be/alembic/env.py": {
+    "mtime": 1791557275.4599767,
+    "seen": 1793461594.8142781,
+    "ast_hash": "721c71589887c24aedd3ec0d2c8d3122",
+    "semantic_hash": "721c71589887c24aedd3ec0d2c8d3122"
+  },
+  "ai-mentor-be/alembic/versions/a66c38ee7df1_initial_schema.py": {
+    "mtime": 1791557283.9674604,
+    "seen": 1793461594.8142858,
+    "ast_hash": "1c2ed1e81620471a4e686765cba31a0b",
+    "semantic_hash": "1c2ed1e81620471a4e686765cba31a0b"
+  },
+  "ai-mentor-be/app/api/deps.py": {
+    "mtime": 1793368907.7326255,
+    "seen": 1793461594.8142896,
+    "ast_hash": "8183e1d9fbd27d0b6cd10f5ab6e3bb96",
+    "semantic_hash": "8183e1d9fbd27d0b6cd10f5ab6e3bb96"
+  },
+  "ai-mentor-be/app/api/v1/api.py": {
+    "mtime": 1793368965.6447694,
+    "seen": 1793461594.814292,
+    "ast_hash": "45ca31660da895c9d71014f8b277d767",
+    "semantic_hash": "45ca31660da895c9d71014f8b277d767"
+  },
+  "ai-mentor-be/app/api/v1/endpoints/admin.py": {
+    "mtime": 1793368950.6264722,
+    "seen": 1793461594.8142943,
+    "ast_hash": "c1b13fa90d8e5b55943c8770447766c2",
+    "semantic_hash": "c1b13fa90d8e5b55943c8770447766c2"
+  },
+  "ai-mentor-be/app/api/v1/endpoints/ai.py": {
+    "mtime": 1791557010.3436184,
+    "seen": 1793461594.814296,
+    "ast_hash": "6cb480c477bf42de6c1717afdab79ef2",
+    "semantic_hash": "6cb480c477bf42de6c1717afdab79ef2"
+  },
+  "ai-mentor-be/app/api/v1/endpoints/auth.py": {
+    "mtime": 1792677908.8383763,
+    "seen": 1793461594.814298,
+    "ast_hash": "6a5fed92dd6e6de1298e88ff35c0bacd",
+    "semantic_hash": "6a5fed92dd6e6de1298e88ff35c0bacd"
+  },
+  "ai-mentor-be/app/api/v1/endpoints/exercises.py": {
+    "mtime": 1791556938.847681,
+    "seen": 1793461594.8142993,
+    "ast_hash": "b7bdea65a1e42a4aa0299bf71812185f",
+    "semantic_hash": "b7bdea65a1e42a4aa0299bf71812185f"
+  },
+  "ai-mentor-be/app/api/v1/endpoints/health.py": {
+    "mtime": 1791556915.435167,
+    "seen": 1793461594.814301,
+    "ast_hash": "abf0cb30f597663c1ed2938730238abc",
+    "semantic_hash": "abf0cb30f597663c1ed2938730238abc"
+  },
+  "ai-mentor-be/app/api/v1/endpoints/submissions.py": {
+    "mtime": 1793369083.9548185,
+    "seen": 1793461594.8143022,
+    "ast_hash": "60b8d1d24002a6b3c52d96a5b17a37ec",
+    "semantic_hash": "60b8d1d24002a6b3c52d96a5b17a37ec"
+  },
+  "ai-mentor-be/app/core/config.py": {
+    "mtime": 1792677908.8383763,
+    "seen": 1793461594.8143034,
+    "ast_hash": "b750d57df0000b3f98aba119c59b7344",
+    "semantic_hash": "b750d57df0000b3f98aba119c59b7344"
+  },
+  "ai-mentor-be/app/core/security.py": {
+    "mtime": 1791556791.0010347,
+    "seen": 1793461594.814305,
+    "ast_hash": "ed0313bbf16f079296f9b7452d45646b",
+    "semantic_hash": "ed0313bbf16f079296f9b7452d45646b"
+  },
+  "ai-mentor-be/app/db/base.py": {
+    "mtime": 1791556860.8033338,
+    "seen": 1793461594.8143063,
+    "ast_hash": "04582209c2e4192f3f9cfefd307d54cc",
+    "semantic_hash": "04582209c2e4192f3f9cfefd307d54cc"
+  },
+  "ai-mentor-be/app/db/session.py": {
+    "mtime": 1791556797.97912,
+    "seen": 1793461594.8143077,
+    "ast_hash": "6932450895217902b3eee63d961bfebd",
+    "semantic_hash": "6932450895217902b3eee63d961bfebd"
+  },
+  "ai-mentor-be/app/main.py": {
+    "mtime": 1791557027.3060515,
+    "seen": 1793461594.814309,
+    "ast_hash": "7bdc283326cabd3a2fabebea485fc6ec",
+    "semantic_hash": "7bdc283326cabd3a2fabebea485fc6ec"
+  },
+  "ai-mentor-be/app/models/__init__.py": {
+    "mtime": 1791556849.4806798,
+    "seen": 1793461594.81431,
+    "ast_hash": "e9ff9ed7e774e0a2ffd9719f88828755",
+    "semantic_hash": "e9ff9ed7e774e0a2ffd9719f88828755"
+  },
+  "ai-mentor-be/app/models/chat.py": {
+    "mtime": 1791556844.9422262,
+    "seen": 1793461594.8143115,
+    "ast_hash": "a7ddbfa21acedce0b284895d8d5e1c7d",
+    "semantic_hash": "a7ddbfa21acedce0b284895d8d5e1c7d"
+  },
+  "ai-mentor-be/app/models/classroom.py": {
+    "mtime": 1791556823.1139102,
+    "seen": 1793461594.8143125,
+    "ast_hash": "3a9d23072d7186242ed33a606cfcbc12",
+    "semantic_hash": "3a9d23072d7186242ed33a606cfcbc12"
+  },
+  "ai-mentor-be/app/models/exercise.py": {
+    "mtime": 1791556830.4689953,
+    "seen": 1793461594.8143134,
+    "ast_hash": "9a0f946c5eaf8bb1208fbad16e77b048",
+    "semantic_hash": "9a0f946c5eaf8bb1208fbad16e77b048"
+  },
+  "ai-mentor-be/app/models/submission.py": {
+    "mtime": 1791556839.2539167,
+    "seen": 1793461594.8143148,
+    "ast_hash": "a3cc2c951c1ecda8115ca314a9df7c4c",
+    "semantic_hash": "a3cc2c951c1ecda8115ca314a9df7c4c"
+  },
+  "ai-mentor-be/app/models/user.py": {
+    "mtime": 1791556815.5328648,
+    "seen": 1793461594.814316,
+    "ast_hash": "687cb7f0aa9aec08a9471cf0a0ad8e10",
+    "semantic_hash": "687cb7f0aa9aec08a9471cf0a0ad8e10"
+  },
+  "ai-mentor-be/app/schemas/__init__.py": {
+    "mtime": 1791556897.6471171,
+    "seen": 1793461594.8143175,
+    "ast_hash": "98b2a3d2119c6825c7a7304356078d81",
+    "semantic_hash": "98b2a3d2119c6825c7a7304356078d81"
+  },
+  "ai-mentor-be/app/schemas/admin.py": {
+    "mtime": 1793368920.4438763,
+    "seen": 1793461594.8143194,
+    "ast_hash": "0afbbde4711aa7fb26a3a434a0c58559",
+    "semantic_hash": "0afbbde4711aa7fb26a3a434a0c58559"
+  },
+  "ai-mentor-be/app/schemas/chat.py": {
+    "mtime": 1791557535.437558,
+    "seen": 1793461594.8143206,
+    "ast_hash": "1f67d71b4b8968213329f23b3b9ad7b5",
+    "semantic_hash": "1f67d71b4b8968213329f23b3b9ad7b5"
+  },
+  "ai-mentor-be/app/schemas/exercise.py": {
+    "mtime": 1791557515.7765055,
+    "seen": 1793461594.8143218,
+    "ast_hash": "f73fca71394bce83ae7beda701777770",
+    "semantic_hash": "f73fca71394bce83ae7beda701777770"
+  },
+  "ai-mentor-be/app/schemas/submission.py": {
+    "mtime": 1791557524.2160964,
+    "seen": 1793461594.814323,
+    "ast_hash": "64440a15aa04473aaa2a5d436153e30a",
+    "semantic_hash": "64440a15aa04473aaa2a5d436153e30a"
+  },
+  "ai-mentor-be/app/schemas/user.py": {
+    "mtime": 1791557504.8840392,
+    "seen": 1793461594.8143241,
+    "ast_hash": "67f97c6f68f51aa8527445f236b5fa87",
+    "semantic_hash": "67f97c6f68f51aa8527445f236b5fa87"
+  },
+  "ai-mentor-be/app/services/ai_service.py": {
+    "mtime": 1792333564.2267976,
+    "seen": 1793461594.8143253,
+    "ast_hash": "abd9c7512c6e1acedba646401b494639",
+    "semantic_hash": "abd9c7512c6e1acedba646401b494639"
+  },
+  "ai-mentor-be/app/services/email.py": {
+    "mtime": 1792677908.8383763,
+    "seen": 1793461594.8143263,
+    "ast_hash": "bcfe85dfe1b9c16143f65585747095bd",
+    "semantic_hash": "bcfe85dfe1b9c16143f65585747095bd"
+  },
+  "ai-mentor-be/app/services/runner.py": {
+    "mtime": 1792162124.151506,
+    "seen": 1793461594.8143275,
+    "ast_hash": "3518b0c6a872d6ee26ed94889d9e4d4e",
+    "semantic_hash": "3518b0c6a872d6ee26ed94889d9e4d4e"
+  },
+  "ai-mentor-be/database/define_table.py": {
+    "mtime": 1790688168.571188,
+    "seen": 1793461594.814329,
+    "ast_hash": "8e0ba9ce0c807eb172519c074d9233e9",
+    "semantic_hash": "8e0ba9ce0c807eb172519c074d9233e9"
+  },
+  "ai-mentor-be/scripts/seed_data.py": {
+    "mtime": 1793368883.5711493,
+    "seen": 1793461594.81433,
+    "ast_hash": "c07e9a6e39edcacdfe29be3ef0f73cbb",
+    "semantic_hash": "c07e9a6e39edcacdfe29be3ef0f73cbb"
+  },
+  "ai-mentor-be/tests/test_api.py": {
+    "mtime": 1792678044.2878647,
+    "seen": 1793461594.8143313,
+    "ast_hash": "566897186744355f4eaf1cf09a379d73",
+    "semantic_hash": "566897186744355f4eaf1cf09a379d73"
+  },
+  "ai-mentor-fe/package.json": {
+    "mtime": 1791904695.473351,
+    "seen": 1793461594.8143325,
+    "ast_hash": "2ba2e92db45d98a46a28b860a4e50773",
+    "semantic_hash": "2ba2e92db45d98a46a28b860a4e50773"
+  },
+  "ai-mentor-fe/postcss.config.js": {
+    "mtime": 1791037512.4289806,
+    "seen": 1793461594.8143337,
+    "ast_hash": "ef3ba2a81ba19f8ea5ddf625521e96f0",
+    "semantic_hash": "ef3ba2a81ba19f8ea5ddf625521e96f0"
+  },
+  "ai-mentor-fe/scratch/check_constraints.cjs": {
+    "mtime": 1792677908.839105,
+    "seen": 1793461594.8143349,
+    "ast_hash": "4518734e47aaf28fcef551aaf14b628d",
+    "semantic_hash": "4518734e47aaf28fcef551aaf14b628d"
+  },
+  "ai-mentor-fe/scratch/check_server.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.814336,
+    "ast_hash": "e366d246600d57ecce63c318b1f18554",
+    "semantic_hash": "e366d246600d57ecce63c318b1f18554"
+  },
+  "ai-mentor-fe/scratch/comprehensive_test.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.8143373,
+    "ast_hash": "d9cb29d049d0adf3b3dbefdc65be118b",
+    "semantic_hash": "d9cb29d049d0adf3b3dbefdc65be118b"
+  },
+  "ai-mentor-fe/scratch/find_sub_calls.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.8143384,
+    "ast_hash": "65e756656b2aa0e961c486ba07dd0867",
+    "semantic_hash": "65e756656b2aa0e961c486ba07dd0867"
+  },
+  "ai-mentor-fe/scratch/insert_storage_tick.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.8143396,
+    "ast_hash": "81849702e01ff7229dd0512dbd38ce4a",
+    "semantic_hash": "81849702e01ff7229dd0512dbd38ce4a"
+  },
+  "ai-mentor-fe/scratch/inspect_lines.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.8143408,
+    "ast_hash": "622f80d8e3996b2a7328915d21b1b477",
+    "semantic_hash": "622f80d8e3996b2a7328915d21b1b477"
+  },
+  "ai-mentor-fe/scratch/integrate_analytics_breakdown.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.8143418,
+    "ast_hash": "0c0052755b529f1704518c7f805d6375",
+    "semantic_hash": "0c0052755b529f1704518c7f805d6375"
+  },
+  "ai-mentor-fe/scratch/locate_analytics.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.8143435,
+    "ast_hash": "5311c99d5636167615ec1b03af960e2e",
+    "semantic_hash": "5311c99d5636167615ec1b03af960e2e"
+  },
+  "ai-mentor-fe/scratch/reorder_hooks.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.8143454,
+    "ast_hash": "cff94bed18f5e9f805dfa4eb7e64b0bd",
+    "semantic_hash": "cff94bed18f5e9f805dfa4eb7e64b0bd"
+  },
+  "ai-mentor-fe/scratch/update_student_workspace_v2.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.8143468,
+    "ast_hash": "931771208fa19629d662160c259fbddb",
+    "semantic_hash": "931771208fa19629d662160c259fbddb"
+  },
+  "ai-mentor-fe/scratch/update_submissions_page.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.814348,
+    "ast_hash": "5818fdec6089b8df6229ef153baa5766",
+    "semantic_hash": "5818fdec6089b8df6229ef153baa5766"
+  },
+  "ai-mentor-fe/scratch/update_teacher_dashboard_m3.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.8143492,
+    "ast_hash": "b6be4a924059abab92aec171d26431eb",
+    "semantic_hash": "b6be4a924059abab92aec171d26431eb"
+  },
+  "ai-mentor-fe/scratch/update_teacher_dashboard_m4.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.8143504,
+    "ast_hash": "e4cb9a109d3333bab6bf533117cdd5a0",
+    "semantic_hash": "e4cb9a109d3333bab6bf533117cdd5a0"
+  },
+  "ai-mentor-fe/scratch/update_teacher_data_v2.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.8143516,
+    "ast_hash": "2753415a7e27e07688cc459b0bc07da4",
+    "semantic_hash": "2753415a7e27e07688cc459b0bc07da4"
+  },
+  "ai-mentor-fe/scratch/update_user_storage.cjs": {
+    "mtime": 1792677908.839281,
+    "seen": 1793461594.814353,
+    "ast_hash": "d162663acb1e5d9ce33130da0ecf79d2",
+    "semantic_hash": "d162663acb1e5d9ce33130da0ecf79d2"
+  },
+  "ai-mentor-fe/src/App.tsx": {
+    "mtime": 1793369548.0771332,
+    "seen": 1793461594.814354,
+    "ast_hash": "a327598229b3e7a761500385b5c63553",
+    "semantic_hash": "a327598229b3e7a761500385b5c63553"
+  },
+  "ai-mentor-fe/src/components/DashboardPreview.tsx": {
+    "mtime": 1792677908.839406,
+    "seen": 1793461594.814355,
+    "ast_hash": "ba7ceabe795f1a2e8209266050df8f82",
+    "semantic_hash": "ba7ceabe795f1a2e8209266050df8f82"
+  },
+  "ai-mentor-fe/src/components/LoginPage.tsx": {
+    "mtime": 1792677908.839406,
+    "seen": 1793461594.8143563,
+    "ast_hash": "079e831b0399b13b682e8b875f2df90c",
+    "semantic_hash": "079e831b0399b13b682e8b875f2df90c"
+  },
+  "ai-mentor-fe/src/components/admin/AdminDashboard.tsx": {
+    "mtime": 1793369530.4885933,
+    "seen": 1793461594.8143573,
+    "ast_hash": "9706742628bb4cb259276e83acb7a43e",
+    "semantic_hash": "9706742628bb4cb259276e83acb7a43e"
+  },
+  "ai-mentor-fe/src/components/auth/AuthLayout.tsx": {
+    "mtime": 1791904695.473351,
+    "seen": 1793461594.8143585,
+    "ast_hash": "ab9afd0e5021d80a8fcc7a6be59ec594",
+    "semantic_hash": "ab9afd0e5021d80a8fcc7a6be59ec594"
+  },
+  "ai-mentor-fe/src/components/auth/BrandSidebar.tsx": {
+    "mtime": 1792677908.839406,
+    "seen": 1793461594.81436,
+    "ast_hash": "432bfff6579798d9e072d98a12db634e",
+    "semantic_hash": "432bfff6579798d9e072d98a12db634e"
+  },
+  "ai-mentor-fe/src/components/auth/ForgotPasswordForm.tsx": {
+    "mtime": 1792677908.839406,
+    "seen": 1793461594.8143609,
+    "ast_hash": "12e8c6d55ba69ba87afcfb771c7b151b",
+    "semantic_hash": "12e8c6d55ba69ba87afcfb771c7b151b"
+  },
+  "ai-mentor-fe/src/components/auth/LanguageSwitcher.tsx": {
+    "mtime": 1791037512.430872,
+    "seen": 1793461594.8143623,
+    "ast_hash": "51fb31990c80f68c138edff0e4db9911",
+    "semantic_hash": "51fb31990c80f68c138edff0e4db9911"
+  },
+  "ai-mentor-fe/src/components/auth/LoginForm.tsx": {
+    "mtime": 1792677908.839406,
+    "seen": 1793461594.8143637,
+    "ast_hash": "427ecf54b0df9bd55de664590baa46a9",
+    "semantic_hash": "427ecf54b0df9bd55de664590baa46a9"
+  },
+  "ai-mentor-fe/src/components/auth/ResetPasswordForm.tsx": {
+    "mtime": 1792677908.839406,
+    "seen": 1793461594.8143647,
+    "ast_hash": "1f16797e2b8d1b7caff52024afd5012f",
+    "semantic_hash": "1f16797e2b8d1b7caff52024afd5012f"
+  },
+  "ai-mentor-fe/src/components/auth/i18n.ts": {
+    "mtime": 1792677908.840406,
+    "seen": 1793461594.8143659,
+    "ast_hash": "3290d2db5d2df5d29e1a83854cacd3dc",
+    "semantic_hash": "3290d2db5d2df5d29e1a83854cacd3dc"
+  },
+  "ai-mentor-fe/src/components/common/FloatingAIMentorChat.tsx": {
+    "mtime": 1792677908.840406,
+    "seen": 1793461594.814367,
+    "ast_hash": "4d2f17b43cb5d688775f175b0c8b6bbe",
+    "semantic_hash": "4d2f17b43cb5d688775f175b0c8b6bbe"
+  },
+  "ai-mentor-fe/src/components/common/MathMarkdownRenderer.tsx": {
+    "mtime": 1791904695.4745078,
+    "seen": 1793461594.8143682,
+    "ast_hash": "675c82492fcab294cc229049c30563b5",
+    "semantic_hash": "675c82492fcab294cc229049c30563b5"
+  },
+  "ai-mentor-fe/src/components/common/StatusBadge.tsx": {
+    "mtime": 1792677908.840406,
+    "seen": 1793461594.8143692,
+    "ast_hash": "4519269baba0fecf810b94cb88008f53",
+    "semantic_hash": "4519269baba0fecf810b94cb88008f53"
+  },
+  "ai-mentor-fe/src/components/dashboard/CourseDetailView.tsx": {
+    "mtime": 1792677908.840406,
+    "seen": 1793461594.8143704,
+    "ast_hash": "1b032c6d41df58e117cd49d22728c7f7",
+    "semantic_hash": "1b032c6d41df58e117cd49d22728c7f7"
+  },
+  "ai-mentor-fe/src/components/dashboard/DashboardHero.tsx": {
+    "mtime": 1792677908.840406,
+    "seen": 1793461594.8143716,
+    "ast_hash": "20d68e1cfdd6751ceabb03cbb9674b24",
+    "semantic_hash": "20d68e1cfdd6751ceabb03cbb9674b24"
+  },
+  "ai-mentor-fe/src/components/dashboard/DashboardNavbar.tsx": {
+    "mtime": 1793369426.661764,
+    "seen": 1793461594.8143725,
+    "ast_hash": "7e89892af968b7fee74decd351afc2b7",
+    "semantic_hash": "7e89892af968b7fee74decd351afc2b7"
+  },
+  "ai-mentor-fe/src/components/dashboard/LeaderboardModal.tsx": {
+    "mtime": 1792677908.841406,
+    "seen": 1793461594.814374,
+    "ast_hash": "8cac5a0b5939e3b3b0c493d51e5b6a73",
+    "semantic_hash": "8cac5a0b5939e3b3b0c493d51e5b6a73"
+  },
+  "ai-mentor-fe/src/components/dashboard/PracticeSkillsGrid.tsx": {
+    "mtime": 1792677908.841406,
+    "seen": 1793461594.814375,
+    "ast_hash": "e1fb70647728f1575226a74d04c9fd97",
+    "semantic_hash": "e1fb70647728f1575226a74d04c9fd97"
+  },
+  "ai-mentor-fe/src/components/dashboard/SkillPreparationKits.tsx": {
+    "mtime": 1792677908.841406,
+    "seen": 1793461594.8143759,
+    "ast_hash": "2028aadbb864cafc2e363e37063aab6e",
+    "semantic_hash": "2028aadbb864cafc2e363e37063aab6e"
+  },
+  "ai-mentor-fe/src/components/dashboard/dashboardI18n.ts": {
+    "mtime": 1792677908.841406,
+    "seen": 1793461594.8143773,
+    "ast_hash": "c4aaf9139c5e3771ab6f58f6aa719dd2",
+    "semantic_hash": "c4aaf9139c5e3771ab6f58f6aa719dd2"
+  },
+  "ai-mentor-fe/src/components/ide/CodeEditor.tsx": {
+    "mtime": 1792677908.841406,
+    "seen": 1793461594.8143783,
+    "ast_hash": "a3597bff48eaa8cd26aa64cfac1aea82",
+    "semantic_hash": "a3597bff48eaa8cd26aa64cfac1aea82"
+  },
+  "ai-mentor-fe/src/components/ide/ProblemDescription.tsx": {
+    "mtime": 1792677908.841406,
+    "seen": 1793461594.8143792,
+    "ast_hash": "f6926efddb39b8d519de1153f48f1e2b",
+    "semantic_hash": "f6926efddb39b8d519de1153f48f1e2b"
+  },
+  "ai-mentor-fe/src/components/ide/StudentWorkspace.tsx": {
+    "mtime": 1792677908.842406,
+    "seen": 1793461594.8143806,
+    "ast_hash": "ff2adbfc0fe6ee40218dc49889e7476a",
+    "semantic_hash": "ff2adbfc0fe6ee40218dc49889e7476a"
+  },
+  "ai-mentor-fe/src/components/ide/TerminalPanel.tsx": {
+    "mtime": 1792677908.842406,
+    "seen": 1793461594.8143816,
+    "ast_hash": "3d93a02b0755d0b31cd1c3c2652d5980",
+    "semantic_hash": "3d93a02b0755d0b31cd1c3c2652d5980"
+  },
+  "ai-mentor-fe/src/components/ide/ideI18n.ts": {
+    "mtime": 1792677908.842406,
+    "seen": 1793461594.8143828,
+    "ast_hash": "bc64028bbcfc995b622d949beb55d168",
+    "semantic_hash": "bc64028bbcfc995b622d949beb55d168"
+  },
+  "ai-mentor-fe/src/components/settings/SettingsPage.tsx": {
+    "mtime": 1792677908.842406,
+    "seen": 1793461594.8143842,
+    "ast_hash": "f90dab314f183bd1a8d9a6701e5bbbd9",
+    "semantic_hash": "f90dab314f183bd1a8d9a6701e5bbbd9"
+  },
+  "ai-mentor-fe/src/components/submissions/SubmissionsPage.tsx": {
+    "mtime": 1792677908.842406,
+    "seen": 1793461594.8143852,
+    "ast_hash": "71f7a835854951d5f380ddc12acd1b06",
+    "semantic_hash": "71f7a835854951d5f380ddc12acd1b06"
+  },
+  "ai-mentor-fe/src/components/teacher/TeacherAITranscriptDrawer.tsx": {
+    "mtime": 1792677908.842406,
+    "seen": 1793461594.8143864,
+    "ast_hash": "2172a6ae58d97a9b00b85884a8b4ebd9",
+    "semantic_hash": "2172a6ae58d97a9b00b85884a8b4ebd9"
+  },
+  "ai-mentor-fe/src/components/teacher/TeacherAssignmentModal.tsx": {
+    "mtime": 1792677908.843406,
+    "seen": 1793461594.814388,
+    "ast_hash": "0ba064b54914560286a9ad74842ddf6e",
+    "semantic_hash": "0ba064b54914560286a9ad74842ddf6e"
+  },
+  "ai-mentor-fe/src/components/teacher/TeacherCodeReviewModal.tsx": {
+    "mtime": 1792677908.843406,
+    "seen": 1793461594.814389,
+    "ast_hash": "40ae84e971083f816fd3e2c8a504177b",
+    "semantic_hash": "40ae84e971083f816fd3e2c8a504177b"
+  },
+  "ai-mentor-fe/src/components/teacher/TeacherDashboard.tsx": {
+    "mtime": 1792677908.844406,
+    "seen": 1793461594.8143902,
+    "ast_hash": "3c7e818aad79b49e27628cc794d2e464",
+    "semantic_hash": "3c7e818aad79b49e27628cc794d2e464"
+  },
+  "ai-mentor-fe/src/components/teacher/tabs/AnalyticsBreakdown.tsx": {
+    "mtime": 1792677908.844406,
+    "seen": 1793461594.8143914,
+    "ast_hash": "9891b35addffc562fa51381bd9222a4d",
+    "semantic_hash": "9891b35addffc562fa51381bd9222a4d"
+  },
+  "ai-mentor-fe/src/main.tsx": {
+    "mtime": 1791037512.4321127,
+    "seen": 1793461594.8143926,
+    "ast_hash": "a3150907ddf2842367caa98e12a33298",
+    "semantic_hash": "a3150907ddf2842367caa98e12a33298"
+  },
+  "ai-mentor-fe/src/services/adminService.ts": {
+    "mtime": 1793369484.7188914,
+    "seen": 1793461594.8143935,
+    "ast_hash": "a149bb778cbc1dbed35da54dd3f57dcf",
+    "semantic_hash": "a149bb778cbc1dbed35da54dd3f57dcf"
+  },
+  "ai-mentor-fe/src/services/aiMentorService.ts": {
+    "mtime": 1792677908.844406,
+    "seen": 1793461594.8143947,
+    "ast_hash": "4e6c081b1694d300fb627fe3753febb0",
+    "semantic_hash": "4e6c081b1694d300fb627fe3753febb0"
+  },
+  "ai-mentor-fe/src/services/apiClient.ts": {
+    "mtime": 1792677908.844406,
+    "seen": 1793461594.8143969,
+    "ast_hash": "427125d506fb71a4500f5e75e5d10546",
+    "semantic_hash": "427125d506fb71a4500f5e75e5d10546"
+  },
+  "ai-mentor-fe/src/services/authService.ts": {
+    "mtime": 1792677908.844406,
+    "seen": 1793461594.8143983,
+    "ast_hash": "2b879d7dc0890c700ce6da0e2b2ee710",
+    "semantic_hash": "2b879d7dc0890c700ce6da0e2b2ee710"
+  },
+  "ai-mentor-fe/src/services/exerciseService.ts": {
+    "mtime": 1792677908.844406,
+    "seen": 1793461594.8143992,
+    "ast_hash": "966b6b45178f75225626689d9d0ee771",
+    "semantic_hash": "966b6b45178f75225626689d9d0ee771"
+  },
+  "ai-mentor-fe/src/services/languageTracks.ts": {
+    "mtime": 1792677908.8460143,
+    "seen": 1793461594.8144004,
+    "ast_hash": "00f4884e76c8803d6f283290a3834d04",
+    "semantic_hash": "00f4884e76c8803d6f283290a3834d04"
+  },
+  "ai-mentor-fe/src/services/mockAIService.ts": {
+    "mtime": 1792677908.8463051,
+    "seen": 1793461594.8144016,
+    "ast_hash": "0be86dddb6cbbb6ed9b8eded72739a8f",
+    "semantic_hash": "0be86dddb6cbbb6ed9b8eded72739a8f"
+  },
+  "ai-mentor-fe/src/services/mockAuth.ts": {
+    "mtime": 1793369188.1757998,
+    "seen": 1793461594.8144028,
+    "ast_hash": "6fbe5c207c5f37dfebfc34ccf18bc7e9",
+    "semantic_hash": "6fbe5c207c5f37dfebfc34ccf18bc7e9"
+  },
+  "ai-mentor-fe/src/services/mockExerciseService.ts": {
+    "mtime": 1792677908.84642,
+    "seen": 1793461594.8144038,
+    "ast_hash": "5461654c0b821a2ce8ef8da8598150d5",
+    "semantic_hash": "5461654c0b821a2ce8ef8da8598150d5"
+  },
+  "ai-mentor-fe/src/services/mockExercisesData.en.ts": {
+    "mtime": 1792677908.846741,
+    "seen": 1793461594.8144052,
+    "ast_hash": "c394885fa52acc1c94eb2e3432eb2606",
+    "semantic_hash": "c394885fa52acc1c94eb2e3432eb2606"
+  },
+  "ai-mentor-fe/src/services/mockExercisesData.ts": {
+    "mtime": 1792677908.84727,
+    "seen": 1793461594.8144064,
+    "ast_hash": "7cf9eea1b78f2210931c9ec0dc17407f",
+    "semantic_hash": "7cf9eea1b78f2210931c9ec0dc17407f"
+  },
+  "ai-mentor-fe/src/services/mockTeacherData.ts": {
+    "mtime": 1792677908.8476875,
+    "seen": 1793461594.8144073,
+    "ast_hash": "518a7e9721125ab8f0594be0af8f2a75",
+    "semantic_hash": "518a7e9721125ab8f0594be0af8f2a75"
+  },
+  "ai-mentor-fe/src/services/navigation.ts": {
+    "mtime": 1793369174.1046562,
+    "seen": 1793461594.8144088,
+    "ast_hash": "60d6e4375dc6709042ca4bb437babc44",
+    "semantic_hash": "60d6e4375dc6709042ca4bb437babc44"
+  },
+  "ai-mentor-fe/src/services/teacherAnalytics.ts": {
+    "mtime": 1792677908.8476875,
+    "seen": 1793461594.8144097,
+    "ast_hash": "052dd229090bcdbb5ae733ec6bf6dcf2",
+    "semantic_hash": "052dd229090bcdbb5ae733ec6bf6dcf2"
+  },
+  "ai-mentor-fe/src/services/userStorage.ts": {
+    "mtime": 1792677908.8476875,
+    "seen": 1793461594.814411,
+    "ast_hash": "c77e187cdb3126ab1f09097aecc2c92d",
+    "semantic_hash": "c77e187cdb3126ab1f09097aecc2c92d"
+  },
+  "ai-mentor-fe/src/types/ai.ts": {
+    "mtime": 1791904695.4787438,
+    "seen": 1793461594.814412,
+    "ast_hash": "45c7248d41906d1df98a4cf00b09a52b",
+    "semantic_hash": "45c7248d41906d1df98a4cf00b09a52b"
+  },
+  "ai-mentor-fe/src/types/auth.ts": {
+    "mtime": 1793369117.524381,
+    "seen": 1793461594.8144133,
+    "ast_hash": "6a7d61fae3684be7986901e29d31232d",
+    "semantic_hash": "6a7d61fae3684be7986901e29d31232d"
+  },
+  "ai-mentor-fe/src/types/exercise.ts": {
+    "mtime": 1792677908.8476875,
+    "seen": 1793461594.8144145,
+    "ast_hash": "0d0bd33948914d60a12a038898eb3b5b",
+    "semantic_hash": "0d0bd33948914d60a12a038898eb3b5b"
+  },
+  "ai-mentor-fe/src/types/skills.ts": {
+    "mtime": 1792677908.8476875,
+    "seen": 1793461594.8144157,
+    "ast_hash": "09f114c51466adb62c8ffa5f0ee51fc3",
+    "semantic_hash": "09f114c51466adb62c8ffa5f0ee51fc3"
+  },
+  "ai-mentor-fe/src/vite-env.d.ts": {
+    "mtime": 1791905929.6000206,
+    "seen": 1793461594.814417,
+    "ast_hash": "7aa045e766147ff245b27120a895b5ac",
+    "semantic_hash": "7aa045e766147ff245b27120a895b5ac"
+  },
+  "ai-mentor-fe/tailwind.config.js": {
+    "mtime": 1791904695.4787438,
+    "seen": 1793461594.814418,
+    "ast_hash": "e170442b8aeb73c24a9ef49761e4733d",
+    "semantic_hash": "e170442b8aeb73c24a9ef49761e4733d"
+  },
+  "ai-mentor-fe/tsconfig.json": {
+    "mtime": 1791037512.432981,
+    "seen": 1793461594.8144195,
+    "ast_hash": "40d4b71a70af5b7f11f214f817ce81cc",
+    "semantic_hash": "40d4b71a70af5b7f11f214f817ce81cc"
+  },
+  "ai-mentor-fe/vite.config.ts": {
+    "mtime": 1791037512.432981,
+    "seen": 1793461594.8144205,
+    "ast_hash": "4ebce3c42a8ad2ad91c97ee6e1b82d99",
+    "semantic_hash": "4ebce3c42a8ad2ad91c97ee6e1b82d99"
+  },
+  "scripts/build_report_doc.py": {
+    "mtime": 1793367333.5615456,
+    "seen": 1793461594.8144217,
+    "ast_hash": "29ecb230c4295f13cd6e0d06dfe35e80",
+    "semantic_hash": "29ecb230c4295f13cd6e0d06dfe35e80"
+  },
+  "ai-mentor-be/BACKEND_PREPARATION.md": {
+    "mtime": 1791557576.1236575,
+    "seen": 1793461594.8144228,
+    "ast_hash": "c5f47c70206dbc14a4d08b00b35be3b8",
+    "semantic_hash": "c5f47c70206dbc14a4d08b00b35be3b8"
+  },
+  "ai-mentor-be/database/db_des.md": {
+    "mtime": 1790687973.9437218,
+    "seen": 1793461594.814424,
+    "ast_hash": "2a03c6ffcae18c6bda7964598a197382",
+    "semantic_hash": "2a03c6ffcae18c6bda7964598a197382"
+  },
+  "sample.txt": {
+    "mtime": 1793368765.3768337,
+    "seen": 1793461594.8144252,
+    "ast_hash": "baa4b9efbc5b045d5041a6a8174d63d8",
+    "semantic_hash": "baa4b9efbc5b045d5041a6a8174d63d8"
+  },
+  "ai-mentor-fe/public/file.svg": {
+    "mtime": 1790608743.7689948,
+    "seen": 1793461594.8144267,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "ai-mentor-fe/public/globe.svg": {
+    "mtime": 1790608743.7692487,
+    "seen": 1793461594.8144276,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "ai-mentor-fe/public/next.svg": {
+    "mtime": 1790608743.7692487,
+    "seen": 1793461594.814429,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "ai-mentor-fe/public/vercel.svg": {
+    "mtime": 1790608743.769303,
+    "seen": 1793461594.8144302,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "ai-mentor-fe/public/window.svg": {
+    "mtime": 1790608743.7692628,
+    "seen": 1793461594.8144314,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": "a2760511c65806022ad20adf74370ff3"
+  }
+}

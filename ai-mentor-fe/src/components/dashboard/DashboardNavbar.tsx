@@ -289,6 +289,20 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                     <History className="w-3.5 h-3.5 text-purple-500" />
                     <span>{currentLang === 'vie' ? 'Lịch sử nộp bài' : 'Submissions'}</span>
                   </button>
+
+                  {user.role === 'admin' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        window.location.href = '/admin';
+                      }}
+                      className="w-full text-left px-4 py-2 flex items-center gap-2.5 text-indigo-600 dark:text-indigo-400 font-bold hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                      <span>{currentLang === 'vie' ? 'Quản trị Admin Portal' : 'Admin Portal'}</span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Logout Divider & Button */}

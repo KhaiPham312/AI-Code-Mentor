@@ -1,4 +1,4 @@
-export type AppView = 'dashboard' | 'ide' | 'settings' | 'submissions' | 'teacher';
+export type AppView = 'dashboard' | 'ide' | 'settings' | 'submissions' | 'teacher' | 'admin';
 export type SettingsTab = 'profile' | 'password' | 'appearance';
 export type TeacherTab = 'analytics' | 'assignments' | 'logs' | 'roster';
 export type TeacherDrilldownView = 'submissions' | 'leaderboard';
@@ -33,6 +33,7 @@ export interface RouteState {
 }
 
 export function resolveHomeRoute(role?: string): string {
+  if (role === 'admin') return '/admin';
   return role === 'teacher' ? '/teacher' : '/dashboard';
 }
 
@@ -69,7 +70,13 @@ export function parseCurrentRoute(
     trackId: searchParams.get('trackId') || null,
   };
 
-  // 1. Teacher Dashboard (/teacher)
+  // 1. Admin Dashboard (/admin)
+  if (rawPath === '/admin') {
+    state.view = 'admin';
+    return state;
+  }
+
+  // 2. Teacher Dashboard (/teacher)
   if (rawPath === '/teacher') {
     state.view = 'teacher';
     const tab = searchParams.get('tab');
@@ -134,6 +141,9 @@ export function parseCurrentRoute(
  */
 export function buildRouteUrl(view: AppView, options?: RouteOptions): string {
   switch (view) {
+    case 'admin': {
+      return '/admin';
+    }
     case 'teacher': {
       const params = new URLSearchParams();
       const tab = options?.teacherTab;

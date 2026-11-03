@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { LoginPage } from './components/LoginPage';
 import { DashboardPreview } from './components/DashboardPreview';
 import { TeacherDashboard } from './components/teacher/TeacherDashboard';
+import { AdminDashboard } from './components/admin/AdminDashboard';
 import { StudentWorkspace } from './components/ide/StudentWorkspace';
 import { SettingsPage } from './components/settings/SettingsPage';
 import { SubmissionsPage } from './components/submissions/SubmissionsPage';
@@ -203,7 +204,7 @@ export function App() {
     // Navigate cleanly to role-based home without stale trackId or drilldown params
     const home = resolveHomeRoute(user.role);
     window.history.replaceState(null, '', home);
-    setCurrentView(user.role === 'teacher' ? 'teacher' : 'dashboard');
+    setCurrentView(user.role === 'admin' ? 'admin' : user.role === 'teacher' ? 'teacher' : 'dashboard');
   };
 
   const handleLogout = () => {
@@ -250,6 +251,10 @@ export function App() {
   };
 
   const handleBackToDashboard = (trackId?: string) => {
+    if (currentUser?.role === 'admin') {
+      navigateTo('admin');
+      return;
+    }
     if (currentUser?.role === 'teacher') {
       let returnUrl = '/teacher';
       try {
@@ -292,16 +297,19 @@ export function App() {
     if (currentUser && isAuthLoginOrForgot && !isResetPasswordRoute) {
       const homePath = resolveHomeRoute(currentUser.role);
       window.history.replaceState(null, '', homePath);
-      setCurrentView(currentUser.role === 'teacher' ? 'teacher' : 'dashboard');
+      setCurrentView(currentUser.role === 'admin' ? 'admin' : currentUser.role === 'teacher' ? 'teacher' : 'dashboard');
     }
   }, [currentUser, isAuthLoginOrForgot, isResetPasswordRoute]);
 
-  // 2. Phân quyền: Student vào /teacher -> về /dashboard; Teacher vào /dashboard -> về /teacher
+  // 2. Phân quyền: Student không vào /teacher hoặc /admin, Teacher không vào /admin
   useEffect(() => {
     if (currentUser) {
-      if (currentUser.role === 'student' && (currentView === 'teacher' || rawPath === '/teacher')) {
+      if (currentUser.role === 'student' && (currentView === 'teacher' || currentView === 'admin' || rawPath === '/teacher' || rawPath === '/admin')) {
         window.history.replaceState(null, '', '/dashboard');
         setCurrentView('dashboard');
+      } else if (currentUser.role === 'teacher' && (currentView === 'admin' || rawPath === '/admin')) {
+        window.history.replaceState(null, '', '/teacher');
+        setCurrentView('teacher');
       } else if (currentUser.role === 'teacher' && (currentView === 'dashboard' || rawPath === '/dashboard')) {
         window.history.replaceState(null, '', '/teacher');
         setCurrentView('teacher');
@@ -368,7 +376,22 @@ export function App() {
     );
   }
 
-  // 4. Role-based views: Teacher Dashboard (/teacher)
+  // 4. Role-based views: Admin Dashboard (/admin)
+  if (currentView === 'admin' || (currentUser.role === 'admin' && currentView !== 'dashboard' && currentView !== 'teacher')) {
+    return (
+      <AdminDashboard
+        user={currentUser}
+        currentLang={currentLang}
+        onLanguageChange={handleLanguageChange}
+        currentTheme={currentTheme}
+        onThemeToggle={handleThemeToggle}
+        onLogout={handleLogout}
+        onNavigateView={(view) => navigateTo(view)}
+      />
+    );
+  }
+
+  // 5. Role-based views: Teacher Dashboard (/teacher)
   if (currentUser.role === 'teacher') {
     return (
       <TeacherDashboard

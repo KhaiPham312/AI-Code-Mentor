@@ -47,6 +47,20 @@ def seed_database():
             db.add(teacher)
             print(" -> Đã tạo tài khoản giảng viên: teacher / 123456")
 
+        admin = db.query(User).filter(User.username == "admin").first()
+        if not admin:
+            admin = User(
+                username="admin",
+                email="admin@hnue.edu.vn",
+                name="Quản trị viên Hệ thống (Admin)",
+                class_group="Phòng Quản trị Hệ thống",
+                role="admin",
+                password_hash=get_password_hash("123456"),
+                is_active=True,
+            )
+            db.add(admin)
+            print(" -> Đã tạo tài khoản quản trị viên: admin / 123456")
+
         db.commit()
 
         # 2. Seed Subject and Class

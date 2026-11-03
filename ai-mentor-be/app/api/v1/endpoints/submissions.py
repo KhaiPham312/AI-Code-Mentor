@@ -116,6 +116,14 @@ def submit_code(
         is_sample_only=False
     )
 
+    # Trích xuất error message nếu có lỗi hoặc vi phạm bảo mật
+    first_error = None
+    if run_summary.get("results"):
+        for r in run_summary["results"]:
+            if r.get("error_message"):
+                first_error = r["error_message"]
+                break
+
     db_submission = Submission(
         user_id=current_user.id,
         exercise_id=exercise.id,
@@ -125,6 +133,7 @@ def submit_code(
         passed_tests=run_summary["passed_tests"],
         total_tests=run_summary["total_tests"],
         execution_time_ms=run_summary["execution_time_ms"],
+        error_message=first_error,
         results_detail=json.dumps(run_summary["results"]),
     )
     db.add(db_submission)

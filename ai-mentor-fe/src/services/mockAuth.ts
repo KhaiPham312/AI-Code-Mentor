@@ -42,6 +42,18 @@ export const DEFAULT_ACCOUNTS: StoredAccount[] = [
       classGroup: 'Khoa Công nghệ Thông tin',
     },
   },
+  {
+    password: '123456',
+    user: {
+      id: 'adm-hnue-001',
+      name: 'Quản trị viên Hệ thống (Admin)',
+      username: 'admin',
+      email: 'admin@hnue.edu.vn',
+      role: 'admin',
+      classGroup: 'Phòng Quản trị Hệ thống',
+      department: 'Khoa Công nghệ Thông tin',
+    },
+  },
 ];
 
 // Seed and retrieve accounts from localStorage with key 'ai_mentor_users_db'

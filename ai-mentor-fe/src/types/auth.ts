@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'teacher';
+export type UserRole = 'student' | 'teacher' | 'admin';
 
 export interface User {
   id: string;
@@ -11,6 +11,8 @@ export interface User {
   classGroup?: string;
   department?: string;
   bio?: string;
+  isActive?: boolean;
+  createdAt?: string;
 }
 
 export interface AuthState {
@@ -18,3 +20,4 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
 }
+
