@@ -20,6 +20,41 @@ class AIService:
     ) -> str:
         # If Gemini API key is configured, call Gemini API
         if settings.GEMINI_API_KEY:
+            # 1. Try Gemini Interactions API (Newest protocol, high throughput)
+            try:
+                interactions_url = f"https://generativelanguage.googleapis.com/v1beta/interactions?key={settings.GEMINI_API_KEY}"
+                user_content = (
+                    f"{SOCRATIC_SYSTEM_PROMPT}\n\n"
+                    f"Ngữ cảnh mã nguồn của sinh viên:\n```python\n{code_context or 'Không có'}\n```\n"
+                )
+                if terminal_error:
+                    user_content += f"Lỗi terminal phát sinh:\n```\n{terminal_error}\n```\n"
+                user_content += f"Ý định người dùng: {intent}\nCâu hỏi của sinh viên: {prompt}"
+
+                # Try high-availability model for Interactions API
+                inter_models = ["gemini-3.1-flash-lite", settings.DEFAULT_AI_MODEL]
+                async with httpx.AsyncClient(timeout=15.0) as client:
+                    for m in inter_models:
+                        try:
+                            resp = await client.post(interactions_url, json={
+                                "model": m,
+                                "input": user_content,
+                            })
+                            if resp.status_code == 200:
+                                data = resp.json()
+                                steps = data.get("steps", [])
+                                for step in steps:
+                                    if step.get("type") == "model_output":
+                                        content_list = step.get("content", [])
+                                        for c in content_list:
+                                            if c.get("text"):
+                                                return c.get("text")
+                        except Exception:
+                            continue
+            except Exception as e:
+                print(f"[Gemini Interactions Exception] Error: {e}")
+
+            # 2. Try classic generateContent endpoint as fallback
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.DEFAULT_AI_MODEL}:generateContent?key={settings.GEMINI_API_KEY}"
                 user_content = f"Ngữ cảnh mã nguồn của sinh viên:\n```python\n{code_context or 'Không có'}\n```\n"
@@ -36,7 +71,7 @@ class AIService:
                         "maxOutputTokens": 1000,
                     }
                 }
-                async with httpx.AsyncClient(timeout=20.0) as client:
+                async with httpx.AsyncClient(timeout=15.0) as client:
                     resp = await client.post(url, json=payload)
                     if resp.status_code == 200:
                         data = resp.json()
