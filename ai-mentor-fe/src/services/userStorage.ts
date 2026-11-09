@@ -6,7 +6,9 @@ export interface StoredUserSubmission {
   exerciseTitle?: string;
   category?: string;
   submittedAt: string;
+  submittedAtISO?: string;
   status: 'passed' | 'failed' | 'error';
+  verdict?: 'accepted' | 'wrong_answer' | 'time_limit' | 'compile_error';
   passedTests: number;
   totalTests: number;
   executionTimeMs: number;
@@ -98,6 +100,9 @@ export function saveUserSubmission(userKey: string, submission: StoredUserSubmis
   if (typeof window === 'undefined' || !userKey || userKey === 'guest') return;
   try {
     submission.studentKey = userKey;
+    if (!submission.submittedAtISO) {
+      submission.submittedAtISO = new Date().toISOString();
+    }
     const list = getUserSubmissions(userKey);
     list.unshift(submission);
     localStorage.setItem(`ai_mentor_submissions_${userKey}`, JSON.stringify(list.slice(0, 100)));
@@ -116,8 +121,10 @@ export function saveUserSubmission(userKey: string, submission: StoredUserSubmis
       memoryMb: submission.memoryMb || 14.1,
       language: submission.language || 'Python 3',
       timeAgo: submission.submittedAt || 'Vừa xong',
+      submittedAtISO: submission.submittedAtISO,
       submittedCode: submission.code,
       status: submission.status,
+      verdict: submission.verdict,
       passedTests: submission.passedTests,
       totalTests: submission.totalTests,
     };
@@ -193,6 +200,22 @@ export function clearUserDraft(userKey: string, exerciseId: number, langId?: str
   }
 }
 
+function formatDynamicTimeAgo(isoString?: string, defaultText: string = 'Vừa xong'): string {
+  if (!isoString) return defaultText;
+  const time = new Date(isoString).getTime();
+  if (isNaN(time)) return defaultText;
+  const diffMs = Date.now() - time;
+  if (diffMs < 60000) return 'Vừa xong';
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 60) return `${diffMins} phút trước`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays} ngày trước`;
+  const d = new Date(isoString);
+  return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+}
+
 /**
  * Đọc toàn bộ bài nộp thật của các sinh viên đã lưu trong localStorage,
  * chuẩn hóa về đúng cấu trúc LiveSubmission mà TeacherDashboard đang dùng.
@@ -227,9 +250,20 @@ export function getRealStudentSubmissionsForTeacher(): LiveSubmission[] {
               if (seenKeys.has(uniqueKey)) continue;
               seenKeys.add(uniqueKey);
 
+              let mappedStatus: LiveSubmission['status'] = 'wrong_answer';
+              if (item.verdict) {
+                mappedStatus = item.verdict;
+              } else if (item.status === 'passed') {
+                mappedStatus = 'accepted';
+              } else if (item.status === 'error') {
+                mappedStatus = 'compile_error';
+              }
+
+              const iso = item.submittedAtISO || (item.id && !isNaN(item.id) && item.id > 1000000000000 ? new Date(item.id).toISOString() : new Date().toISOString());
+
               const liveSub: LiveSubmission = {
                 id: item.id || Date.now(),
-                studentName: item.studentName || 'Sinh viên',
+                studentName: item.studentName || 'Học viên',
                 studentId: item.studentId || item.studentKey || decodeURIComponent(studentKey),
                 classGroup: 'K71A-CNTT',
                 exerciseId: item.exerciseId,
@@ -240,8 +274,9 @@ export function getRealStudentSubmissionsForTeacher(): LiveSubmission[] {
                 score: item.score !== undefined ? item.score : (item.status === 'passed' ? 10 : Math.round(((item.passedTests || 0) / (item.totalTests || 10)) * 10)),
                 executionTimeMs: item.executionTimeMs ?? 28,
                 memoryMb: item.memoryMb ?? 14.1,
-                status: item.status === 'passed' ? 'accepted' : item.status === 'error' ? 'compile_error' : 'wrong_answer',
-                timeAgo: item.submittedAt || 'Vừa xong',
+                status: mappedStatus,
+                timeAgo: formatDynamicTimeAgo(iso, item.submittedAt || 'Vừa xong'),
+                submittedAtISO: iso,
                 plagiarismScore: 0,
                 submittedCode: item.code || '',
               };

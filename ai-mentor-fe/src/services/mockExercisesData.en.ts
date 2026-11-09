@@ -12,6 +12,7 @@ export interface ExerciseEnTranslation {
   outputFormat: string;
   category?: string;
   sampleExplanations?: string[];
+  constraints?: string[];
 }
 
 export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
@@ -23,6 +24,10 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "List of prime numbers found in `arr` (e.g., `[2, 3, 5, 7, 11]`)",
     "sampleExplanations": [
       "The prime numbers found are 2, 3, 5, 7, 11."
+    ],
+    "constraints": [
+        "0 <= len(arr) <= 10^4",
+        "-10^5 <= arr[i] <= 10^5"
     ]
   },
   "2": {
@@ -33,6 +38,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Boolean value `True` if valid, otherwise `False`",
     "sampleExplanations": [
       "All bracket pairs are properly matched and closed in the correct order."
+    ],
+    "constraints": [
+        "1 <= len(s) <= 10^4"
     ]
   },
   "3": {
@@ -43,6 +51,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "A list of two integer indices `[i, j]`",
     "sampleExplanations": [
       "nums[0] + nums[1] = 2 + 7 = 9, so return [0, 1]."
+    ],
+    "constraints": [
+        "2 <= len(nums) <= 10^4"
     ]
   },
   "4": {
@@ -53,6 +64,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "A string with words reversed and normalized to single space delimiters",
     "sampleExplanations": [
       "Leading/trailing whitespace removed and words reversed in sequence."
+    ],
+    "constraints": [
+        "1 <= len(s) <= 10^4"
     ]
   },
   "5": {
@@ -63,6 +77,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Boolean `True` or `False`",
     "sampleExplanations": [
       "\"amanaplanacanalpanama\" reads the same forward and backward."
+    ],
+    "constraints": [
+        "1 <= len(s) <= 2 * 10^5"
     ]
   },
   "6": {
@@ -73,6 +90,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "A list of grouped anagram lists",
     "sampleExplanations": [
       "Words sharing the exact same sorted character counts are grouped together."
+    ],
+    "constraints": [
+        "1 <= len(strs) <= 10^4"
     ]
   },
   "7": {
@@ -83,6 +103,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "An integer representing the maximum length of unique substring",
     "sampleExplanations": [
       "The answer is \"abc\", with the length of 3."
+    ],
+    "constraints": [
+        "0 <= len(s) <= 5 * 10^4"
     ]
   },
   "8": {
@@ -93,6 +116,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Final account balance after all operations",
     "sampleExplanations": [
       "Balance increases by deposits and decreases by valid withdrawals."
+    ],
+    "constraints": [
+        "amount > 0"
     ]
   },
   "9": {
@@ -103,6 +129,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "An integer representing $F(n)$",
     "sampleExplanations": [
       "F(10) = 55."
+    ],
+    "constraints": [
+        "0 <= n <= 50"
     ]
   },
   "10": {
@@ -113,6 +142,10 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "The minimum number of coins needed, or `-1` if impossible",
     "sampleExplanations": [
       "11 = 5 + 5 + 1 (3 coins)."
+    ],
+    "constraints": [
+        "1 <= len(coins) <= 12",
+        "0 <= amount <= 10^4"
     ]
   },
   "11": {
@@ -123,6 +156,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "The array elements reversed in-place",
     "sampleExplanations": [
       "Elements swapped pairwise from ends towards center."
+    ],
+    "constraints": [
+        "1 <= n <= 10^5"
     ]
   },
   "12": {
@@ -133,6 +169,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Pair of minimum and maximum values `min = X, max = Y`",
     "sampleExplanations": [
       "The smallest element is 1 and the largest is 9."
+    ],
+    "constraints": [
+        "1 <= n <= 10^5"
     ]
   },
   "13": {
@@ -143,6 +182,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Total integer count of words",
     "sampleExplanations": [
       "Whitespace sequences are treated as single separators."
+    ],
+    "constraints": [
+        "strlen(str) <= 1000"
     ]
   },
   "14": {
@@ -153,6 +195,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "List of students sorted by descending GPA",
     "sampleExplanations": [
       "Students with higher GPA appear first in the sorted list."
+    ],
+    "constraints": [
+        "1 <= n <= 500"
     ]
   },
   "15": {
@@ -163,6 +208,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Float arithmetic average of the elements",
     "sampleExplanations": [
       "Memory allocated dynamically and freed without leaks."
+    ],
+    "constraints": [
+        "1 <= n <= 10^5"
     ]
   },
   "16": {
@@ -173,6 +221,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Head node of the reversed list `5 -> 4 -> 3 -> 2 -> 1`",
     "sampleExplanations": [
       "Pointers flipped sequentially node by node."
+    ],
+    "constraints": [
+        "0 <= number of nodes <= 5000"
     ]
   },
   "17": {
@@ -183,6 +234,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "0-based index of target, or `-1` if not found",
     "sampleExplanations": [
       "8 is found at index 2."
+    ],
+    "constraints": [
+        "1 <= n <= 10^5"
     ]
   },
   "18": {
@@ -193,6 +247,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Product matrix $C$ of dimension $N \\times N$",
     "sampleExplanations": [
       "Row-by-column dot products computed for each cell."
+    ],
+    "constraints": [
+        "1 <= N <= 100"
     ]
   },
   "19": {
@@ -203,6 +260,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Number of set bits (1s) in binary representation",
     "sampleExplanations": [
       "11 in binary is 1011, having 3 set bits."
+    ],
+    "constraints": [
+        "0 <= n <= 2^31 - 1"
     ]
   },
   "20": {
@@ -213,6 +273,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "The array sorted in ascending order",
     "sampleExplanations": [
       "Array sorted partition by partition recursively."
+    ],
+    "constraints": [
+        "1 <= n <= 10^5"
     ]
   },
   "21": {
@@ -223,6 +286,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "A sorted vector of distinct integers",
     "sampleExplanations": [
       "Duplicates 2 and 5 are eliminated and sorted."
+    ],
+    "constraints": [
+        "1 <= nums.size() <= 10^5"
     ]
   },
   "22": {
@@ -233,6 +299,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Simplified sum fraction 5/6",
     "sampleExplanations": [
       "1/2 + 1/3 = 5/6 in reduced form."
+    ],
+    "constraints": [
+        "Denominator != 0"
     ]
   },
   "23": {
@@ -243,6 +312,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "List of vertices visited in BFS order",
     "sampleExplanations": [
       "Vertices traversed layer by layer using a FIFO queue."
+    ],
+    "constraints": [
+        "1 <= V <= 10^4"
     ]
   },
   "24": {
@@ -253,6 +325,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Array of shortest distances from source to all vertices",
     "sampleExplanations": [
       "Greedy relaxation via min-heap yields optimal path distances."
+    ],
+    "constraints": [
+        "1 <= V <= 10^5, edge weight w >= 0"
     ]
   },
   "25": {
@@ -263,6 +338,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Verification that resource is safely deallocated when leaving scope",
     "sampleExplanations": [
       "std::unique_ptr guarantees exactly one owner and frees memory automatically."
+    ],
+    "constraints": [
+        "C++14 or newer"
     ]
   },
   "26": {
@@ -273,6 +351,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Filtered and uppercase-converted list",
     "sampleExplanations": [
       "[\"Apple\", \"Banana\", \"Ant\", \"Avocado\"] -> [\"APPLE\", \"AVOCADO\"]."
+    ],
+    "constraints": [
+        "Java 8+"
     ]
   },
   "27": {
@@ -283,6 +364,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Exactly one instance reference shared across all threads",
     "sampleExplanations": [
       "Double-checked locking guarantees only one instance is instantiated."
+    ],
+    "constraints": [
+        "Multi-threaded safe"
     ]
   },
   "28": {
@@ -293,6 +377,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "List of node values in in-order sequence",
     "sampleExplanations": [
       "In-order visits left subtree, root, then right subtree."
+    ],
+    "constraints": [
+        "0 <= nodes <= 100"
     ]
   },
   "29": {
@@ -303,6 +390,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Record(s) matching the maximum GPA in the table",
     "sampleExplanations": [
       "Returns the top-performing student record."
+    ],
+    "constraints": [
+        "At least 1 student record"
     ]
   },
   "30": {
@@ -313,6 +403,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Result columns: `class_name`, `student_count`",
     "sampleExplanations": [
       "Aggregates student headcount per class."
+    ],
+    "constraints": [
+        "Avoid slow correlated subqueries"
     ]
   },
   "31": {
@@ -323,6 +416,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Columns: `id`, `name`, `gpa`, `rank_score`",
     "sampleExplanations": [
       "Students with identical GPA receive identical rank numbers."
+    ],
+    "constraints": [
+        "PostgreSQL / MySQL 8+ compatible"
     ]
   },
   "34": {
@@ -333,6 +429,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Integer representing $\\gcd(a, b)$",
     "sampleExplanations": [
       "gcd(48, 18) = 6 because 48 = 18 * 2 + 12; gcd(18, 12) = 6."
+    ],
+    "constraints": [
+        "1 <= a, b <= 10^12"
     ]
   },
   "35": {
@@ -343,16 +442,23 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Integer value of $(a^b) \\bmod M$",
     "sampleExplanations": [
       "2^10 = 1024; 1024 % 1000 = 24."
+    ],
+    "constraints": [
+        "1 <= a, M <= 10^9",
+        "0 <= b <= 10^18"
     ]
   },
   "36": {
     "title": "Cosine Similarity between Vectors",
     "category": "Machine Learning & Math",
-    "description": "Compute the cosine similarity between two numeric vectors $\\mathbf{A}$ and $\\mathbf{B}$ of dimension $D$:\n\n$$\\text{similarity}(\\mathbf{A}, \\mathbf{B}) = \\frac{\\mathbf{A} \\cdot \\mathbf{B}}{\\|\\mathbf{A}\\| \\|\\mathbf{B}\\|}$$",
+    "description": "Compute the cosine similarity between two numeric vectors $\\mathbf{A}$ and $\\mathbf{B}$ of dimension $D$:\n\n$\\text{similarity}(\\mathbf{A}, \\mathbf{B}) = \\frac{\\mathbf{A} \\cdot \\mathbf{B}}{\\|\\mathbf{A}\\| \\|\\mathbf{B}\\|}$",
     "inputFormat": "Two numeric vectors `A` and `B` of equal length",
     "outputFormat": "Cosine similarity score in range `[-1.0, 1.0]`",
     "sampleExplanations": [
       "Parallel collinear vectors have cosine similarity of 1.0."
+    ],
+    "constraints": [
+        "len(A) == len(B) <= 1000"
     ]
   },
   "37": {
@@ -363,6 +469,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Predicted class label based on majority voting",
     "sampleExplanations": [
       "The majority label among the k closest neighbors is selected."
+    ],
+    "constraints": [
+        "k <= len(dataset) <= 5000"
     ]
   },
   "41": {
@@ -373,6 +482,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Array containing the maximum value for each window position",
     "sampleExplanations": [
       "Monotonic deque keeps track of candidate maximums in O(1) amortized time."
+    ],
+    "constraints": [
+        "1 <= len(text) <= 10^5"
     ]
   },
   "42": {
@@ -383,6 +495,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "A single merged sorted linked list",
     "sampleExplanations": [
       "Min-heap extracts the smallest node across all k list heads in O(log k)."
+    ],
+    "constraints": [
+        "1 <= len(s) <= 10^5"
     ]
   },
   "43": {
@@ -393,6 +508,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Boolean outcomes for search and prefix queries",
     "sampleExplanations": [
       "Searching prefixes and words traverses the tree character by character."
+    ],
+    "constraints": [
+        "1 <= len(nums) <= 10^5"
     ]
   },
   "44": {
@@ -403,6 +521,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Retrieved values or `-1` if evicted or missing",
     "sampleExplanations": [
       "Least recently accessed key is evicted when capacity is reached."
+    ],
+    "constraints": [
+        "1 <= len(A) <= 10^5"
     ]
   },
   "45": {
@@ -413,6 +534,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Count of prime numbers less than `n`",
     "sampleExplanations": [
       "For n = 20, the primes are 2, 3, 5, 7, 11, 13, 17, 19 (total 8)."
+    ],
+    "constraints": [
+        "1 <= len(intervals) <= 10^4"
     ]
   },
   "46": {
@@ -423,6 +547,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Value of $\\binom{n}{r} \\bmod (10^9+7)$",
     "sampleExplanations": [
       "5C2 = 10 % 1000000007 = 10."
+    ],
+    "constraints": [
+        "1 <= len(points) <= 10^5"
     ]
   },
   "47": {
@@ -433,6 +560,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "List of pairs `(prime, exponent)`",
     "sampleExplanations": [
       "360 = 2^3 * 3^2 * 5^1."
+    ],
+    "constraints": [
+        "1 <= len(nums) <= 10^5"
     ]
   },
   "48": {
@@ -443,6 +573,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Float polygon area rounded to 2 decimal places",
     "sampleExplanations": [
       "A 4x3 rectangle has area 12.0."
+    ],
+    "constraints": [
+        "Do not use built-in functions"
     ]
   },
   "49": {
@@ -453,6 +586,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "The $n$-th Catalan number",
     "sampleExplanations": [
       "For n = 4, there are 14 structurally unique BSTs."
+    ],
+    "constraints": [
+        "Maximum 500 strings"
     ]
   },
   "50": {
@@ -463,6 +599,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "List of coordinate steps on the optimal path",
     "sampleExplanations": [
       "A* combines path cost g(n) and heuristic h(n) to find shortest path efficiently."
+    ],
+    "constraints": [
+        "Grid size up to 100x100"
     ]
   },
   "51": {
@@ -473,6 +612,10 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Optimal heuristic evaluation score and best move",
     "sampleExplanations": [
       "Alpha-beta pruning eliminates subtrees without altering optimal choice."
+    ],
+    "constraints": [
+        "Alpha < Beta",
+        "Optimize branch pruning"
     ]
   },
   "52": {
@@ -483,6 +626,10 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Optimized parameters `(w, b)`",
     "sampleExplanations": [
       "Gradient descent updates w and b towards the global minimum of MSE."
+    ],
+    "constraints": [
+        "1 <= len(X) <= 1000",
+        "Do not use scikit-learn library"
     ]
   },
   "53": {
@@ -493,6 +640,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Final coordinates of the `k` cluster centroids",
     "sampleExplanations": [
       "Centroids converge to cluster centers after repeated iterations."
+    ],
+    "constraints": [
+        "k <= number of data points <= 5000"
     ]
   },
   "54": {
@@ -503,6 +653,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Predicted category label (\"Spam\" or \"Ham\")",
     "sampleExplanations": [
       "Bayes theorem computes posterior probability of spam given token occurrences."
+    ],
+    "constraints": [
+        "Laplace smoothing alpha = 1"
     ]
   },
   "55": {
@@ -513,6 +666,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Dictionary containing precision, recall, and f1_score",
     "sampleExplanations": [
       "F1-score is the harmonic mean of precision and recall."
+    ],
+    "constraints": [
+        "y_i in {0, 1}"
     ]
   },
   "56": {
@@ -523,6 +679,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Normalized probability distribution summing to 1.0",
     "sampleExplanations": [
       "Numerically stable Softmax prevents exponential overflow."
+    ],
+    "constraints": [
+        "Numerical stability: exp(z - max(z))"
     ]
   },
   "57": {
@@ -533,6 +692,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "TF-IDF weight matrix for each document",
     "sampleExplanations": [
       "Words frequent in one doc but rare in corpus receive higher TF-IDF weights."
+    ],
+    "constraints": [
+        "Lowercase conversion, whitespace tokenization"
     ]
   },
   "58": {
@@ -543,6 +705,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Converged Q-table containing optimal state-action values",
     "sampleExplanations": [
       "Q-learning iteratively updates Q(s, a) towards optimal policy."
+    ],
+    "constraints": [
+        "Alpha=0.1, Gamma=0.9, Epsilon greedy"
     ]
   },
   "59": {
@@ -553,6 +718,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Observed top element and size states",
     "sampleExplanations": [
       "Template specialization allows Stack to handle int, string, or custom types."
+    ],
+    "constraints": [
+        "Safe memory management without leaks"
     ]
   },
   "60": {
@@ -563,6 +731,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Verification that reference count drops to zero upon scope exit",
     "sampleExplanations": [
       "Weak_ptr prevents reference cycles that would otherwise cause memory leaks."
+    ],
+    "constraints": [
+        "Do not use manual delete"
     ]
   },
   "61": {
@@ -573,6 +744,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Vector sorted according to multi-key comparator",
     "sampleExplanations": [
       "Students with identical GPA are ordered alphabetically by name."
+    ],
+    "constraints": [
+        "Time complexity O(N log N)"
     ]
   },
   "62": {
@@ -583,6 +757,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Total cumulative area of all shapes",
     "sampleExplanations": [
       "Virtual destructor ensures derived object destructors are invoked properly."
+    ],
+    "constraints": [
+        "Avoid undefined behavior when deleting Base*"
     ]
   },
   "63": {
@@ -593,6 +770,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Confirmation that zero deep copies were performed",
     "sampleExplanations": [
       "Move semantics transfers raw pointer ownership with zero memory allocation."
+    ],
+    "constraints": [
+        "noexcept move semantics"
     ]
   },
   "64": {
@@ -603,6 +783,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Sum of all parsed even integers",
     "sampleExplanations": [
       "Even numbers parsed and summed without extraneous string allocations."
+    ],
+    "constraints": [
+        "String length up to 10^5 characters"
     ]
   },
   "65": {
@@ -613,6 +796,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Thrown exception message if balance is insufficient",
     "sampleExplanations": [
       "Throwing custom exception maintains transactional integrity."
+    ],
+    "constraints": [
+        "Inherit from standard Exception"
     ]
   },
   "66": {
@@ -623,6 +809,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Exact final counter value without race conditions",
     "sampleExplanations": [
       "CAS (Compare-And-Swap) operations guarantee atomic increments."
+    ],
+    "constraints": [
+        "Avoid race conditions with thread safety"
     ]
   },
   "67": {
@@ -633,6 +822,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Sorted list matching custom comparison criteria",
     "sampleExplanations": [
       "Comparator.comparing(...).thenComparing(...) enables multi-tier sorting."
+    ],
+    "constraints": [
+        "Collections.sort compatible"
     ]
   },
   "68": {
@@ -643,6 +835,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Calculated monthly salary for each employee",
     "sampleExplanations": [
       "Subclasses implement abstract salary calculation polymorphically."
+    ],
+    "constraints": [
+        "Encapsulation & Inheritance"
     ]
   },
   "69": {
@@ -653,6 +848,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Sum of squares of prime elements computed in parallel",
     "sampleExplanations": [
       "ForkJoinPool splits stream across CPU cores for maximum throughput."
+    ],
+    "constraints": [
+        "Leverage multi-core CPU architecture"
     ]
   },
   "70": {
@@ -663,6 +861,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Safe concurrent message publishing and consumption",
     "sampleExplanations": [
       "BlockingQueue automatically handles locking and condition signaling."
+    ],
+    "constraints": [
+        "java.util.concurrent standard"
     ]
   },
   "71": {
@@ -673,6 +874,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Successful CRUD operations on generic entity storage",
     "sampleExplanations": [
       "Generics ensure type safety across all CRUD repository operations."
+    ],
+    "constraints": [
+        "Type-safe verification at compile time"
     ]
   },
   "72": {
@@ -683,6 +887,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Total frequency count of keyword occurrences",
     "sampleExplanations": [
       "Streaming lines via Java NIO avoids loading entire file into memory."
+    ],
+    "constraints": [
+        "Process large files without OutOfMemoryError"
     ]
   },
   "73": {
@@ -693,6 +900,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Student name, course title, and grade records",
     "sampleExplanations": [
       "Inner joins connect primary and foreign keys across 3 tables."
+    ],
+    "constraints": [
+        "Standard ANSI SQL"
     ]
   },
   "74": {
@@ -703,6 +913,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Department name, student count, and average GPA",
     "sampleExplanations": [
       "HAVING clause filters groups after aggregate calculation."
+    ],
+    "constraints": [
+        "Use HAVING clause for aggregate filtering"
     ]
   },
   "75": {
@@ -713,6 +926,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Student records exceeding their respective class average GPA",
     "sampleExplanations": [
       "Subquery references outer row class_group to compute localized average."
+    ],
+    "constraints": [
+        "Correlated subquery or Window function"
     ]
   },
   "76": {
@@ -723,6 +939,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Columns: `payment_id`, `payment_date`, `amount`, `running_total`",
     "sampleExplanations": [
       "Running total accumulates amounts chronologically row by row."
+    ],
+    "constraints": [
+        "PostgreSQL / MySQL 8+ compatible"
     ]
   },
   "77": {
@@ -733,6 +952,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Columns: `id`, `name`, `gpa`, `academic_standing`",
     "sampleExplanations": [
       "CASE WHEN evaluates GPA thresholds in prioritized sequence."
+    ],
+    "constraints": [
+        "CASE WHEN statement"
     ]
   },
   "78": {
@@ -743,6 +965,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Top 3 ranked student records per major",
     "sampleExplanations": [
       "Partition by major restarts rank numbering for each academic department."
+    ],
+    "constraints": [
+        "WHERE rank <= 3"
     ]
   },
   "79": {
@@ -753,6 +978,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Hierarchical list of course dependencies with depth level",
     "sampleExplanations": [
       "Recursive CTE repeatedly expands dependency graph until base courses."
+    ],
+    "constraints": [
+        "WITH RECURSIVE syntax"
     ]
   },
   "80": {
@@ -763,6 +991,9 @@ export const EXERCISE_EN: Record<number, ExerciseEnTranslation> = {
     "outputFormat": "Columns: `student_id`, `student_name`, `class_group`",
     "sampleExplanations": [
       "LEFT JOIN preserves all students; NULL filter isolates non-submitters."
+    ],
+    "constraints": [
+        "LEFT JOIN ... WHERE right_id IS NULL"
     ]
   }
 };
@@ -803,6 +1034,7 @@ export function localizeExercise(ex: Exercise, lang: Language): Exercise {
     description: en.description || ex.description,
     inputFormat: en.inputFormat || ex.inputFormat,
     outputFormat: en.outputFormat || ex.outputFormat,
+    constraints: (en.constraints && en.constraints.length > 0) ? en.constraints : ex.constraints,
     sampleTestCases,
   };
 }

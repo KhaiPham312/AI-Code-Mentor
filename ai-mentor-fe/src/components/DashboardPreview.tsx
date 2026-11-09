@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { User } from '../types/auth';
 import { getExercises } from '../services/mockExerciseService';
 import { Language, ThemeMode, dashboardTranslations } from './dashboard/dashboardI18n';
@@ -15,11 +15,13 @@ import { PracticeSkillsGrid } from './dashboard/PracticeSkillsGrid';
 import { CourseDetailView } from './dashboard/CourseDetailView';
 import { LeaderboardModal } from './dashboard/LeaderboardModal';
 import { FloatingAIMentorChat } from './common/FloatingAIMentorChat';
+import { AppSidebar } from './common/AppSidebar';
+import { BackToTopButton } from './common/BackToTopButton';
 
 interface DashboardPreviewProps {
   user: User;
   onLogout: () => void;
-  onOpenIDE?: (exerciseId: number) => void;
+  onOpenIDE?: (exerciseId: number, trackId?: string) => void;
   onOpenSettings?: (tab?: 'profile' | 'password' | 'appearance') => void;
   onOpenSubmissions?: () => void;
   initialTrackId?: string | null;
@@ -51,6 +53,13 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
   >('practice');
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(initialTrackId);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+    };
+  }, []);
 
   // Sync if initialTrackId changes and validate against SKILL_TRACKS
   useEffect(() => {
@@ -76,11 +85,114 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
   const userSolvedIds = useMemo(() => getUserSolvedExerciseIds(userKey), [userKey]);
   const userSubmissions = useMemo(() => getUserSubmissions(userKey), [userKey]);
 
+  // Real AI interactions count from localStorage
+  const [aiInteractions, setAiInteractions] = useState<number>(0);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !userKey || userKey === 'guest') {
+      setAiInteractions(0);
+      return;
+    }
+    try {
+      const val = localStorage.getItem(`ai_mentor_ai_interactions_${userKey}`);
+      setAiInteractions(val ? parseInt(val, 10) || 0 : 0);
+    } catch {
+      setAiInteractions(0);
+    }
+  }, [userKey]);
+
   const realSolvedCount = userSolvedIds.length;
-  const streakDays = realSolvedCount > 0 ? 1 : 0;
-  const bestStreakDays = realSolvedCount > 0 ? 1 : 0;
+
+  // Real date calculations for streak, best streak, and today's goal
+  const { streakDays, bestStreakDays, todayGoalSolved } = useMemo(() => {
+    if (userSubmissions.length === 0) {
+      return { streakDays: 0, bestStreakDays: 0, todayGoalSolved: 0 };
+    }
+
+    const toLocalDateStr = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    const todayStr = toLocalDateStr(new Date());
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = toLocalDateStr(yesterday);
+
+    const submissionDates = new Set<string>();
+    const passedTodayExercises = new Set<number>();
+
+    for (const sub of userSubmissions) {
+      let dateStr = '';
+      if (sub.submittedAtISO) {
+        const d = new Date(sub.submittedAtISO);
+        if (!isNaN(d.getTime())) dateStr = toLocalDateStr(d);
+      }
+      if (!dateStr && sub.id && sub.id > 1000000000000) {
+        const d = new Date(sub.id);
+        if (!isNaN(d.getTime())) dateStr = toLocalDateStr(d);
+      }
+      if (dateStr) {
+        submissionDates.add(dateStr);
+        if (dateStr === todayStr && (sub.status === 'passed' || sub.verdict === 'accepted')) {
+          passedTodayExercises.add(sub.exerciseId);
+        }
+      }
+    }
+
+    // Daily goal: unique passed exercises today
+    const goalSolved = passedTodayExercises.size;
+
+    // Current streak: count backwards consecutive days with >= 1 submission
+    let currentStreak = 0;
+    let checkDate: Date | null = new Date();
+    if (!submissionDates.has(todayStr)) {
+      if (submissionDates.has(yesterdayStr)) {
+        checkDate = yesterday;
+      } else {
+        checkDate = null;
+      }
+    }
+
+    if (checkDate) {
+      while (true) {
+        const str = toLocalDateStr(checkDate);
+        if (submissionDates.has(str)) {
+          currentStreak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+    }
+
+    // Best streak: maximum consecutive days with submissions
+    const sortedDates = Array.from(submissionDates).sort();
+    let maxStreak = 0;
+    let tempStreak = 0;
+    let prevDate: Date | null = null;
+
+    for (const dStr of sortedDates) {
+      const curDate = new Date(dStr);
+      if (!prevDate) {
+        tempStreak = 1;
+      } else {
+        const diffDays = Math.round((curDate.getTime() - prevDate.getTime()) / (1000 * 3600 * 24));
+        if (diffDays === 1) {
+          tempStreak++;
+        } else {
+          tempStreak = 1;
+        }
+      }
+      prevDate = curDate;
+      if (tempStreak > maxStreak) maxStreak = tempStreak;
+    }
+
+    return {
+      streakDays: currentStreak,
+      bestStreakDays: Math.max(maxStreak, currentStreak),
+      todayGoalSolved: goalSolved,
+    };
+  }, [userSubmissions]);
+
   const todayGoalTotal = 3;
-  const todayGoalSolved = Math.min(todayGoalTotal, realSolvedCount);
   const acRatePercent =
     userSubmissions.length > 0
       ? Math.round(
@@ -120,11 +232,9 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
       }));
   }, [userSolvedIds, exercises, currentLang]);
 
-  const aiInteractions = 0; // Real count: no fake numbers
-
-  const handleLaunchIDE = (exerciseId: number = 1) => {
+  const handleLaunchIDE = (exerciseId: number = 1, trackId?: string) => {
     if (onOpenIDE) {
-      onOpenIDE(exerciseId);
+      onOpenIDE(exerciseId, trackId || selectedTrackId || undefined);
     }
   };
 
@@ -144,7 +254,8 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
     } else if (tab === 'kits') {
       setSelectedTrackId(null);
       if (onTrackChange) onTrackChange(null);
-      setTimeout(() => {
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => {
         const el = document.getElementById('section-kits');
         if (el) {
           el.scrollIntoView({ behavior: 'smooth' });
@@ -165,32 +276,93 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleSidebarTabChange = (tab: string) => {
+    if (tab === 'leaderboard') {
+      setIsLeaderboardOpen(true);
+      return;
+    }
+    if (tab === 'submissions') {
+      if (onOpenSubmissions) {
+        onOpenSubmissions();
+      }
+      return;
+    }
+    if (tab === 'courses') {
+      setSelectedTrackId(null);
+      if (onTrackChange) onTrackChange(null);
+      setActiveNavTab('practice');
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => {
+        const el = document.getElementById('practice-skills-section') || document.getElementById('section-skills');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 50);
+      return;
+    }
+    if (tab === 'kits') {
+      setSelectedTrackId(null);
+      if (onTrackChange) onTrackChange(null);
+      setActiveNavTab('kits');
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => {
+        const el = document.getElementById('section-kits');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 50);
+      return;
+    }
+    // practice
+    setSelectedTrackId(null);
+    if (onTrackChange) onTrackChange(null);
+    setActiveNavTab('practice');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div className="min-h-screen flex flex-col transition-colors duration-200 bg-[#f4f6f8] text-slate-900 dark:bg-[#0b0f17] dark:text-[#f3f7f8] antialiased">
-      {/* 1. TOP GLOBAL NAVBAR */}
-      <DashboardNavbar
+    <div className="flex min-h-screen w-full transition-colors duration-200 bg-[#f4f6f8] text-slate-900 dark:bg-[#0b0f17] dark:text-[#f3f7f8] antialiased">
+      {/* Gemini-style Left Vertical Sidebar */}
+      <AppSidebar
+        role="student"
+        activeTab={activeNavTab}
+        onTabChange={handleSidebarTabChange}
         user={user}
         currentLang={currentLang}
         onLanguageChange={onLanguageChange}
         currentTheme={currentTheme}
         onThemeToggle={onThemeToggle}
         onLogout={onLogout}
-        onOpenIDE={() => handleLaunchIDE(1)}
-        onOpenSubmissions={onOpenSubmissions}
-        activeNavTab={activeNavTab}
-        onNavTabChange={handleNavTabChange}
-        onOpenSettings={(tab) => {
-          if (onOpenSettings) {
-            onOpenSettings(tab);
-          }
-        }}
-        onOpenAIMentor={() => {
-          // Triggers floating chat bubble
-        }}
+        onOpenSettings={(tab) => onOpenSettings && onOpenSettings(tab as 'profile' | 'password' | 'appearance')}
       />
 
-      {/* 2. MAIN DASHBOARD CONTENT */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+      {/* Main content right side */}
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen overflow-x-hidden">
+        {/* 1. TOP GLOBAL NAVBAR (Clean bar, nav tabs moved to Left Sidebar) */}
+        <DashboardNavbar
+          user={user}
+          currentLang={currentLang}
+          onLanguageChange={onLanguageChange}
+          currentTheme={currentTheme}
+          onThemeToggle={onThemeToggle}
+          onLogout={onLogout}
+          onOpenIDE={() => handleLaunchIDE(1)}
+          onOpenSubmissions={onOpenSubmissions}
+          activeNavTab={activeNavTab}
+          onNavTabChange={handleNavTabChange}
+          hideNavTabs={true}
+          onOpenSettings={(tab) => {
+            if (onOpenSettings) {
+              onOpenSettings(tab);
+            }
+          }}
+          onOpenAIMentor={() => {
+            // Triggers floating chat bubble
+          }}
+        />
+
+        {/* 2. MAIN DASHBOARD CONTENT */}
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
         {selectedTrackId ? (
           /* COURSE DETAIL VIEW (PROBLEM SETS) */
           <CourseDetailView
@@ -219,6 +391,7 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
               acRatePercent={acRatePercent}
               codingHours={codingHours}
               topTopics={topTopics}
+              userSubmissions={userSubmissions}
             />
 
             {/* SECTION A: SKILL PREPARATION KITS */}
@@ -250,7 +423,7 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
             </div>
 
             {/* SECTION B: PRACTICE SKILLS GRID (3-COLUMN HACKERRANK LAYOUT) */}
-            <div id="section-skills" className="scroll-mt-20">
+            <div id="practice-skills-section" className="scroll-mt-20">
               <PracticeSkillsGrid
                 currentLang={currentLang}
                 exercises={exercises}
@@ -273,7 +446,8 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
         user={user}
       />
 
-      {/* 4. FLOATING AI SOCRATIC MENTOR WIDGET */}
+      {/* 4. FLOATING AI SOCRATIC MENTOR WIDGET & BACK TO TOP BUTTON */}
+      <BackToTopButton currentLang={currentLang} position="above-chat" />
       <FloatingAIMentorChat theme={currentTheme} currentLang={currentLang} />
 
       {/* 5. CLEAN FOOTER */}
@@ -300,6 +474,7 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 };

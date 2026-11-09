@@ -71,10 +71,6 @@ export const BrandSidebar: React.FC<BrandSidebarProps> = ({ lang }) => {
               {t.heroTitleLine2}
             </span>
           </h1>
-
-          <p className="text-slate-200/90 text-xs sm:text-sm font-normal leading-relaxed max-w-lg drop-shadow">
-            {t.heroDesc}
-          </p>
         </div>
       </div>
     </aside>

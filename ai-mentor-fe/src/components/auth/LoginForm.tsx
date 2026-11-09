@@ -14,7 +14,7 @@ import {
 } from '../../services/mockAuth';
 import { loginUser, registerUser } from '../../services/authService';
 import { ApiError } from '../../services/apiClient';
-import { User, UserRole } from '../../types/auth';
+import { User } from '../../types/auth';
 import { Language, translations, getAuthErrorMessage } from './i18n';
 
 interface LoginFormProps {
@@ -47,7 +47,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [loginIdentifier, setLoginIdentifier] = useState(initialIdentifier || 'student');
   const [password, setPassword] = useState('123456');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('student');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -180,14 +179,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             fullName,
             email,
             password,
-            role,
+            role: 'student',
           });
         } catch (beErr: unknown) {
           if (beErr instanceof ApiError && (beErr.status === 400 || beErr.status === 409 || beErr.status === 422)) {
             throw beErr;
           }
           console.warn('Backend register failed, trying mock fallback:', beErr);
-          result = await mockRegister(fullName, email, password, role);
+          result = await mockRegister(fullName, email, password, 'student');
         }
 
         // Show self-dismissing success toast
@@ -255,18 +254,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       </div>
 
       {/* HEADER SECTION (Top-aligned, HackerRank style) */}
-      <div className={`select-none text-left ${authMode === 'register' ? 'mb-2 space-y-0.5' : 'mb-5 space-y-1'}`}>
+      <div className={`select-none text-left ${authMode === 'register' ? 'mb-4' : 'mb-6'}`}>
         <h2 className={`${authMode === 'register' ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'} font-bold text-slate-900 tracking-tight font-sans`}>
           {authMode === 'login' ? t.loginWelcome : t.registerWelcome}
         </h2>
-        <p className="text-xs sm:text-sm font-semibold text-slate-700">
-          {authMode === 'login' ? t.loginSub : t.registerSub}
-        </p>
-        {authMode === 'login' && (
-          <p className="text-xs sm:text-sm text-slate-500 font-normal">
-            {t.loginDesc}
-          </p>
-        )}
       </div>
 
       {/* GENERAL ERROR BANNER */}
@@ -557,37 +548,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                   <span>{fieldErrors.confirmPassword}</span>
                 </p>
               )}
-            </div>
-
-            {/* ROLE SELECTOR */}
-            <div className="pt-0 select-none">
-              <span className="block text-[11px] font-semibold text-slate-700 mb-0.5">
-                {t.roleSelectorLabel}
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRole('student')}
-                  className={`h-8 px-2.5 rounded-md text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
-                    role === 'student'
-                      ? 'border-[#1BA94C] bg-emerald-50 text-[#1BA94C]'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                  }`}
-                >
-                  <span>{t.studentRoleOption}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('teacher')}
-                  className={`h-8 px-2.5 rounded-md text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
-                    role === 'teacher'
-                      ? 'border-[#1BA94C] bg-emerald-50 text-[#1BA94C]'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-                  }`}
-                >
-                  <span>{t.teacherRoleOption}</span>
-                </button>
-              </div>
             </div>
           </>
         )}

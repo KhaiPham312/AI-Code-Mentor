@@ -1,15 +1,14 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { Language, dashboardTranslations } from './dashboardI18n';
 import {
-  ArrowRight,
   Layers,
   Cpu,
   Award,
   Binary,
   Database,
-  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import gsap from 'gsap';
 import { COMPREHENSIVE_EXERCISES } from '../../services/mockExercisesData';
 import { getUserSolvedExerciseIds, getUserStorageKey } from '../../services/userStorage';
 
@@ -23,8 +22,6 @@ export const SkillPreparationKits: React.FC<SkillPreparationKitsProps> = ({
   onSelectKit,
 }) => {
   const t = dashboardTranslations[currentLang];
-  const [isExpanded, setIsExpanded] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const getKitStats = (trackIds: string[]) => {
     const matchedExercises = COMPREHENSIVE_EXERCISES.filter(
@@ -183,18 +180,35 @@ export const SkillPreparationKits: React.FC<SkillPreparationKitsProps> = ({
     ];
   }, [currentLang]);
 
-  // Animate newly revealed cards with GSAP
-  useEffect(() => {
-    if (isExpanded && containerRef.current) {
-      gsap.fromTo(
-        containerRef.current.children,
-        { opacity: 0, y: 12 },
-        { opacity: 1, y: 0, duration: 0.35, stagger: 0.06, ease: 'power2.out' }
-      );
-    }
-  }, [isExpanded]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const displayedKits = isExpanded ? allKits : allKits.slice(0, 3);
+  const checkScrollBounds = useCallback(() => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setCanScrollLeft(scrollLeft > 10);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 10);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkScrollBounds();
+    const handleResize = () => checkScrollBounds();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [checkScrollBounds]);
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollDistance = 380;
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollDistance : scrollDistance,
+        behavior: 'smooth',
+      });
+      setTimeout(checkScrollBounds, 350);
+    }
+  };
 
   const getColorClasses = (color: string) => {
     switch (color) {
@@ -241,141 +255,85 @@ export const SkillPreparationKits: React.FC<SkillPreparationKitsProps> = ({
   return (
     <section className="space-y-4">
       {/* SECTION HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b pb-3 border-slate-200 dark:border-gray-800">
+      <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-gray-800">
         <div>
           <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white font-sans">
             {t.kitsSectionTitle}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5 max-w-2xl">
-            {t.kitsSectionSub}
-          </p>
         </div>
-
-        {/* View All Tracks Toggle Button */}
-        <button
-          type="button"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="text-xs font-semibold text-[#1BA94C] dark:text-[#00EA64] hover:underline flex items-center gap-1 self-start sm:self-auto py-1 px-2 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
-        >
-          <span>
-            {isExpanded
-              ? currentLang === 'vie'
-                ? 'Thu gọn (3 lộ trình)'
-                : 'Collapse (3 tracks)'
-              : currentLang === 'vie'
-              ? 'Xem tất cả 5 lộ trình'
-              : 'View all 5 tracks'}
-          </span>
-          <ChevronDown
-            className={`w-3.5 h-3.5 transition-transform duration-200 ${
-              isExpanded ? 'rotate-180' : ''
-            }`}
-          />
-        </button>
       </div>
 
-      {/* 3-COLUMN RESPONSIVE KITS GRID */}
-      <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {displayedKits.map((kit) => {
-          const Icon = kit.icon;
-          const colors = getColorClasses(kit.color);
+      {/* CAROUSEL WITH PREVIOUS / NEXT CONTROLS */}
+      <div className="relative group/carousel">
+        {/* Previous (<) Button */}
+        <button
+          type="button"
+          onClick={() => handleScroll('left')}
+          disabled={!canScrollLeft}
+          aria-label={currentLang === 'vie' ? 'Lộ trình trước' : 'Previous tracks'}
+          className={`absolute -left-3.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-slate-900/90 hover:bg-emerald-600 text-white dark:bg-slate-800 dark:hover:bg-emerald-500 shadow-md flex items-center justify-center transition-all cursor-pointer ${
+            !canScrollLeft ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:scale-105'
+          }`}
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
 
-          return (
-            <div
-              key={kit.id}
-              onClick={() => onSelectKit(kit.id)}
-              className={`group relative flex flex-col justify-between p-5 rounded-2xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${colors.hoverBorder}`}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onSelectKit(kit.id);
-                }
-              }}
-            >
-              <div>
-                {/* CARD TOP: ICON & LEVEL BADGE */}
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center border ${colors.icon}`}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </div>
+        {/* Carousel Horizontal Scroll Track */}
+        <div
+          ref={scrollContainerRef}
+          onScroll={checkScrollBounds}
+          className="flex items-stretch gap-5 overflow-x-auto scroll-smooth py-1 px-1 scrollbar-none"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {allKits.map((kit) => {
+            const Icon = kit.icon;
+            const colors = getColorClasses(kit.color);
 
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
-                    {kit.level}
-                  </span>
-                </div>
-
-                {/* CARD TITLE & DESCRIPTION */}
-                <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-[#1BA94C] dark:group-hover:text-[#00EA64] transition-colors leading-snug">
-                  {kit.title}
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 leading-relaxed">
-                  {kit.desc}
-                </p>
-
-                {/* TAGS */}
-                <div className="flex flex-wrap gap-1.5 mt-3.5">
-                  {kit.tags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* CARD BOTTOM: PROGRESS BAR & RESUME BUTTON */}
-              <div className="mt-5 pt-4 border-t border-slate-100 dark:border-gray-800/80">
-                {kit.hasRealProgress ? (
-                  <>
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">
-                        {kit.progress}%
-                      </span>
-                      <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[170px]">
-                        {kit.progressLabel}
-                      </span>
-                    </div>
-
-                    {/* Progress bar container */}
-                    <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-3.5">
-                      <div
-                        className={`h-full rounded-full transition-all duration-700 ease-out ${colors.bar}`}
-                        style={{ width: `${kit.progress}%` }}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex items-center justify-between text-xs mb-3.5 pt-0.5">
-                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                      {currentLang === 'vie' ? 'Quy mô lộ trình' : 'Track scale'}
-                    </span>
-                    <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-                      {kit.progressLabel}
-                    </span>
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
+            return (
+              <div
+                key={kit.id}
+                onClick={() => onSelectKit(kit.id)}
+                className="w-[320px] sm:w-[350px] lg:w-[380px] shrink-0 h-24 px-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-500/60 hover:shadow-md transition-all flex items-center gap-4 cursor-pointer select-none group"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
                     onSelectKit(kit.id);
-                  }}
-                  className="w-full py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-[#1BA94C] hover:text-white dark:bg-slate-800 dark:hover:bg-[#1BA94C] text-slate-700 dark:text-slate-200 transition-all duration-150"
+                  }
+                }}
+                aria-label={kit.title}
+              >
+                {/* Left: Enlarged Kit Icon */}
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-105 ${colors.icon}`}
                 >
-                  <span>{currentLang === 'vie' ? 'Tiếp tục học lộ trình' : 'Continue Track'}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                  <Icon className="w-6 h-6" />
+                </div>
+
+                {/* Right: Full Kit Name (1-2 lines, 0 truncation) */}
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-[16px] font-semibold text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-[#00EA64] transition-colors leading-snug font-sans">
+                    {kit.title}
+                  </h3>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        {/* Next (>) Button */}
+        <button
+          type="button"
+          onClick={() => handleScroll('right')}
+          disabled={!canScrollRight}
+          aria-label={currentLang === 'vie' ? 'Lộ trình tiếp theo' : 'Next tracks'}
+          className={`absolute -right-3.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-slate-900/90 hover:bg-emerald-600 text-white dark:bg-slate-800 dark:hover:bg-emerald-500 shadow-md flex items-center justify-center transition-all cursor-pointer ${
+            !canScrollRight ? 'opacity-0 pointer-events-none' : 'opacity-100 hover:scale-105'
+          }`}
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
       </div>
     </section>
   );

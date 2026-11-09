@@ -15,9 +15,7 @@ export const getExercises = (): Exercise[] => {
 
 export const getExercisesByTrack = (trackId: string): Exercise[] => {
   const matched = MOCK_EXERCISES.filter((ex) => (ex.trackIds || []).includes(trackId));
-  if (matched.length > 0) return matched;
-  // Fallback if a specific track doesn't have custom tags
-  return MOCK_EXERCISES.slice(0, 4);
+  return matched;
 };
 
 export const getExerciseById = (id: number): Exercise | undefined => {

@@ -29,10 +29,13 @@ export function mapBackendUserToFrontend(bUser: BackendUserResponse): User {
     name: bUser.name,
     username: bUser.username,
     email: bUser.email,
-    role: (bUser.role === 'teacher' ? 'teacher' : 'student') as UserRole,
+    role: (bUser.role === 'admin' ? 'admin' : bUser.role === 'teacher' ? 'teacher' : 'student') as UserRole,
     avatar: bUser.avatar || undefined,
     studentId: bUser.student_id || undefined,
     classGroup: bUser.class_group || undefined,
+    isActive: bUser.is_active,
+    status: bUser.is_active ? 'active' : 'locked',
+    createdAt: bUser.created_at,
   };
 }
 
@@ -246,5 +249,14 @@ export async function resetPassword(params: {
 // Backward compatibility alias
 export const resetPasswordService = resetPassword;
 export const forgotPasswordService = forgotPassword;
+
+export {
+  getAllAccounts,
+  updateAccountRole,
+  toggleAccountStatus,
+  adminCreateAccount,
+  adminResetPassword,
+  adminDeleteAccount,
+} from './mockAuth';
 
 

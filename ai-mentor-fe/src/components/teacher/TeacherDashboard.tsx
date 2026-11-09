@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { User } from '../../types/auth';
 import {
   MOCK_CLASS_GROUPS,
@@ -23,32 +23,26 @@ import { COMPREHENSIVE_EXERCISES } from '../../services/mockExercisesData';
 import { TeacherAITranscriptDrawer } from './TeacherAITranscriptDrawer';
 import { TeacherCodeReviewModal } from './TeacherCodeReviewModal';
 import { TeacherAssignmentModal } from './TeacherAssignmentModal';
-import { AnalyticsBreakdown } from './tabs/AnalyticsBreakdown';
+import { ScoreDistributionCard } from './tabs/ScoreDistributionCard';
+import { AppSidebar } from '../common/AppSidebar';
+import { BackToTopButton } from '../common/BackToTopButton';
 import { Language, ThemeMode } from '../dashboard/dashboardI18n';
 import { StatusBadge } from '../common/StatusBadge';
 import { isTeacherTab, TeacherTab } from '../../services/navigation';
-import { getWeeklyActivity, getAllCoursesStats, getClassTotalStudents } from '../../services/teacherAnalytics';
+import { getClassTotalStudents } from '../../services/teacherAnalytics';
 import {
   BookOpen,
-  Plus,
   MessageSquare,
   CheckCircle2,
   Search,
   Eye,
-  LogOut,
   Bot,
   Users,
   AlertTriangle,
-  ShieldCheck,
   ChevronDown,
   Code,
-  BarChart3,
-  Sun,
-  Moon,
   ArrowLeft,
   ArrowRight,
-  User as UserIcon,
-  Settings as SettingsIcon,
   Layers,
   GitBranch,
   Calculator,
@@ -57,6 +51,8 @@ import {
   Database,
   ChevronRight,
   Trophy,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 interface TeacherDashboardProps {
@@ -116,27 +112,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     );
   }, [selectedClassId]);
 
-  const weeklyActivity = useMemo(() => {
-    return getWeeklyActivity(selectedClassId);
-  }, [selectedClassId, storageTick]);
-
-  const allCoursesProgress = useMemo(() => {
-    return getAllCoursesStats(selectedClassId);
-  }, [selectedClassId, storageTick]);
-
-  const highestCourse = useMemo(() => {
-    if (!allCoursesProgress || allCoursesProgress.length === 0) return null;
-    return allCoursesProgress.find((c) => c.isHighest) || allCoursesProgress[0];
-  }, [allCoursesProgress]);
-
   const classTotalStudents = useMemo(() => {
     return getClassTotalStudents(selectedClassId);
   }, [selectedClassId]);
-
-  const peakWeekly = useMemo(() => {
-    if (weeklyActivity.length === 0) return { studentCount: 0, day: 'T6', percent: 0 };
-    return weeklyActivity.reduce((max, cur) => cur.studentCount > max.studentCount ? cur : max, weeklyActivity[0]);
-  }, [weeklyActivity]);
 
 
   // Sync selectedClassId to localStorage
@@ -229,24 +207,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       // ignore
     }
   }, [drilldown]);
-
-  // Profile dropdown state
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsProfileOpen(false);
-      }
-    };
-    if (isProfileOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isProfileOpen]);
 
   // Selected course details
   const selectedCourse = useMemo(() => {
@@ -523,48 +483,28 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     );
   }, [drilldown.exerciseId, selectedExercise, drilldown.courseId, storageTick]);
 
-  const getCourseClassStats = (trackId: string) => {
-    const list = COMPREHENSIVE_EXERCISES.filter(
-      (ex) => ex.trackIds && ex.trackIds.includes(trackId)
-    );
-    const count = list.length;
-    const rates: Record<string, { comp: number; subs: number; socratic: number }> = {
-      algorithms: { comp: 78, subs: 342, socratic: 84 },
-      'data-structures': { comp: 72, subs: 310, socratic: 88 },
-      mathematics: { comp: 75, subs: 285, socratic: 79 },
-      ai: { comp: 64, subs: 240, socratic: 92 },
-      c: { comp: 81, subs: 360, socratic: 76 },
-      cpp: { comp: 69, subs: 295, socratic: 82 },
-      java: { comp: 70, subs: 280, socratic: 80 },
-      python: { comp: 86, subs: 410, socratic: 74 },
-      sql: { comp: 82, subs: 325, socratic: 70 },
-    };
-    const stat = rates[trackId] || { comp: 70, subs: 280, socratic: 80 };
-    return { count, ...stat };
-  };
-
   const renderCourseTrackIcon = (iconType: SkillIconType, color: string) => {
     switch (iconType) {
       case 'algorithms':
-        return <GitBranch className="w-5 h-5" style={{ color }} />;
+        return <GitBranch className="w-6 h-6" style={{ color }} />;
       case 'data-structures':
-        return <Layers className="w-5 h-5" style={{ color }} />;
+        return <Layers className="w-6 h-6" style={{ color }} />;
       case 'mathematics':
-        return <Calculator className="w-5 h-5" style={{ color }} />;
+        return <Calculator className="w-6 h-6" style={{ color }} />;
       case 'ai':
-        return <Brain className="w-5 h-5" style={{ color }} />;
+        return <Brain className="w-6 h-6" style={{ color }} />;
       case 'c':
-        return <span className="font-mono font-bold text-sm tracking-tight text-blue-500">C</span>;
+        return <span className="font-mono font-bold text-base tracking-tight text-blue-500">C</span>;
       case 'cpp':
-        return <span className="font-mono font-bold text-xs tracking-tight text-blue-600">C++</span>;
+        return <span className="font-mono font-bold text-sm tracking-tight text-blue-600">C++</span>;
       case 'java':
-        return <Coffee className="w-5 h-5" style={{ color }} />;
+        return <Coffee className="w-6 h-6" style={{ color }} />;
       case 'python':
-        return <span className="font-mono font-extrabold text-xs tracking-tight text-amber-500">Py</span>;
+        return <span className="font-mono font-extrabold text-sm tracking-tight text-amber-500">Py</span>;
       case 'sql':
-        return <Database className="w-5 h-5" style={{ color }} />;
+        return <Database className="w-6 h-6" style={{ color }} />;
       default:
-        return <BookOpen className="w-5 h-5" style={{ color }} />;
+        return <BookOpen className="w-6 h-6" style={{ color }} />;
     }
   };
 
@@ -677,650 +617,237 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     setIsCodeReviewOpen(true);
   };
 
-  const teacherDisplayName = user?.name?.trim() || (isVie ? 'Giảng viên' : 'Lecturer');
-  const teacherInitials = useMemo(() => {
-    const raw = (user?.name || '')
-      .replace(/^(ts\.|ths\.|dr\.|prof\.|pgs\.|thầy|cô)\s*/i, '')
-      .trim();
-    if (!raw) return isVie ? 'GV' : 'LE';
-    const words = raw.split(/\s+/).filter(Boolean);
-    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-    return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-  }, [user?.name, isVie]);
-
   return (
     <div
-      className={`min-h-screen flex flex-col transition-colors duration-150 antialiased ${
+      className={`flex min-h-screen w-full flex-row transition-colors duration-150 antialiased ${
         isDark
           ? 'bg-[#0b1322] text-slate-100'
           : 'bg-[#f8fafc] text-neutral-900'
       }`}
     >
-      {/* ================= 1. HEADER & GLOBAL CONTROL BAR ================= */}
-      <header
-        className={`h-16 px-4 sm:px-6 border-b flex items-center justify-between gap-6 w-full sticky top-0 z-30 transition-colors ${
-          isDark
-            ? 'bg-[#0c1626]/95 border-slate-800 backdrop-blur-md'
-            : 'bg-white/95 border-slate-200 backdrop-blur-md'
-        }`}
-      >
-        {/* Khối bên trái: Logo + Divider + Dropdown chọn lớp */}
-        <div className="flex items-center gap-4 min-w-0">
-          {/* Cụm Logo + Tên thương hiệu */}
-          <div className="flex items-center space-x-2.5 shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#1BA94C] to-[#00EA64] flex items-center justify-center font-bold text-white shadow-md">
-              <span className="font-sans text-lg font-black">H</span>
-            </div>
-            <div className="hidden sm:block">
-              <span className="font-black text-sm tracking-tight font-sans block">
-                AI CODE MENTOR
-              </span>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 block -mt-0.5 truncate font-sans">
-                {isVie ? 'Trường Đại học Sư phạm Hà Nội' : 'Hanoi National University of Education'}
-              </span>
+      <AppSidebar
+        role="teacher"
+        activeTab={activeTab === 'assignments' ? 'courses' : activeTab === 'logs' ? 'ai-monitor' : activeTab}
+        onTabChange={(tabId) => {
+          if (tabId === 'courses') {
+            handleSelectTab('assignments');
+            handleBackToCourses();
+          } else if (tabId === 'ai-monitor') {
+            handleSelectTab('logs');
+          } else if (tabId === 'roster') {
+            handleSelectTab('roster');
+          } else {
+            handleSelectTab('analytics');
+          }
+        }}
+        user={user}
+        currentLang={currentLang}
+        onLanguageChange={onLanguageChange}
+        currentTheme={currentTheme}
+        onThemeToggle={onThemeToggle}
+        onLogout={onLogout}
+        onOpenSettings={(tab) => onOpenSettings?.(tab as 'profile' | 'password')}
+        onNewAssignment={() => setIsCreateAssignmentOpen(true)}
+        aiLogBadgeCount={activeClass.stuckStudentsCount}
+      />
+
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen overflow-x-hidden">
+        {/* ================= 1. MINIMAL TEACHER TOPBAR ================= */}
+        <header
+          className={`h-14 px-4 sm:px-6 border-b flex items-center justify-between gap-4 w-full sticky top-0 z-30 transition-colors backdrop-blur-md ${
+            isDark
+              ? 'bg-[#0c1626]/95 border-slate-800'
+              : 'bg-white/95 border-slate-200'
+          }`}
+        >
+          {/* Left: Only Class Selector dropdown */}
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="relative w-auto max-w-[260px] md:max-w-[320px] shrink min-w-0">
+              <select
+                value={selectedClassId}
+                onChange={(e) => setSelectedClassId(e.target.value)}
+                aria-label={isVie ? 'Chọn lớp học' : 'Select class'}
+                className="w-full max-w-[260px] md:max-w-[320px] truncate pl-3 pr-8 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 appearance-none cursor-pointer font-sans transition-colors"
+              >
+                {MOCK_CLASS_GROUPS.map((cls) => (
+                  <option key={cls.id} value={cls.id} className="py-1">
+                    {isVie ? cls.name : (cls.nameEng || cls.name)}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
-          {/* Đường kẻ dọc ngăn cách */}
-          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 shrink-0 hidden sm:block" />
-
-          {/* Khung bọc Dropdown chọn lớp */}
-          <div className="relative w-auto max-w-[260px] md:max-w-[300px] shrink min-w-0">
-            <select
-              value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
-              aria-label={isVie ? 'Chọn lớp học' : 'Select class'}
-              className="w-full max-w-[260px] md:max-w-[300px] truncate pl-4 pr-9 py-2 rounded-full text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 appearance-none cursor-pointer font-sans transition-colors"
-            >
-              {MOCK_CLASS_GROUPS.map((cls) => (
-                <option key={cls.id} value={cls.id} className="py-1">
-                  {isVie ? cls.name : (cls.nameEng || cls.name)}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-        </div>
-
-        {/* Khối bên phải: VIE | ENG, Theme Toggle, CTA New Assignment & Teacher Profile */}
-        <div className="flex items-center gap-3 shrink-0 ml-auto">
-          {/* Cụm nút chuyển đổi ngôn ngữ VIE | ENG */}
-          {onLanguageChange && (
-            <div
-              role="group"
-              aria-label="Language Selector"
-              className="shrink-0 flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-full border border-slate-200 dark:border-slate-700 font-sans"
-            >
-              <button
-                type="button"
-                onClick={() => onLanguageChange('vie')}
-                className={`transition-all duration-150 ${
-                  isVie
-                    ? 'bg-[#16a34a] text-white font-semibold px-3 py-1 rounded-full text-xs shadow-sm transition-all'
-                    : 'text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-medium hover:text-slate-900 dark:hover:text-white transition-all'
-                }`}
-              >
-                VIE
-              </button>
-              <button
-                type="button"
-                onClick={() => onLanguageChange('eng')}
-                className={`transition-all duration-150 ${
-                  !isVie
-                    ? 'bg-[#16a34a] text-white font-semibold px-3 py-1 rounded-full text-xs shadow-sm transition-all'
-                    : 'text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-medium hover:text-slate-900 dark:hover:text-white transition-all'
-                }`}
-              >
-                ENG
-              </button>
-            </div>
-          )}
-
-          {/* Nút chuyển đổi Dark/Light mode */}
-          {onThemeToggle && (
-            <button
-              type="button"
-              onClick={onThemeToggle}
-              title={isDark ? (isVie ? 'Chuyển sang Theme Sáng' : 'Switch to Light Theme') : (isVie ? 'Chuyển sang Theme Tối' : 'Switch to Dark Theme')}
-              className={`shrink-0 p-2 rounded-lg border transition ${
-                isDark
-                  ? 'border-slate-700 hover:bg-slate-800 text-amber-400'
-                  : 'border-slate-300 hover:bg-slate-100 text-slate-700'
-              }`}
-            >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-          )}
-
-          {/* Nút + Giao bài tập mới */}
-          <button
-            type="button"
-            onClick={() => setIsCreateAssignmentOpen(true)}
-            className="shrink-0 hidden sm:flex items-center space-x-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{isVie ? 'Giao bài tập mới' : 'New Assignment'}</span>
-          </button>
-
-          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 shrink-0 hidden sm:block" />
-
-          {/* Cụm Avatar + Menu Dropdown Giảng viên */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              type="button"
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center gap-2.5 p-1 sm:pl-2 sm:pr-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/70 border border-transparent hover:border-slate-200 dark:hover:border-slate-700/60 transition-all focus:outline-none cursor-pointer"
-              aria-expanded={isProfileOpen}
-            >
-              <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                  {teacherInitials}
-                </div>
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#00EA64] ring-2 ring-white dark:ring-[#0b0f17]" />
-              </div>
-
-              <div className="text-left hidden lg:block leading-tight">
-                <div className="font-bold truncate text-xs">
-                  {teacherDisplayName}
-                </div>
-                {user.department && (
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium font-sans">
-                    {user.department}
-                  </div>
-                )}
-              </div>
-
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                  isProfileOpen ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
-
-            {/* HackerRank-style Teacher Profile Dropdown Menu */}
-            {isProfileOpen && (
+          {/* Right: Language toggle (VIE | ENG) & Theme toggle */}
+          <div className="flex items-center gap-2.5 sm:gap-3 ml-auto">
+            {onLanguageChange && (
               <div
-                className="absolute right-0 mt-2 w-64 rounded-xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-2xl py-1.5 text-xs text-slate-700 dark:text-slate-200 z-50 overflow-hidden"
+                role="group"
+                aria-label="Language Selector"
+                className="inline-flex items-center p-0.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-[11px] font-semibold"
               >
-                {/* 1. Phần thông tin đầu bảng */}
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-gray-800/80 bg-slate-50/50 dark:bg-[#0e1420]/50">
-                  <p className="font-bold text-slate-900 dark:text-white truncate text-xs font-sans">
-                    {teacherDisplayName}
-                  </p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate font-mono mt-0.5">
-                    {user.email || 'teacher@hnue.edu.vn'}
-                  </p>
-                  <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-[#00EA64] border border-emerald-200 dark:border-emerald-800/50">
-                    <ShieldCheck className="w-3 h-3 text-[#00EA64]" />
-                    <span>{isVie ? 'Bộ môn KHMT • Giảng viên' : 'CS Dept • Lecturer'}</span>
-                  </div>
-                </div>
-
-                {/* 2. Danh sách mục điều hướng */}
-                <div className="py-1">
-                  {/* Hồ sơ cá nhân */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsProfileOpen(false);
-                      onOpenSettings?.('profile');
-                    }}
-                    className="w-full text-left px-4 py-2 flex items-center gap-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
-                  >
-                    <UserIcon className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{isVie ? 'Hồ sơ cá nhân' : 'Personal Profile'}</span>
-                  </button>
-
-                  {/* Quản lý khóa học & Bài tập */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsProfileOpen(false);
-                      handleSelectTab('assignments');
-                      handleBackToCourses();
-                    }}
-                    className="w-full text-left px-4 py-2 flex items-center gap-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
-                  >
-                    <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>{isVie ? 'Quản lý Khóa học' : 'Course Management'}</span>
-                  </button>
-
-                  {/* Cài đặt (Đổi mật khẩu) */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsProfileOpen(false);
-                      onOpenSettings?.('password');
-                    }}
-                    className="w-full text-left px-4 py-2 flex items-center gap-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
-                  >
-                    <SettingsIcon className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                      {isVie ? 'Cài đặt (Đổi mật khẩu)' : 'Settings (Change Password)'}
-                    </span>
-                  </button>
-
-                  {/* Nhật ký Giám sát AI */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsProfileOpen(false);
-                      handleSelectTab('logs');
-                    }}
-                    className="w-full text-left px-4 py-2 flex items-center gap-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-purple-500" />
-                    <span>{isVie ? 'Nhật ký Giám sát AI' : 'AI Supervision Logs'}</span>
-                  </button>
-                </div>
-
-                {/* Phân cách & Đăng xuất */}
-                <div className="border-t border-slate-100 dark:border-gray-800/80 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsProfileOpen(false);
-                      onLogout();
-                    }}
-                    className="w-full text-left px-4 py-2 flex items-center gap-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors font-semibold cursor-pointer"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>{isVie ? 'Đăng xuất' : 'Log Out'}</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => onLanguageChange('vie')}
+                  className={`px-2 py-0.5 rounded-full transition-all duration-150 cursor-pointer ${
+                    isVie
+                      ? 'bg-[#1BA94C] text-white shadow-xs font-bold'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  VIE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onLanguageChange('eng')}
+                  className={`px-2 py-0.5 rounded-full transition-all duration-150 cursor-pointer ${
+                    !isVie
+                      ? 'bg-[#1BA94C] text-white shadow-xs font-bold'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  ENG
+                </button>
               </div>
             )}
+
+            {onThemeToggle && (
+              <button
+                type="button"
+                onClick={onThemeToggle}
+                aria-label={isDark ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối'}
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 transition-colors focus:outline-none cursor-pointer"
+                title={isDark ? (isVie ? 'Chuyển Theme Sáng' : 'Light Mode') : (isVie ? 'Chuyển Theme Tối' : 'Dark Mode')}
+              >
+                {isDark ? (
+                  <Sun className="w-4 h-4 text-amber-400" />
+                ) : (
+                  <Moon className="w-4 h-4 text-slate-700" />
+                )}
+              </button>
+            )}
           </div>
-        </div>
-      </header>
-
-      {/* Course Context Ribbon */}
-      <div
-        className={`px-4 sm:px-6 py-2.5 border-b text-xs flex flex-wrap items-center justify-between gap-2 ${
-          isDark ? 'bg-[#0d1829] border-slate-800/80 text-slate-300' : 'bg-slate-100/80 border-slate-200 text-neutral-700'
-        }`}
-      >
-        <div className="flex items-center space-x-2 font-sans">
-          <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
-          <span className="font-bold">
-            {isVie ? activeClass.courseName : (activeClass.courseNameEng || activeClass.courseName)}
-          </span>
-          <span>•</span>
-          <span className="text-slate-500 dark:text-slate-400 font-sans font-medium">{activeClass.code}</span>
-          <span>•</span>
-          <span className="text-slate-500 dark:text-slate-400">
-            {isVie ? activeClass.term : (activeClass.termEng || activeClass.term)}
-          </span>
-        </div>
-
-        <div className="flex items-center space-x-3 text-[11px] font-medium font-sans">
-          <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>{activeClass.activeStudents} / {activeClass.totalStudents} {isVie ? 'sinh viên online' : 'students online'}</span>
-          </span>
-        </div>
-      </div>
+        </header>
 
       {/* ================= MAIN DASHBOARD BODY ================= */}
       <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
         {/* ================= 2. SMART METRIC CARDS ================= */}
-        <section className="grid grid-cols-4 gap-5 items-stretch">
-          {/* CARD 1: Enrolled & Active (Biểu đồ cột 7 ngày có số SV gọn gàng, hover tooltip) */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
+          {/* CARD 1: TOTAL STUDENTS */}
           <div
-            className={`relative overflow-hidden rounded-2xl p-5 flex flex-col justify-between min-h-[210px] border transition-all duration-200 shadow-xs ${
+            className={`p-5 rounded-2xl border flex flex-col justify-between transition-all duration-200 shadow-xs ${
               isDark
                 ? 'bg-[#101b2d] border-slate-800/90 hover:border-slate-700'
                 : 'bg-white border-slate-200 hover:border-slate-300'
             }`}
           >
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans">
-                  {isVie ? 'Tổng sinh viên & Tỷ lệ học' : 'Total Students & Active Rate'}
-                </span>
-                <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                  <Users className="w-4 h-4" />
-                </div>
-              </div>
-
-              <div className="mt-3 flex items-baseline space-x-2">
-                <span className="text-3xl font-black font-sans tracking-tight">
-                  {classTotalStudents}
-                </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-sans">
-                  {isVie ? 'sinh viên' : 'students'}
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 ml-auto font-sans whitespace-nowrap shrink-0">
-                  {activeClass.activePercentage}% {isVie ? 'hoạt động' : 'active'}
-                </span>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400 font-sans">
+                {isVie ? 'Tổng sinh viên' : 'Total Students'}
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center justify-center">
+                <Users className="w-4 h-4" />
               </div>
             </div>
 
-            {/* 7-Day Mini Sparkline Bars with Clean Number & Hover Tooltip */}
-            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mb-1.5 flex justify-between items-center font-sans">
-                <span>{isVie ? 'Hoạt động 7 ngày qua' : 'Last 7 days activity'}</span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 whitespace-nowrap shrink-0">
-                  {isVie ? `Cao nhất: ${peakWeekly.studentCount} SV (${peakWeekly.percent}%)` : `Peak: ${peakWeekly.studentCount} (${peakWeekly.percent}%)`}
-                </span>
-              </div>
-
-              {/* Fixed 7-column grid layout: h-20 w-full pt-2 */}
-              <div className="grid grid-cols-7 gap-2 items-end h-20 w-full pt-2">
-                {weeklyActivity.map((item, idx) => {
-                  const dayName = isVie ? item.day : item.dayEn;
-                  const isPeak = item.studentCount === peakWeekly.studentCount;
-                  return (
-                    <div key={idx} className="flex flex-col items-center justify-end h-full min-w-0 group relative">
-                      {/* Compact hover tooltip */}
-                      <div className="absolute -top-9 left-1/2 -translate-x-1/2 z-30 hidden group-hover:flex flex-col items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-900 text-white shadow-xl pointer-events-none whitespace-nowrap border border-slate-700/80">
-                        <span>{item.studentCount}/{item.totalStudents} {isVie ? 'SV' : 'std'} ({item.percent}%)</span>
-                      </div>
-
-                      {/* Clean number only on top */}
-                      <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 leading-none mb-1">
-                        {item.studentCount}
-                      </span>
-
-                      {/* Bar column */}
-                      <div
-                        style={{ height: `${Math.max(20, Math.round(item.percent))}%` }}
-                        className={`w-full max-w-[22px] rounded-t-md transition-all duration-200 cursor-pointer ${
-                          isPeak ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-indigo-500/85 dark:bg-indigo-500/70'
-                        } group-hover:bg-emerald-500`}
-                      />
-
-                      {/* Day label at bottom */}
-                      <span className="text-[11px] font-medium text-slate-500 mt-1.5 font-sans leading-none">
-                        {dayName}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="mt-4 flex items-baseline justify-between">
+              <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-sans">
+                {classTotalStudents}
+              </span>
+              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 font-sans">
+                {activeClass.activePercentage}% {isVie ? 'hoạt động' : 'active'}
+              </span>
             </div>
           </div>
 
-          {/* CARD 2: Assignment Completion Progress (Cân đối, sạch sẽ, không có accordion làm lệch chiều cao) */}
+          {/* CARD 2: COMPLETION RATE */}
           <div
-            className={`relative overflow-hidden rounded-2xl p-5 flex flex-col justify-between min-h-[210px] border transition-all duration-200 shadow-xs ${
+            className={`p-5 rounded-2xl border flex flex-col justify-between transition-all duration-200 shadow-xs ${
               isDark
                 ? 'bg-[#101b2d] border-slate-800/90 hover:border-slate-700'
                 : 'bg-white border-slate-200 hover:border-slate-300'
             }`}
           >
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans">
-                  {isVie ? 'Tiến độ hoàn thành bài' : 'Assignment Completion Progress'}
-                </span>
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-              </div>
-
-              <div className="mt-3 flex items-baseline space-x-2">
-                <span className="text-3xl font-black font-sans tracking-tight text-emerald-600 dark:text-emerald-400">
-                  {activeClass.completionRate}%
-                </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-sans">
-                  {isVie ? 'đúng hạn' : 'on time'}
-                </span>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400 font-sans">
+                {isVie ? 'Tiến độ hoàn thành' : 'Completion Rate'}
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center justify-center">
+                <CheckCircle2 className="w-4 h-4" />
               </div>
             </div>
 
-            {/* Stacked Progress Bar & 3-box indicator grid */}
-            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-              <div className="h-2.5 w-full rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800 my-3">
-                <div
-                  style={{ width: `${(activeClass.maxCompleted / activeClass.totalStudents) * 100}%` }}
-                  className="bg-emerald-500 h-full"
-                  title={`${isVie ? 'Đạt' : 'Passed'}: ${activeClass.maxCompleted} SV`}
-                />
-                <div
-                  style={{ width: `${(activeClass.inProgress / activeClass.totalStudents) * 100}%` }}
-                  className="bg-amber-400 h-full"
-                  title={`${isVie ? 'Đang làm' : 'In Progress'}: ${activeClass.inProgress} SV`}
-                />
-                <div
-                  style={{ width: `${(activeClass.notStarted / activeClass.totalStudents) * 100}%` }}
-                  className="bg-rose-500 h-full"
-                  title={`${isVie ? 'Chưa làm' : 'Not Started'}: ${activeClass.notStarted} SV`}
-                />
-              </div>
-
-              {/* 3 stats indicators */}
-              <div className="grid grid-cols-3 gap-2 pt-1 font-sans">
-                <div className="flex flex-col min-w-0">
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-slate-800 dark:text-slate-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    <span className="truncate">{activeClass.maxCompleted} {isVie ? 'Đạt' : 'Pass'}</span>
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono pl-2.5">
-                    ({Math.round((activeClass.maxCompleted / activeClass.totalStudents) * 100)}%)
-                  </span>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-slate-800 dark:text-slate-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                    <span className="truncate">{activeClass.inProgress} {isVie ? 'Đang làm' : 'WIP'}</span>
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono pl-2.5">
-                    ({Math.round((activeClass.inProgress / activeClass.totalStudents) * 100)}%)
-                  </span>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-slate-800 dark:text-slate-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
-                    <span className="truncate">{activeClass.notStarted} {isVie ? 'Chưa làm' : 'Not yet'}</span>
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono pl-2.5">
-                    ({Math.round((activeClass.notStarted / activeClass.totalStudents) * 100)}%)
-                  </span>
-                </div>
-              </div>
-
-              {/* Bottom clean summary badge */}
-              <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-sans">
-                <span className="text-slate-500 dark:text-slate-400 truncate">
-                  {isVie ? 'Hoàn thành cao nhất:' : 'Highest completion:'}
-                </span>
-                <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0">
-                  {highestCourse ? (isVie ? highestCourse.trackNameVie : highestCourse.trackNameEng) : (isVie ? 'Thuật toán' : 'Algorithms')} ({highestCourse ? highestCourse.passedPercent : 84}%)
-                </span>
-              </div>
+            <div className="mt-4 flex items-baseline justify-between">
+              <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-sans">
+                {activeClass.completionRate}%
+              </span>
+              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 font-sans">
+                {activeClass.maxCompleted}/{classTotalStudents} {isVie ? 'SV đạt yêu cầu' : 'passed'}
+              </span>
             </div>
           </div>
 
-          {/* CARD 3: AI Socratic Efficiency */}
+          {/* CARD 3: AI SOCRATIC USAGE */}
           <div
-            className={`relative overflow-hidden rounded-2xl p-5 flex flex-col justify-between min-h-[210px] border transition-all duration-200 shadow-xs ${
+            className={`p-5 rounded-2xl border flex flex-col justify-between transition-all duration-200 shadow-xs ${
               isDark
                 ? 'bg-[#101b2d] border-slate-800/90 hover:border-slate-700'
                 : 'bg-white border-slate-200 hover:border-slate-300'
             }`}
           >
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans">
-                  {isVie ? 'Hiệu quả AI Socratic' : 'AI Socratic Impact'}
-                </span>
-                <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
-                  <Bot className="w-4 h-4" />
-                </div>
-              </div>
-
-              <div className="mt-3 flex items-baseline space-x-2">
-                <span className="text-3xl font-black font-sans tracking-tight text-indigo-500">
-                  {activeClass.totalAIQueries}
-                </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-sans">
-                  {isVie ? 'lượt hỏi' : 'queries'}
-                </span>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400 font-sans">
+                {isVie ? 'Tương tác AI Socratic' : 'AI Socratic Usage'}
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 flex items-center justify-center">
+                <Bot className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-1.5 text-xs font-sans">
-              <div className="flex items-center justify-between font-medium">
-                <span className="text-slate-500 dark:text-slate-400">
-                  {isVie ? 'Tự sửa sau gợi ý:' : 'Self-resolved rate:'}
-                </span>
-                <span className="font-bold text-emerald-500">{activeClass.resolvedWithAI}%</span>
-              </div>
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                <ShieldCheck className="w-3 h-3 text-indigo-500 shrink-0" />
-                <span className="truncate">{isVie ? '0% gian lận (100% Socratic)' : '0% Direct Solves'}</span>
-              </div>
+            <div className="mt-4 flex items-baseline justify-between">
+              <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-sans">
+                {activeClass.totalAIQueries}
+              </span>
+              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 font-sans">
+                {activeClass.resolvedWithAI}% {isVie ? 'tự sửa sau gợi ý' : 'resolved via hints'}
+              </span>
             </div>
           </div>
 
-          {/* CARD 4: Stuck & Common Errors Alerts */}
+          {/* CARD 4: STUCK ALERTS */}
           <div
-            className={`relative overflow-hidden rounded-2xl p-5 flex flex-col justify-between min-h-[210px] border transition-all duration-200 shadow-xs ${
+            className={`p-5 rounded-2xl border flex flex-col justify-between transition-all duration-200 shadow-xs ${
               isDark
                 ? 'bg-[#101b2d] border-slate-800/90 hover:border-slate-700'
                 : 'bg-white border-slate-200 hover:border-slate-300'
             }`}
           >
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-sans">
-                  {isVie ? 'Cảnh báo bế tắc' : 'Stuck & Errors'}
-                </span>
-                <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
-                  <AlertTriangle className="w-4 h-4" />
-                </div>
-              </div>
-
-              <div className="mt-3 flex items-baseline space-x-2">
-                <span className="text-3xl font-black font-sans tracking-tight text-rose-500">
-                  {activeClass.stuckStudentsCount}
-                </span>
-                <span className="text-xs text-rose-500 font-semibold font-sans">
-                  {isVie ? 'sinh viên cần trợ giúp' : 'students stuck'}
-                </span>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400 font-sans">
+                {isVie ? 'Cảnh báo bế tắc' : 'Stuck Alerts'}
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4" />
               </div>
             </div>
 
-            {/* Common Errors Tags */}
-            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mb-1.5 font-sans">
-                {isVie ? 'Lỗi phổ biến nhất lớp:' : 'Top class errors:'}
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {activeClass.commonErrors.map((err, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => {
-                      setLogErrorFilter(err.name);
-                      handleSelectTab('logs');
-                    }}
-                    className="px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition cursor-pointer"
-                  >
-                    {err.name} ({err.percentage}%)
-                  </button>
-                ))}
-              </div>
+            <div className="mt-4 flex items-baseline justify-between">
+              <span className="text-3xl font-bold tracking-tight text-rose-600 dark:text-rose-400 font-sans">
+                {activeClass.stuckStudentsCount}
+              </span>
+              <span className="text-xs font-medium text-rose-600 dark:text-rose-400 font-sans">
+                {isVie ? 'Sinh viên cần hỗ trợ' : 'Students need help'}
+              </span>
             </div>
           </div>
         </section>
 
-        {/* ================= 3. FOUR FUNCTIONAL TABS ================= */}
-        <div
-          className={`flex flex-wrap items-center justify-between gap-3 border-b pb-3 ${
-            isDark ? 'border-slate-800' : 'border-slate-200'
-          }`}
-        >
-          {/* Tab Navigation Buttons */}
-          <div className="flex items-center space-x-1.5 sm:space-x-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
-            <button
-              type="button"
-              onClick={() => handleSelectTab('analytics')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer font-sans ${
-                activeTab === 'analytics'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-900/40'
-                  : isDark
-                  ? 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
-                  : 'bg-slate-100 text-neutral-700 hover:bg-slate-200'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>{isVie ? 'Tổng quan & Phân tích' : 'Overview & Analytics'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSelectTab('assignments')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer font-sans ${
-                activeTab === 'assignments'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-900/40'
-                  : isDark
-                  ? 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
-                  : 'bg-slate-100 text-neutral-700 hover:bg-slate-200'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" />
-              <span>{isVie ? 'Quản lý Khóa học' : 'Course Management'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSelectTab('logs')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer font-sans ${
-                activeTab === 'logs'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-900/40'
-                  : isDark
-                  ? 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
-                  : 'bg-slate-100 text-neutral-700 hover:bg-slate-200'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>{isVie ? 'Nhật ký Giám sát AI' : 'AI Audit Log'}</span>
-              {activeClass.stuckStudentsCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-sans font-bold bg-rose-500 text-white animate-pulse">
-                  {activeClass.stuckStudentsCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSelectTab('roster')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer font-sans ${
-                activeTab === 'roster'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-900/40'
-                  : isDark
-                  ? 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'
-                  : 'bg-slate-100 text-neutral-700 hover:bg-slate-200'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              <span>{isVie ? 'Danh sách sinh viên & Điểm số' : 'Roster & Grades'}</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-sans font-bold bg-white/20">
-                {activeClass.totalStudents}
-              </span>
-            </button>
-          </div>
-
-          {/* Quick CTA */}
-          <div className="flex items-center space-x-2">
-            <button
-              type="button"
-              onClick={() => setIsCreateAssignmentOpen(true)}
-              className="px-3.5 py-2 bg-gradient-to-r from-[#1BA94C] to-[#00EA64] hover:opacity-90 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm shadow-emerald-900/30 cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>{isVie ? 'Giao bài tập' : 'New Assignment'}</span>
-            </button>
-          </div>
-        </div>
-
         {/* ================= TAB 1: OVERVIEW & ANALYTICS ================= */}
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            {/* Mục 5: Khung Phổ điểm & Phân bổ thành tích lớp (có 2 bộ lọc Khóa/Bài) + Khối Thống kê Tiến độ 9 khóa & từng bài */}
-            <AnalyticsBreakdown
+            {/* Khung Phổ điểm & Phân bổ thành tích lớp (có 2 bộ lọc Khóa/Bài) */}
+            <ScoreDistributionCard
               selectedClassId={selectedClassId}
               isDark={isDark}
               isVie={isVie}
@@ -1336,7 +863,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                  <h3 className="font-bold text-sm sm:text-base font-sans">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white font-sans">
                     {isVie ? 'Dòng nộp bài trực tiếp (Live Submissions Stream)' : 'Live Submissions Stream'}
                   </h3>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-sans font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -1353,7 +880,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       placeholder={isVie ? 'Tìm SV, bài tập...' : 'Search student...'}
                       value={liveSubmissionSearch}
                       onChange={(e) => setLiveSubmissionSearch(e.target.value)}
-                      className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
+                      className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans ${
                         isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-neutral-900'
                       }`}
                     />
@@ -1377,9 +904,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               </div>
 
               {/* Table */}
-              <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+              <div className="max-h-[420px] overflow-y-auto overflow-x-auto scrollbar-thin rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
                 <table className="w-full text-left border-collapse">
-                  <thead className={isDark ? 'bg-[#0b1322] text-slate-400' : 'bg-slate-50 text-neutral-600'}>
+                  <thead className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 font-bold font-sans text-neutral-600 dark:text-slate-400">
                     <tr className="border-b border-slate-200 dark:border-slate-800 font-bold font-sans">
                       <th className="py-3 px-4">{isVie ? 'Sinh viên' : 'Student'}</th>
                       <th className="py-3 px-4">{isVie ? 'Bài tập' : 'Assignment'}</th>
@@ -1413,7 +940,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                               {sub.studentId}
                             </div>
                           </td>
-                          <td className="py-3 px-4 text-indigo-600 dark:text-indigo-400 font-semibold font-sans">
+                          <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400 font-semibold font-sans">
                             {translateExerciseTitle(sub.exerciseTitle, isVie)}
                           </td>
                           <td className="py-3 px-4 font-sans text-[11px] text-slate-500">
@@ -1423,7 +950,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             <span
                               className={
                                 sub.testCasesPassed === sub.totalTestCases
-                                  ? 'text-emerald-500'
+                                    ? 'text-emerald-500'
                                   : 'text-rose-500'
                               }
                             >
@@ -1446,7 +973,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             <button
                               type="button"
                               onClick={() => openCodeReviewModal(sub)}
-                              className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition flex items-center gap-1 mx-auto"
+                              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center gap-1 mx-auto cursor-pointer"
                             >
                               <Code className="w-3 h-3" />
                               <span>{isVie ? 'Xem code' : 'Code'}</span>
@@ -1472,7 +999,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 border-slate-200 dark:border-slate-800">
                   <div>
                     <h3 className="font-extrabold text-base sm:text-lg flex items-center gap-2 text-slate-900 dark:text-white font-sans">
-                      <BookOpen className="w-5 h-5 text-indigo-500" />
+                      <BookOpen className="w-5 h-5 text-emerald-500" />
                       <span>{isVie ? 'Quản lý Khóa học' : 'Course Management'}</span>
                     </h3>
                   </div>
@@ -1486,16 +1013,15 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 </div>
 
                 {/* 9 Courses Grid (3 rows x 3 columns) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {SKILL_TRACKS.map((track) => {
-                    const stats = getCourseClassStats(track.id);
                     const courseTitle = isVie ? track.nameVie : track.nameEng;
 
                     return (
                       <div
                         key={track.id}
                         onClick={() => handleDrilldownToCourse(track.id)}
-                        className="group relative flex flex-col justify-between p-5 rounded-xl bg-white dark:bg-[#101b2d] border border-slate-200/90 dark:border-slate-800/90 shadow-xs hover:shadow-md hover:border-indigo-500/50 dark:hover:border-indigo-500/50 hover:-translate-y-1 transition-all duration-200 cursor-pointer select-none"
+                        className="h-24 px-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-500/60 hover:shadow-md transition-all flex items-center gap-4 cursor-pointer select-none group"
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
@@ -1505,48 +1031,22 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           }
                         }}
                       >
-                        {/* TOP: ICON + COURSE TITLE + CHEVRON */}
-                        <div className="flex items-start gap-3.5">
-                          <div
-                            className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0 border transition-transform duration-200 group-hover:scale-105"
-                            style={{
-                              backgroundColor: `${track.color}15`,
-                              borderColor: `${track.color}35`,
-                            }}
-                          >
-                            {renderCourseTrackIcon(track.iconType, track.color)}
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-1">
-                              <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate font-sans">
-                                {courseTitle}
-                              </h4>
-                              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
-                            </div>
-                          </div>
+                        {/* Icon */}
+                        <div
+                          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-105"
+                          style={{
+                            backgroundColor: `${track.color}15`,
+                            borderColor: `${track.color}35`,
+                          }}
+                        >
+                          {renderCourseTrackIcon(track.iconType, track.color)}
                         </div>
 
-                        {/* BOTTOM: FOOTER PROGRESS & CHALLENGE COUNT */}
-                        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium font-sans">
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-indigo-500 transition-colors" />
-                            <span>
-                              {stats.count} {isVie ? 'bài tập' : 'exercises'}
-                            </span>
-                          </span>
-
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                              stats.comp === 100
-                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-[#1BA94C] dark:text-[#00EA64] border border-emerald-200 dark:border-emerald-800/50'
-                                : stats.comp > 0
-                                ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/50'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
-                            }`}
-                          >
-                            ✓ {stats.comp}% {isVie ? 'hoàn thành' : 'completed'}
-                          </span>
+                        {/* Title */}
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-[17px] font-semibold text-slate-800 dark:text-slate-100 leading-snug group-hover:text-emerald-600 dark:group-hover:text-[#00EA64] transition-colors truncate font-sans">
+                            {courseTitle}
+                          </h4>
                         </div>
                       </div>
                     );
@@ -1566,7 +1066,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       <button
                         type="button"
                         onClick={handleBackToCourses}
-                        className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1 cursor-pointer font-sans"
+                        className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1 cursor-pointer font-sans"
                       >
                         <BookOpen className="w-3.5 h-3.5" />
                         <span>{isVie ? 'Khóa học' : 'Courses'}</span>
@@ -1599,7 +1099,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     onClick={() => handleSelectCourseTab('exercises')}
                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer font-sans ${
                       teacherCourseTab === 'exercises'
-                        ? 'bg-indigo-600 text-white shadow-xs'
+                        ? 'bg-emerald-600 text-white shadow-xs'
                         : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                     }`}
                   >
@@ -1637,7 +1137,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             placeholder={isVie ? 'Tìm bài tập, chủ đề...' : 'Search exercises...'}
                             value={exerciseSearch}
                             onChange={(e) => setExerciseSearch(e.target.value)}
-                            className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
+                            className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans ${
                               isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-neutral-900'
                             }`}
                           />
@@ -1685,7 +1185,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           return (
                             <div
                               key={ex.id}
-                              className={`p-4 sm:p-5 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:border-indigo-500/50 ${
+                              className={`p-4 sm:p-5 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:border-emerald-500/50 ${
                                 isDark ? 'bg-[#101b2d] border-slate-800' : 'bg-white border-slate-200 shadow-xs'
                               }`}
                             >
@@ -1737,7 +1237,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                   <div className="text-[10px] text-slate-400 uppercase font-semibold">
                                     {isVie ? 'Điểm trung bình' : 'Avg Score'}
                                   </div>
-                                  <div className="font-bold text-indigo-500 font-sans">
+                                  <div className="font-bold text-emerald-600 dark:text-emerald-400 font-sans">
                                     {avgScore} / 10
                                   </div>
                                 </div>
@@ -1759,7 +1259,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                     type="button"
                                     onClick={() => onPreviewStudentIDE(ex.id)}
                                     title={isVie ? 'Xem thử giao diện học sinh trên Web IDE' : 'Preview in Student Web IDE'}
-                                    className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-indigo-600 hover:border-indigo-500/50 transition cursor-pointer"
+                                    className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-600 hover:border-emerald-500/50 transition cursor-pointer"
                                   >
                                     <Eye className="w-4 h-4" />
                                   </button>
@@ -1768,7 +1268,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => handleDrilldownToExercise(ex.id)}
-                                  className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-sm shadow-indigo-900/30 cursor-pointer font-sans"
+                                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-sm shadow-emerald-900/30 cursor-pointer font-sans"
                                 >
                                   <span>{isVie ? 'Xem danh sách bài làm' : 'View Submissions'}</span>
                                   <ArrowRight className="w-3.5 h-3.5" />
@@ -1811,9 +1311,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     </div>
 
                     {/* Table */}
-                    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-sans">
+                    <div className="max-h-[420px] overflow-y-auto overflow-x-auto scrollbar-thin rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-sans">
                       <table className="w-full text-left border-collapse">
-                        <thead className={isDark ? 'bg-[#0b1322] text-slate-400' : 'bg-slate-50 text-neutral-600'}>
+                        <thead className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 font-bold text-neutral-600 dark:text-slate-400">
                           <tr className="border-b border-slate-200 dark:border-slate-800 font-bold">
                             <th className="py-3 px-4 text-center w-16">{isVie ? 'Hạng' : 'Rank'}</th>
                             <th className="py-3 px-4">{isVie ? 'Sinh viên' : 'Student'}</th>
@@ -1868,7 +1368,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                   </div>
                                 </div>
                               </td>
-                              <td className="py-3.5 px-4 font-bold text-indigo-600 dark:text-indigo-400 font-sans">
+                              <td className="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400 font-sans">
                                 {entry.totalScore} / {entry.totalExercises * 10}
                               </td>
                               <td className="py-3.5 px-4 font-mono text-[11px]">
@@ -1898,7 +1398,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       <button
                         type="button"
                         onClick={handleBackToCourses}
-                        className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1 cursor-pointer font-sans"
+                        className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1 cursor-pointer font-sans"
                       >
                         <BookOpen className="w-3.5 h-3.5" />
                         <span>{isVie ? 'Khóa học' : 'Courses'}</span>
@@ -1907,7 +1407,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       <button
                         type="button"
                         onClick={handleBackToExercises}
-                        className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer font-sans"
+                        className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer font-sans"
                       >
                         {isVie ? selectedCourse?.nameVie : selectedCourse?.nameEng}
                       </button>
@@ -1962,7 +1462,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     onClick={() => handleSelectExerciseTab('submissions')}
                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer font-sans ${
                       teacherExerciseTab === 'submissions'
-                        ? 'bg-indigo-600 text-white shadow-xs'
+                        ? 'bg-emerald-600 text-white shadow-xs'
                         : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                     }`}
                   >
@@ -1997,10 +1497,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                        <h4 className="font-bold text-sm sm:text-base font-sans">
+                        <h4 className="text-lg font-bold text-slate-900 dark:text-white font-sans">
                           {isVie ? 'Danh sách sinh viên nộp bài cho bài tập này' : 'Student Submissions for this Exercise'}
                         </h4>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-sans font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-sans font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                           {filteredExerciseSubmissions.length} {isVie ? 'bài nộp' : 'submissions'}
                         </span>
                       </div>
@@ -2014,7 +1514,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             placeholder={isVie ? 'Tìm theo tên hoặc MSSV...' : 'Search student or ID...'}
                             value={subSearch}
                             onChange={(e) => setSubSearch(e.target.value)}
-                            className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
+                            className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans ${
                               isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-neutral-900'
                             }`}
                           />
@@ -2038,9 +1538,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     </div>
 
                     {/* Table with columns matching Live Submissions Stream */}
-                    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+                    <div className="max-h-[420px] overflow-y-auto overflow-x-auto scrollbar-thin rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
                       <table className="w-full text-left border-collapse">
-                        <thead className={isDark ? 'bg-[#0b1322] text-slate-400' : 'bg-slate-50 text-neutral-600'}>
+                        <thead className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 font-bold font-sans text-neutral-600 dark:text-slate-400">
                           <tr className="border-b border-slate-200 dark:border-slate-800 font-bold font-sans">
                             <th className="py-3 px-4">{isVie ? 'Sinh viên' : 'Student'}</th>
                             <th className="py-3 px-4">{isVie ? 'Bài tập' : 'Assignment'}</th>
@@ -2074,7 +1574,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                     {sub.studentId}
                                   </div>
                                 </td>
-                                <td className="py-3 px-4 text-indigo-600 dark:text-indigo-400 font-semibold font-sans">
+                                <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400 font-semibold font-sans">
                                   {translateExerciseTitle(sub.exerciseTitle, isVie)}
                                 </td>
                                 <td className="py-3 px-4 font-sans text-[11px] text-slate-500">
@@ -2107,7 +1607,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                   <button
                                     type="button"
                                     onClick={() => openCodeReviewModal(sub)}
-                                    className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition flex items-center gap-1 mx-auto cursor-pointer font-sans"
+                                    className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center gap-1 mx-auto cursor-pointer font-sans"
                                   >
                                     <Code className="w-3 h-3" />
                                     <span>{isVie ? 'Xem code' : 'Code'}</span>
@@ -2151,9 +1651,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     </div>
 
                     {/* Problem Leaderboard Table */}
-                    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-sans">
+                    <div className="max-h-[420px] overflow-y-auto overflow-x-auto scrollbar-thin rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-sans">
                       <table className="w-full text-left border-collapse">
-                        <thead className={isDark ? 'bg-[#0b1322] text-slate-400' : 'bg-slate-50 text-neutral-600'}>
+                        <thead className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 font-bold text-neutral-600 dark:text-slate-400">
                           <tr className="border-b border-slate-200 dark:border-slate-800 font-bold">
                             <th className="py-3 px-4 text-center w-16">{isVie ? 'Hạng' : 'Rank'}</th>
                             <th className="py-3 px-4">{isVie ? 'Sinh viên' : 'Student'}</th>
@@ -2236,7 +1736,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                                     };
                                     openCodeReviewModal(sub);
                                   }}
-                                  className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition flex items-center gap-1 mx-auto cursor-pointer font-sans"
+                                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center gap-1 mx-auto cursor-pointer font-sans"
                                 >
                                   <Code className="w-3 h-3" />
                                   <span>{isVie ? 'Xem code' : 'Code'}</span>
@@ -2267,7 +1767,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     placeholder={isVie ? 'Tìm SV, mã SV, nội dung lỗi...' : 'Search logs...'}
                     value={logSearch}
                     onChange={(e) => setLogSearch(e.target.value)}
-                    className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                    className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
                       isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-neutral-900'
                     }`}
                   />
@@ -2313,9 +1813,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 isDark ? 'bg-[#101b2d] border-slate-800' : 'bg-white border-slate-200 shadow-xs'
               }`}
             >
-              <div className="overflow-x-auto text-xs">
+              <div className="max-h-[420px] overflow-y-auto overflow-x-auto scrollbar-thin text-xs">
                 <table className="w-full text-left border-collapse">
-                  <thead className={isDark ? 'bg-[#0b1322] text-slate-400' : 'bg-slate-50 text-neutral-600'}>
+                  <thead className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 font-bold text-neutral-600 dark:text-slate-400">
                     <tr className="border-b border-slate-200 dark:border-slate-800 font-bold">
                       <th className="py-3 px-4">{isVie ? 'Sinh viên' : 'Student'}</th>
                       <th className="py-3 px-4">{isVie ? 'Bài tập' : 'Problem'}</th>
@@ -2355,7 +1855,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             </div>
                           </td>
 
-                          <td className="py-3 px-4 text-indigo-600 dark:text-indigo-400 font-semibold truncate max-w-[150px] font-sans">
+                          <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400 font-semibold truncate max-w-[150px] font-sans">
                             {translateExerciseTitle(log.exerciseTitle, isVie)}
                           </td>
 
@@ -2409,7 +1909,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             <button
                               type="button"
                               onClick={() => openTranscriptDrawer(log)}
-                              className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition flex items-center gap-1 mx-auto whitespace-nowrap shadow-xs"
+                              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center gap-1 mx-auto whitespace-nowrap shadow-xs cursor-pointer"
                             >
                               <MessageSquare className="w-3 h-3" />
                               <span>{isVie ? 'Xem Chat' : 'Transcript'}</span>
@@ -2438,7 +1938,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     placeholder={isVie ? 'Tìm sinh viên theo tên, MSSV, email...' : 'Search student...'}
                     value={rosterSearch}
                     onChange={(e) => setRosterSearch(e.target.value)}
-                    className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                    className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
                       isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-neutral-900'
                     }`}
                   />
@@ -2473,9 +1973,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 isDark ? 'bg-[#101b2d] border-slate-800' : 'bg-white border-slate-200 shadow-xs'
               }`}
             >
-              <div className="overflow-x-auto text-xs">
+              <div className="max-h-[420px] overflow-y-auto overflow-x-auto scrollbar-thin text-xs">
                 <table className="w-full text-left border-collapse">
-                  <thead className={isDark ? 'bg-[#0b1322] text-slate-400' : 'bg-slate-50 text-neutral-600'}>
+                  <thead className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 font-bold text-neutral-600 dark:text-slate-400">
                     <tr className="border-b border-slate-200 dark:border-slate-800 font-bold">
                       <th className="py-3 px-4">MSSV</th>
                       <th className="py-3 px-4">{isVie ? 'Họ và tên' : 'Student Name'}</th>
@@ -2512,7 +2012,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                               st.gpa >= 8.5
                                 ? 'text-emerald-500'
                                 : st.gpa >= 7.0
-                                ? 'text-indigo-400'
+                                ? 'text-teal-500 dark:text-teal-400'
                                 : st.gpa >= 6.0
                                 ? 'text-amber-400'
                                 : 'text-rose-500'
@@ -2524,7 +2024,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         <td className="py-3.5 px-4 font-sans text-slate-500">
                           {st.attendanceRate}%
                         </td>
-                        <td className="py-3.5 px-4 font-sans text-indigo-400 font-bold">
+                        <td className="py-3.5 px-4 font-sans text-emerald-600 dark:text-emerald-400 font-bold">
                           {st.aiQueriesCount} {isVie ? 'lượt' : 'queries'}
                         </td>
                         <td className="py-3.5 px-4">
@@ -2558,6 +2058,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           </div>
         )}
       </main>
+      <BackToTopButton currentLang={currentLang} position="bottom-right" />
+      </div>
 
       {/* ================= DRAWERS & MODALS ================= */}
       {/* 1. AI Socratic Transcript Slide-Over Drawer */}

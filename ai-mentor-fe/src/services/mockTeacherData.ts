@@ -1,5 +1,6 @@
 import { EXERCISE_TITLE_TRANSLATIONS } from './mockExercisesData';
 import { getRealStudentSubmissionsForTeacher } from './userStorage';
+import { getDemoSubmissionCode, VerdictType } from './demoVerdicts';
 export { getRealStudentSubmissionsForTeacher } from './userStorage';
 export interface ClassGroup {
   id: string;
@@ -40,6 +41,7 @@ export interface LiveSubmission {
   memoryMb: number;
   status: 'accepted' | 'wrong_answer' | 'time_limit' | 'compile_error';
   timeAgo: string;
+  submittedAtISO?: string;
   plagiarismScore: number; // percentage of similarity (0-100)
   submittedCode: string;
 }
@@ -439,8 +441,8 @@ def find_primes(arr):
   },
   {
     id: 107,
-    studentName: 'Bùi Tuấn Kiệt',
-    studentId: '2151050028',
+    studentName: 'Đỗ Thùy Linh',
+    studentId: '2151050074',
     classGroup: 'K71B-CNTT',
     exerciseId: 1,
     exerciseTitle: 'Tìm số nguyên tố trong mảng',
@@ -879,6 +881,45 @@ export const MOCK_STUDENT_ROSTER: StudentRosterItem[] = [
     status: 'progressing',
     recentActivity: 'Nộp bài hôm qua',
   },
+  {
+    studentId: '2151050118',
+    name: 'Hoàng Minh Tú',
+    email: 'tu.hm21@hnue.edu.vn',
+    classGroup: 'K71A-CNTT',
+    solvedCount: 4,
+    totalAssignments: 4,
+    gpa: 8.9,
+    attendanceRate: 94,
+    aiQueriesCount: 6,
+    status: 'excellent',
+    recentActivity: 'Hoàn thành bài tập sớm nhất lớp',
+  },
+  {
+    studentId: '2151050074',
+    name: 'Đỗ Thùy Linh',
+    email: 'linh.dt21@hnue.edu.vn',
+    classGroup: 'K71A-CNTT',
+    solvedCount: 4,
+    totalAssignments: 4,
+    gpa: 9.0,
+    attendanceRate: 97,
+    aiQueriesCount: 5,
+    status: 'excellent',
+    recentActivity: 'Đã hoàn thành toàn bộ bài tập',
+  },
+  {
+    studentId: '2151050058',
+    name: 'Phạm Quốc Bảo',
+    email: 'bao.pq21@hnue.edu.vn',
+    classGroup: 'K71A-CNTT',
+    solvedCount: 3,
+    totalAssignments: 4,
+    gpa: 7.9,
+    attendanceRate: 89,
+    aiQueriesCount: 16,
+    status: 'progressing',
+    recentActivity: 'Nộp bài: Two Sum đạt 8/10',
+  },
 ];
 
 // ==================== I18N LOCALIZATION MAPPERS & HELPERS ====================
@@ -938,14 +979,9 @@ export const ROSTER_ACTIVITY_MAP: Record<string, string> = {
   'Bị lỗi TLE: Tìm số nguyên tố trong mảng (45 phút trước)': 'TLE on: Find Prime Numbers in Array (45 mins ago)',
   'Bế tắc Two Sum, hỏi AI 4 lần chưa giải xong': 'Stuck on Two Sum Problem, 4 AI queries pending',
   'Sai test case: Kiểm tra tính hợp lệ của chuỗi ngoặc (15 phút trước)': 'Failed test case on: Valid Parentheses Check (15 mins ago)',
-  'Nộp bài 01 đạt 10/10 (12 phút trước)': 'Submitted: Find Prime Numbers in Array: 10/10 (12 mins ago)',
-  'Nộp bài 02 đạt 10/10 (28 phút trước)': 'Submitted: Valid Parentheses Check: 10/10 (28 mins ago)',
-  'Nộp bài 03 đạt 10/10 (1 giờ trước)': 'Submitted: Two Sum Problem: 10/10 (1 hour ago)',
-  'Bị lỗi TLE Bài 01 (45 phút trước)': 'TLE on: Find Prime Numbers in Array (45 mins ago)',
-  'Bế tắc Bài 03, hỏi AI 4 lần chưa giải xong': 'Stuck on Two Sum Problem, 4 AI queries pending',
-  'Sai test case Bài 02 (15 phút trước)': 'Failed test case on: Valid Parentheses Check (15 mins ago)',
   'Đã hoàn thành 3/4 bài tập': 'Completed 3/4 assignments',
   'Nộp bài hôm qua': 'Submitted yesterday',
+  'Chưa có hoạt động nộp bài': 'No submissions yet',
 };
 
 export const ASSIGNMENT_DESC_MAP: Record<string, string> = {
@@ -1224,17 +1260,22 @@ export function getTeacherSubmissionsForExercise(
     ...s,
     exerciseTitle: cleanTitle,
   }));
-  const realStudentIds = new Set(realSubs.map((s) => s.studentId));
+  const seenStudentIds = new Set<string>(realSubs.map((s) => s.studentId));
 
-  const existing = MOCK_LIVE_SUBMISSIONS.filter((s) => s.exerciseId === exerciseId && !realStudentIds.has(s.studentId));
-  if (existing.length >= 6) {
-    return [
-      ...realSubs,
-      ...existing.map(sub => ({
+  const existing = MOCK_LIVE_SUBMISSIONS.filter((s) => s.exerciseId === exerciseId);
+  const dedupedExisting: LiveSubmission[] = [];
+  for (const sub of existing) {
+    if (!seenStudentIds.has(sub.studentId)) {
+      seenStudentIds.add(sub.studentId);
+      dedupedExisting.push({
         ...sub,
-        exerciseTitle: cleanTitle
-      }))
-    ];
+        exerciseTitle: cleanTitle,
+      });
+    }
+  }
+
+  if (realSubs.length + dedupedExisting.length >= 6) {
+    return [...realSubs, ...dedupedExisting];
   }
 
   const langLabel =
@@ -1248,123 +1289,31 @@ export function getTeacherSubmissionsForExercise(
       ? 'PostgreSQL'
       : 'Python 3';
 
-  const isPy = exerciseLang === 'python' || langLabel.includes('Python');
-  const isCpp = exerciseLang === 'cpp' || langLabel.includes('C++');
-
   const rosterStudents = [
-    { name: 'Hoàng Bảo Ngọc', id: '2151050115', status: 'accepted', score: 10, passed: 10, ms: 38, plag: 2, time: '3 phút trước' },
-    { name: 'Trần Thị Mai', id: '2151050045', status: 'accepted', score: 10, passed: 10, ms: 45, plag: 4, time: '12 phút trước' },
-    { name: 'Phạm Đức Anh', id: '2151050033', status: 'accepted', score: 10, passed: 10, ms: 52, plag: 1, time: '25 phút trước' },
-    { name: 'Hoàng Minh Tú', id: '2151050115', status: 'accepted', score: 10, passed: 10, ms: 60, plag: 5, time: '40 phút trước' },
-    { name: 'Đỗ Thùy Linh', id: '2151050074', status: 'accepted', score: 10, passed: 10, ms: 34, plag: 3, time: '55 phút trước' },
-    { name: 'Vũ Thị Hồng Nhung', id: '2151050067', status: 'wrong_answer', score: 7, passed: 7, ms: 75, plag: 6, time: '1 giờ trước' },
-    { name: 'Lê Hoàng Nam', id: '2151050089', status: 'time_limit', score: 4, passed: 4, ms: 1420, plag: 0, time: '1 giờ trước' },
-    { name: 'Đặng Quốc Huy', id: '2151050102', status: 'compile_error', score: 0, passed: 0, ms: 0, plag: 0, time: '2 giờ trước' },
-    { name: 'Bùi Tuấn Kiệt', id: '2151050028', status: 'accepted', score: 10, passed: 10, ms: 41, plag: 3, time: '3 giờ trước' },
-    { name: 'Phạm Quốc Bảo', id: '2151050058', status: 'wrong_answer', score: 8, passed: 8, ms: 68, plag: 8, time: '4 giờ trước' },
+    { name: 'Hoàng Bảo Ngọc', id: '2151050115', status: 'accepted' as const, score: 10, passed: 10, ms: 38, plag: 2, time: '3 phút trước' },
+    { name: 'Trần Thị Mai', id: '2151050045', status: 'accepted' as const, score: 10, passed: 10, ms: 45, plag: 4, time: '12 phút trước' },
+    { name: 'Phạm Đức Anh', id: '2151050033', status: 'accepted' as const, score: 10, passed: 10, ms: 52, plag: 1, time: '25 phút trước' },
+    { name: 'Hoàng Minh Tú', id: '2151050118', status: 'accepted' as const, score: 10, passed: 10, ms: 60, plag: 5, time: '40 phút trước' },
+    { name: 'Đỗ Thùy Linh', id: '2151050074', status: 'accepted' as const, score: 10, passed: 10, ms: 34, plag: 3, time: '55 phút trước' },
+    { name: 'Vũ Thị Hồng Nhung', id: '2151050067', status: 'wrong_answer' as const, score: 7, passed: 7, ms: 75, plag: 6, time: '1 giờ trước' },
+    { name: 'Lê Hoàng Nam', id: '2151050089', status: 'time_limit' as const, score: 4, passed: 4, ms: 1420, plag: 0, time: '1 giờ trước' },
+    { name: 'Đặng Quốc Huy', id: '2151050102', status: 'compile_error' as const, score: 0, passed: 0, ms: 0, plag: 0, time: '2 giờ trước' },
+    { name: 'Bùi Tuấn Kiệt', id: '2151050028', status: 'accepted' as const, score: 10, passed: 10, ms: 41, plag: 3, time: '3 giờ trước' },
+    { name: 'Phạm Quốc Bảo', id: '2151050058', status: 'wrong_answer' as const, score: 8, passed: 8, ms: 68, plag: 8, time: '4 giờ trước' },
   ];
 
-  const generated: LiveSubmission[] = rosterStudents.map((st, index) => {
-    let studentCode = '';
+  const generated: LiveSubmission[] = [];
+  rosterStudents.forEach((st, index) => {
+    if (seenStudentIds.has(st.id)) return;
+    seenStudentIds.add(st.id);
 
-    if (isPy) {
-      if (st.status === 'accepted') {
-        studentCode = `import math
-import sys
+    const studentCode = getDemoSubmissionCode(
+      { id: exerciseId, language: exerciseLang, boilerplateCode },
+      st.status as VerdictType,
+      index
+    );
 
-# Giải thuật hoàn chỉnh tối ưu - Đạt 10/10 test cases
-${boilerplateCode || `def solve(data):
-    if not data:
-        return []
-    return [x for x in data if x is not None]`}
-`;
-      } else if (st.status === 'wrong_answer') {
-        studentCode = `import math
-
-# Lỗi thuật toán: Bỏ sót điều kiện biên cho giá trị rỗng hoặc số âm
-${boilerplateCode ? boilerplateCode.replace(/return .*/, 'return -1  # Sai sót logic biên') : `def solve(data):
-    return data[0] if data else 0`}
-`;
-      } else if (st.status === 'time_limit') {
-        studentCode = `import math
-
-# Thuật toán duyệt cạn O(N^3) lặp vô hạn gây Time Limit Exceeded
-def solve_tle():
-    count = 0
-    while True:
-        count += 1
-        if count > 80000000:
-            break
-    return count
-
-${boilerplateCode || 'solve_tle()'}`;
-      } else {
-        studentCode = `def solve(data)
-    # SyntaxError: thiếu dấu hai chấm sau khai báo hàm
-    for item in data
-        print(item)
-`;
-      }
-    } else if (isCpp) {
-      if (st.status === 'accepted') {
-        studentCode = `#include <iostream>
-#include <vector>
-#include <algorithm>
-
-using namespace std;
-
-// Cài đặt tối ưu - Vượt qua 10/10 test cases
-${boilerplateCode || `int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-    cout << "Passed\n";
-    return 0;
-}`}
-`;
-      } else if (st.status === 'wrong_answer') {
-        studentCode = `#include <iostream>
-#include <vector>
-
-using namespace std;
-
-// Lỗi biên: Trả về sai khi mảng rỗng hoặc chứa số âm
-int main() {
-    cout << -1 << "\n";
-    return 0;
-}
-`;
-      } else if (st.status === 'time_limit') {
-        studentCode = `#include <iostream>
-
-using namespace std;
-
-// Vòng lặp quá tải gây Time Limit Exceeded (> 1000ms)
-int main() {
-    volatile long long sum = 0;
-    for (long long i = 0; i < 2000000000LL; i++) {
-        sum += i;
-    }
-    cout << sum << "\n";
-    return 0;
-}
-`;
-      } else {
-        studentCode = `#include <iostream>
-
-using namespace std;
-
-int main() {
-    cout << "Syntax error missing semicolon"
-    return 0
-}
-`;
-      }
-    } else {
-      // Default fallback
-      studentCode = boilerplateCode || `// Solution for: ${cleanTitle}\n`;
-    }
-
-    return {
+    generated.push({
       id: exerciseId * 1000 + index + 1,
       studentName: st.name,
       studentId: st.id,
@@ -1376,15 +1325,15 @@ int main() {
       totalTestCases: 10,
       score: st.score,
       executionTimeMs: st.ms,
-      memoryMb: 14.2,
-      status: st.status as 'accepted' | 'wrong_answer' | 'time_limit' | 'compile_error',
+      memoryMb: 14.1,
+      status: st.status,
       timeAgo: st.time,
       plagiarismScore: st.plag,
       submittedCode: studentCode,
-    };
+    });
   });
 
-  return [...existing, ...generated.filter(g => !existing.some(e => e.studentId === g.studentId))];
+  return [...realSubs, ...dedupedExisting, ...generated];
 }
 
 export interface CourseLeaderboardEntry {

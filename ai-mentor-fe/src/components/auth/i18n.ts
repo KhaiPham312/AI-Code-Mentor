@@ -227,6 +227,12 @@ export function getAuthErrorMessage(errorCodeOrMessage: string, lang: Language):
     case 'ACCOUNT_NOT_FOUND':
     case 'Không tìm thấy tài khoản với email hoặc tên đăng nhập này!':
       return t.errAccountNotFound;
+    case 'ACCOUNT_LOCKED':
+    case 'Tài khoản đã bị khóa bởi Quản trị viên':
+    case 'Account has been locked by Administrator':
+      return lang === 'vie'
+        ? 'Tài khoản đã bị khóa bởi Quản trị viên'
+        : 'Account has been locked by Administrator';
     case 'SESSION_EXPIRED':
     case 'Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.':
       return t.errSessionExpired;

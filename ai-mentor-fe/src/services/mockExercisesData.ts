@@ -521,7 +521,7 @@ double compute_dynamic_average(int n) {
     }
     
     double avg = (double)sum / n;
-    free(arr); // Quan trọng: Giải phóng bộ nhớ
+    free(arr); // Crucial: Free allocated memory
     return avg;
 }
 `,
@@ -667,7 +667,7 @@ void matrix_multiply(int n, const int A[n][n], const int B[n][n], int C[n][n]) {
 int count_set_bits(unsigned int n) {
     int count = 0;
     while (n > 0) {
-        n &= (n - 1); // Xóa bit 1 thấp nhất
+        n &= (n - 1); // Clear lowest set bit
         count++;
     }
     return count;
@@ -995,7 +995,7 @@ public class Solution {
     private static volatile ConfigurationManager instance;
 
     private ConfigurationManager() {
-        // Khởi tạo tài nguyên
+        // Initialize resource
     }
 
     public static ConfigurationManager getInstance() {
@@ -1302,7 +1302,7 @@ def knn_classify(train_points, query_point, k):
     boilerplateCode: `from collections import deque
 
 def max_sliding_window(nums: list[int], k: int) -> list[int]:
-    q = deque() # lưu chỉ số
+    q = deque() # store indices
     res = []
     for i, n in enumerate(nums):
         while q and nums[q[-1]] < n:
@@ -2020,7 +2020,7 @@ public:
 
 struct Node {
     int val;
-    std::weak_ptr<Node> next; // Tránh circular reference
+    std::weak_ptr<Node> next; // Prevent circular reference
     Node(int v) : val(v) {}
 };
 `,
