@@ -3,6 +3,7 @@ import { Bot, Send, X, Minus, Sparkles, Lightbulb, AlertTriangle, Cpu, RotateCcw
 import { AIMessage, SocraticIntent } from '../../types/ai';
 import { generateSocraticResponse } from '../../services/mockAIService';
 import { sendAIMessage } from '../../services/aiMentorService';
+import { getUserStorageKey } from '../../services/userStorage';
 import { MathMarkdownRenderer } from './MathMarkdownRenderer';
 import { Language, ideTranslations } from '../ide/ideI18n';
 import gsap from 'gsap';
@@ -48,6 +49,27 @@ export const FloatingAIMentorChat: React.FC<FloatingAIMentorChatProps> = ({
   }, [theme]);
 
   const [isOpen, setIsOpen] = useState(false);
+  const isOpenRef = useRef<boolean>(isOpen);
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+    if (isOpen) {
+      setGreetingBubbleText(null);
+      if (greetingTimerRef.current) {
+        clearTimeout(greetingTimerRef.current);
+      }
+    }
+  }, [isOpen]);
+
+  // Greeting / Reply Bubble state (3-second auto-dismiss on AI response while chat is closed)
+  const [greetingBubbleText, setGreetingBubbleText] = useState<string | null>(null);
+  const greetingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (greetingTimerRef.current) clearTimeout(greetingTimerRef.current);
+    };
+  }, []);
+
   const [messages, setMessages] = useState<AIMessage[]>(() => [
     {
       id: 'init-1',
@@ -114,6 +136,20 @@ export const FloatingAIMentorChat: React.FC<FloatingAIMentorChatProps> = ({
     setInputValue('');
     setIsGenerating(true);
 
+    // Track AI interaction count isolated by studentKey
+    if (typeof window !== 'undefined') {
+      try {
+        const studentKey = getUserStorageKey();
+        if (studentKey && studentKey !== 'guest') {
+          const key = `ai_mentor_ai_interactions_${studentKey}`;
+          const cur = parseInt(localStorage.getItem(key) || '0', 10);
+          localStorage.setItem(key, String(cur + 1));
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     try {
       let intent: SocraticIntent = explicitIntent || 'free_chat';
       if (!explicitIntent) {
@@ -166,18 +202,41 @@ export const FloatingAIMentorChat: React.FC<FloatingAIMentorChatProps> = ({
       }
 
       setMessages((prev) => [...prev, botMsg]);
+
+      // If chat is currently closed, show Greeting / Reply Bubble for 3 seconds
+      if (!isOpenRef.current) {
+        const cleanReply = (botMsg.content || '')
+          .replace(/[#*`_~>[\]()]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        setGreetingBubbleText(cleanReply);
+        if (greetingTimerRef.current) clearTimeout(greetingTimerRef.current);
+        greetingTimerRef.current = setTimeout(() => {
+          setGreetingBubbleText(null);
+        }, 3000);
+      }
     } catch {
+      const errMsgContent = isEng
+        ? 'Sorry, the AI system is currently busy. Please try again shortly!'
+        : 'Xin lỗi, hệ thống AI đang bận xử lý. Bạn hãy thử lại sau giây lát nhé!';
+
       setMessages((prev) => [
         ...prev,
         {
           id: `ai-err-${Date.now()}`,
           role: 'assistant',
-          content: isEng
-            ? 'Sorry, the AI system is currently busy. Please try again shortly!'
-            : 'Xin lỗi, hệ thống AI đang bận xử lý. Bạn hãy thử lại sau giây lát nhé!',
+          content: errMsgContent,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
+
+      if (!isOpenRef.current) {
+        setGreetingBubbleText(errMsgContent);
+        if (greetingTimerRef.current) clearTimeout(greetingTimerRef.current);
+        greetingTimerRef.current = setTimeout(() => {
+          setGreetingBubbleText(null);
+        }, 3000);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -207,17 +266,59 @@ export const FloatingAIMentorChat: React.FC<FloatingAIMentorChatProps> = ({
 
   return (
     <aside aria-label={t.mentorTitle} className="fixed bottom-6 right-6 z-50 select-none">
-      {/* 1. COLLAPSED: FLOATING ACTION BUTTON (ROUND BUBBLE) */}
+      {/* 1. COLLAPSED: FLOATING ACTION BUTTON (ROUND BUBBLE) & GREETING BUBBLE */}
       {!isOpen && (
         <div className="relative group flex items-center justify-end">
-          {/* Tooltip pulsating */}
-          <div
-            onClick={() => setIsOpen(true)}
-            className="cursor-pointer mr-3 px-3.5 py-1.5 rounded-full bg-slate-900/90 dark:bg-white/90 text-white dark:text-slate-900 text-xs font-bold shadow-xl flex items-center gap-1.5 transition-all duration-200 hover:scale-105 active:scale-95 animate-bounce border border-slate-700 dark:border-slate-300"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#00EA64]" />
-            <span>{isEng ? 'Ask AI Mentor' : 'Hỏi AI Mentor'}</span>
-          </div>
+          {/* Greeting / Reply Bubble (pops out when closed, auto-dismiss in 3s) */}
+          {greetingBubbleText && (
+            <div
+              onClick={() => {
+                setIsOpen(true);
+                setGreetingBubbleText(null);
+                if (greetingTimerRef.current) clearTimeout(greetingTimerRef.current);
+              }}
+              className="absolute bottom-16 right-0 w-64 max-w-[260px] p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 shadow-xl z-50 transition-all duration-200 animate-in fade-in slide-in-from-bottom-2 cursor-pointer select-none"
+            >
+              {/* Close button on top-right */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setGreetingBubbleText(null);
+                  if (greetingTimerRef.current) clearTimeout(greetingTimerRef.current);
+                }}
+                className="absolute top-2 right-2 w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center transition cursor-pointer"
+                title={isEng ? 'Close' : 'Đóng'}
+              >
+                <X className="w-3 h-3" />
+              </button>
+
+              <div className="flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                  <Bot className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1 pr-3">
+                  <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
+                    AI Socratic Mentor
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 text-ellipsis overflow-hidden mt-0.5 leading-relaxed">
+                    {greetingBubbleText}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tooltip pulsating (hidden when greeting bubble is showing) */}
+          {!greetingBubbleText && (
+            <div
+              onClick={() => setIsOpen(true)}
+              className="cursor-pointer mr-3 px-3.5 py-1.5 rounded-full bg-slate-900/90 dark:bg-white/90 text-white dark:text-slate-900 text-xs font-bold shadow-xl flex items-center gap-1.5 transition-all duration-200 hover:scale-105 active:scale-95 animate-bounce border border-slate-700 dark:border-slate-300"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#00EA64]" />
+              <span>{isEng ? 'Ask AI Mentor' : 'Hỏi AI Mentor'}</span>
+            </div>
+          )}
 
           {/* Glowing Green FAB */}
           <button

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../../types/auth';
 import { changeUserPassword } from '../../services/mockAuth';
 import { Language, ThemeMode } from '../dashboard/dashboardI18n';
+import { BackToTopButton } from '../common/BackToTopButton';
 import {
   User as UserIcon,
   KeyRound,
@@ -53,6 +54,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     setActiveTab(initialTab);
   }, [initialTab]);
 
+  const profileTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const passwordTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (profileTimerRef.current) clearTimeout(profileTimerRef.current);
+      if (passwordTimerRef.current) clearTimeout(passwordTimerRef.current);
+    };
+  }, []);
+
   // Profile Form States
   const [displayName, setDisplayName] = useState(user.name);
   const [username, setUsername] = useState(user.username || 'student');
@@ -99,7 +110,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         ? 'Hồ sơ cá nhân đã được cập nhật thành công!'
         : 'Profile updated successfully!'
     );
-    setTimeout(() => setProfileSuccessMsg(null), 3500);
+    if (profileTimerRef.current) clearTimeout(profileTimerRef.current);
+    profileTimerRef.current = setTimeout(() => setProfileSuccessMsg(null), 3500);
   };
 
   // Handle Avatar Image Upload
@@ -154,7 +166,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setTimeout(() => setPasswordSuccess(null), 4000);
+      if (passwordTimerRef.current) clearTimeout(passwordTimerRef.current);
+      passwordTimerRef.current = setTimeout(() => setPasswordSuccess(null), 4000);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Đã có lỗi xảy ra.';
       setPasswordError(msg);
@@ -767,6 +780,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
           </section>
         </div>
       </main>
+      <BackToTopButton currentLang={currentLang} position="bottom-right" />
     </div>
   );
 };

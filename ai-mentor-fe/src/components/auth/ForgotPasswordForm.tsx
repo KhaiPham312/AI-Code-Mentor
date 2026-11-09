@@ -74,13 +74,10 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
       </div>
 
       {/* HEADER SECTION (HackerRank Clean Typography) */}
-      <div className="select-none text-left mb-5 space-y-1">
+      <div className="select-none text-left mb-5">
         <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-sans">
           {t.forgotTitle}
         </h2>
-        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-          {t.forgotDesc}
-        </p>
       </div>
 
       {/* ERROR BANNER */}

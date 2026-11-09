@@ -52,13 +52,16 @@ export interface ExecutionResult {
   results: TestCaseResult[];
   passedTests: number;
   totalTests: number;
+  isOfflineEvaluator?: boolean;
 }
 
 export interface SubmissionRecord {
   id: number;
   exerciseId: number;
   submittedAt: string;
+  submittedAtISO?: string;
   status: 'passed' | 'failed' | 'error';
+  verdict?: 'accepted' | 'wrong_answer' | 'time_limit' | 'compile_error';
   passedTests: number;
   totalTests: number;
   executionTimeMs: number;

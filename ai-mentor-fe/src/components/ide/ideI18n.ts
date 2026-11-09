@@ -86,6 +86,9 @@ export const ideTranslations = {
     executionTimeMsLabel: (ms: number) => `Thời gian chạy: ${ms} ms`,
     noTestCaseData: 'Chưa có dữ liệu test cases trả về.',
     noStdout: 'Không có dữ liệu xuất ra màn hình (stdout rỗng).',
+    offlineBanner: '[OFFLINE DEMO GRADER] Kết quả mang tính minh họa — bật Backend để chấm thật',
+    confirmResetCode: 'Khôi phục mã nguồn ban đầu của bài tập? Mọi chỉnh sửa chưa lưu sẽ bị ghi đè.',
+    studentDefaultName: 'Học viên',
 
     // Code Editor
     resetConfirm: 'Khôi phục mã nguồn ban đầu của bài tập? Mọi chỉnh sửa chưa lưu sẽ bị ghi đè.',
@@ -197,6 +200,9 @@ export const ideTranslations = {
     executionTimeMsLabel: (ms: number) => `Execution time: ${ms} ms`,
     noTestCaseData: 'No test case data returned.',
     noStdout: 'No console output (stdout is empty).',
+    offlineBanner: '[OFFLINE DEMO GRADER] Results are illustrative — start the Backend for real grading',
+    confirmResetCode: 'Reset code to default template? Any unsaved edits will be lost.',
+    studentDefaultName: 'Student',
 
     // Code Editor
     resetConfirm: 'Reset code to default template? Any unsaved edits will be lost.',

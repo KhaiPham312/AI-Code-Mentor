@@ -1,23 +1,21 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { User } from '../../types/auth';
 import { Language, ThemeMode } from '../dashboard/dashboardI18n';
 import { StatusBadge } from '../common/StatusBadge';
+import { AppSidebar } from '../common/AppSidebar';
+import { BackToTopButton } from '../common/BackToTopButton';
 import { getUserSubmissions, getUserStorageKey } from '../../services/userStorage';
 import { COMPREHENSIVE_EXERCISES } from '../../services/mockExercisesData';
 import {
   CheckCircle2,
   Code2,
-  ChevronRight,
   Search,
   Filter,
   Copy,
   Check,
-  ArrowLeft,
   Sun,
   Moon,
-  LogOut,
   ExternalLink,
-  Cpu,
   Layers,
   BarChart3,
   X,
@@ -42,262 +40,6 @@ export interface SubmissionItem {
   code: string;
 }
 
-export const MOCK_SUBMISSIONS: SubmissionItem[] = [
-  {
-    id: 'sub-801',
-    exerciseId: 1,
-    problemTitle: 'Ước chung lớn nhất (GCD) & Euclid',
-    topic: 'Thuật toán Cơ bản',
-    trackId: 'algorithms',
-    language: 'Python',
-    status: 'accepted',
-    passedTests: 5,
-    totalTests: 5,
-    score: 100,
-    executionTimeMs: 14,
-    memoryMb: 12.8,
-    submittedAt: '10 phút trước',
-    code: `def gcd(a: int, b: int) -> int:
-    """
-    Thuật toán Euclid tìm ước chung lớn nhất O(log(min(a, b)))
-    """
-    while b:
-        a, b = b, a % b
-    return a
-
-# Đọc input và thực thi
-if __name__ == "__main__":
-    import sys
-    lines = sys.stdin.read().split()
-    if len(lines) >= 2:
-        x, y = int(lines[0]), int(lines[1])
-        print(gcd(x, y))`,
-  },
-  {
-    id: 'sub-802',
-    exerciseId: 2,
-    problemTitle: 'Kiểm tra chuỗi ngoặc hợp lệ (Valid Parentheses)',
-    topic: 'Cấu trúc dữ liệu & Ngăn xếp',
-    trackId: 'data-structures',
-    language: 'C++',
-    status: 'accepted',
-    passedTests: 6,
-    totalTests: 6,
-    score: 100,
-    executionTimeMs: 8,
-    memoryMb: 10.2,
-    submittedAt: '45 phút trước',
-    code: `#include <iostream>
-#include <string>
-#include <stack>
-using namespace std;
-
-bool isValidParentheses(const string& s) {
-    stack<char> st;
-    for (char c : s) {
-        if (c == '(' || c == '[' || c == '{') {
-            st.push(c);
-        } else {
-            if (st.empty()) return false;
-            char top = st.top();
-            st.pop();
-            if (c == ')' && top != '(') return false;
-            if (c == ']' && top != '[') return false;
-            if (c == '}' && top != '{') return false;
-        }
-    }
-    return st.empty();
-}
-
-int main() {
-    string s;
-    if (cin >> s) {
-        cout << (isValidParentheses(s) ? "true" : "false") << endl;
-    }
-    return 0;
-}`,
-  },
-  {
-    id: 'sub-803',
-    exerciseId: 3,
-    problemTitle: 'Kiểm tra số nguyên tố tối ưu',
-    topic: 'Số học & Toán rời rạc',
-    trackId: 'algorithms',
-    language: 'Python',
-    status: 'wrong_answer',
-    passedTests: 4,
-    totalTests: 7,
-    score: 57,
-    executionTimeMs: 48,
-    memoryMb: 14.1,
-    submittedAt: '2 giờ trước',
-    code: `def is_prime(n: int) -> bool:
-    # Lỗi: Chưa xử lý đúng số âm và số 0, 1
-    if n <= 1:
-        return False
-    # Vòng lặp O(N) chậm khi gặp số lớn
-    for i in range(2, n):
-        if n % i == 0:
-            return False
-    return True
-
-print(is_prime(int(input())))`,
-  },
-  {
-    id: 'sub-804',
-    exerciseId: 4,
-    problemTitle: 'Tìm kiếm nhị phân trên mảng đã sắp xếp',
-    topic: 'Chia để trị (Binary Search)',
-    trackId: 'algorithms',
-    language: 'C++',
-    status: 'accepted',
-    passedTests: 8,
-    totalTests: 8,
-    score: 100,
-    executionTimeMs: 6,
-    memoryMb: 9.8,
-    submittedAt: 'Hôm qua, 16:20',
-    code: `#include <iostream>
-#include <vector>
-using namespace std;
-
-int binarySearch(const vector<int>& arr, int target) {
-    int left = 0, right = arr.size() - 1;
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-        if (arr[mid] == target) return mid;
-        if (arr[mid] < target) left = mid + 1;
-        else right = mid - 1;
-    }
-    return -1;
-}
-
-int main() {
-    int n, target;
-    if (cin >> n >> target) {
-        vector<int> arr(n);
-        for (int i = 0; i < n; ++i) cin >> arr[i];
-        cout << binarySearch(arr, target) << endl;
-    }
-    return 0;
-}`,
-  },
-  {
-    id: 'sub-805',
-    exerciseId: 5,
-    problemTitle: 'Bài toán Cái Balo 0/1 (Knapsack DP)',
-    topic: 'Quy hoạch động (Dynamic Programming)',
-    trackId: 'algorithms',
-    language: 'Python',
-    status: 'time_limit',
-    passedTests: 3,
-    totalTests: 6,
-    score: 50,
-    executionTimeMs: 1250,
-    memoryMb: 32.4,
-    submittedAt: 'Hôm qua, 11:15',
-    code: `def knapsack_brute_force(weights, values, capacity, n):
-    # Đệ quy vét cạn O(2^N) bị Time Limit Exceeded với N > 25
-    if n == 0 or capacity == 0:
-        return 0
-    if weights[n - 1] > capacity:
-        return knapsack_brute_force(weights, values, capacity, n - 1)
-    return max(
-        values[n - 1] + knapsack_brute_force(weights, values, capacity - weights[n - 1], n - 1),
-        knapsack_brute_force(weights, values, capacity, n - 1)
-    )`,
-  },
-  {
-    id: 'sub-806',
-    exerciseId: 6,
-    problemTitle: 'Truy vấn INNER JOIN Khách hàng & Đơn hàng',
-    topic: 'Cơ sở dữ liệu & SQL',
-    trackId: 'sql',
-    language: 'SQL',
-    status: 'accepted',
-    passedTests: 5,
-    totalTests: 5,
-    score: 100,
-    executionTimeMs: 18,
-    memoryMb: 16.0,
-    submittedAt: '2 ngày trước',
-    code: `SELECT 
-    c.customer_id,
-    c.customer_name,
-    COUNT(o.order_id) AS total_orders,
-    SUM(o.total_amount) AS total_spent
-FROM customers c
-INNER JOIN orders o ON c.customer_id = o.customer_id
-WHERE o.order_status = 'COMPLETED'
-GROUP BY c.customer_id, c.customer_name
-HAVING SUM(o.total_amount) >= 1000
-ORDER BY total_spent DESC;`,
-  },
-  {
-    id: 'sub-807',
-    exerciseId: 7,
-    problemTitle: 'Tìm đường đi ngắn nhất Dijkstra',
-    topic: 'Lý thuyết Đồ thị (Graph Theory)',
-    trackId: 'algorithms',
-    language: 'Python',
-    status: 'accepted',
-    passedTests: 7,
-    totalTests: 7,
-    score: 100,
-    executionTimeMs: 22,
-    memoryMb: 15.6,
-    submittedAt: '3 ngày trước',
-    code: `import heapq
-
-def dijkstra(graph, start):
-    distances = {node: float('inf') for node in graph}
-    distances[start] = 0
-    pq = [(0, start)]
-
-    while pq:
-        cur_dist, u = heapq.heappop(pq)
-        if cur_dist > distances[u]:
-            continue
-        for v, weight in graph[u]:
-            dist = cur_dist + weight
-            if dist < distances[v]:
-                distances[v] = dist
-                heapq.heappush(pq, (dist, v))
-    return distances`,
-  },
-  {
-    id: 'sub-808',
-    exerciseId: 8,
-    problemTitle: 'Hệ thống Quản lý Sinh viên OOP',
-    topic: 'Lập trình Hướng đối tượng',
-    trackId: 'python',
-    language: 'Java',
-    status: 'accepted',
-    passedTests: 5,
-    totalTests: 5,
-    score: 100,
-    executionTimeMs: 42,
-    memoryMb: 28.5,
-    submittedAt: '4 ngày trước',
-    code: `public class StudentManager {
-    public static class Student {
-        private String id;
-        private String name;
-        private double gpa;
-
-        public Student(String id, String name, double gpa) {
-            this.id = id;
-            this.name = name;
-            this.gpa = gpa;
-        }
-
-        public boolean isHonorRoll() {
-            return this.gpa >= 3.6;
-        }
-    }
-}`,
-  },
-];
 
 interface SubmissionsPageProps {
   user: User;
@@ -308,6 +50,7 @@ interface SubmissionsPageProps {
   currentTheme: ThemeMode;
   onThemeToggle: () => void;
   onLogout: () => void;
+  onOpenSettings?: (tab?: 'profile' | 'password' | 'appearance') => void;
 }
 
 export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
@@ -319,10 +62,9 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
   currentTheme,
   onThemeToggle,
   onLogout,
+  onOpenSettings,
 }) => {
   const isVie = currentLang === 'vie';
-
-  const cleanName = (user.name || '').replace(/\s*\([^)]*\)/g, '').trim() || user.name;
 
   // Filter states
   const [statusFilter, setStatusFilter] = useState<SubmissionStatusFilter>('all');
@@ -332,6 +74,13 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
   // Code inspection modal state
   const [activeCodeModal, setActiveCodeModal] = useState<SubmissionItem | null>(null);
   const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   const userKey = getUserStorageKey(user);
 
@@ -379,55 +128,67 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
   const totalSubmissions = submissionsList.length;
   const acceptedCount = submissionsList.filter((s) => s.status === 'accepted').length;
   const accuracyRate = totalSubmissions > 0 ? Math.round((acceptedCount / totalSubmissions) * 100) : 0;
-  const avgExecutionTime = totalSubmissions > 0
-    ? (submissionsList.reduce((acc, s) => acc + s.executionTimeMs, 0) / totalSubmissions).toFixed(1)
-    : '0';
+
+  // Calculate unique solved exercises count (Accepted)
+  const solvedUniqueCount = useMemo(() => {
+    const solvedSet = new Set<number>();
+    submissionsList.forEach((s) => {
+      if (s.status === 'accepted') {
+        solvedSet.add(s.exerciseId);
+      }
+    });
+    return solvedSet.size;
+  }, [submissionsList]);
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      {/* 1. TOP NAVBAR */}
-      <header className="sticky top-0 z-40 w-full h-16 border-b bg-white/95 dark:bg-[#0b0f17]/95 backdrop-blur-md border-slate-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-          {/* Left: Branding & Back Button */}
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={onBackToDashboard}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-gray-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>{isVie ? 'Quay lại Bảng điều khiển' : 'Back to Dashboard'}</span>
-            </button>
+    <div className="flex min-h-screen w-full transition-colors duration-200 bg-[#f4f6f8] text-slate-900 dark:bg-[#0b0f17] dark:text-[#f3f7f8] antialiased">
+      {/* 1. LEFT VERTICAL SIDEBAR (STUDENT) */}
+      <AppSidebar
+        role="student"
+        activeTab="submissions"
+        onTabChange={(tabId) => {
+          if (tabId === 'submissions') return;
+          if (tabId === 'courses') {
+            onBackToDashboard();
+            setTimeout(() => {
+              document.getElementById('practice-skills-section')?.scrollIntoView({ behavior: 'smooth' });
+            }, 50);
+          } else {
+            onBackToDashboard();
+          }
+        }}
+        user={user}
+        currentLang={currentLang}
+        onLanguageChange={onLanguageChange}
+        currentTheme={currentTheme}
+        onThemeToggle={onThemeToggle}
+        onLogout={onLogout}
+        onOpenSettings={(tab) => onOpenSettings?.(tab as 'profile' | 'password' | 'appearance')}
+      />
 
-            <div className="h-5 w-px bg-slate-200 dark:bg-gray-800 hidden sm:block" />
+      {/* 2. RIGHT MAIN CONTENT WRAPPER */}
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen overflow-x-hidden">
+        {/* Minimal Topbar: VIE | ENG and Light/Dark Mode */}
+        <header className="h-14 px-4 sm:px-6 border-b flex items-center justify-between sticky top-0 z-30 transition-colors backdrop-blur-md bg-white/80 dark:bg-[#0c121d]/80 border-slate-200/80 dark:border-slate-800/80">
+          <div className="flex items-center gap-2" />
 
-            <div className="flex items-center gap-2 cursor-pointer" onClick={onBackToDashboard}>
-              <div className="w-8 h-8 rounded-md bg-[#1BA94C] flex items-center justify-center font-bold text-white shadow-sm flex-shrink-0">
-                <span className="font-mono text-base font-extrabold">H</span>
-              </div>
-              <span className="font-extrabold text-sm tracking-tight text-slate-900 dark:text-white uppercase font-sans hidden md:inline">
-                AI CODE MENTOR
-              </span>
-            </div>
-          </div>
-
-          {/* Right: Controls & User Info */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 ml-auto">
             {/* Language Switcher */}
             <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold">
               <button
                 type="button"
                 onClick={() => onLanguageChange('vie')}
-                className={`px-2 py-0.5 rounded-full transition-all ${
+                className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${
                   currentLang === 'vie'
                     ? 'bg-[#1BA94C] text-white shadow-sm font-bold'
-                    : 'text-slate-500 dark:text-slate-400'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 }`}
               >
                 VIE
@@ -435,10 +196,10 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
               <button
                 type="button"
                 onClick={() => onLanguageChange('eng')}
-                className={`px-2 py-0.5 rounded-full transition-all ${
+                className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${
                   currentLang === 'eng'
                     ? 'bg-[#1BA94C] text-white shadow-sm font-bold'
-                    : 'text-slate-500 dark:text-slate-400'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 }`}
               >
                 ENG
@@ -449,7 +210,8 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
             <button
               type="button"
               onClick={onThemeToggle}
-              className="p-1.5 rounded-md text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60"
+              title={currentTheme === 'dark' ? 'Chuyển sang Giao diện Sáng' : 'Chuyển sang Giao diện Tối'}
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 transition cursor-pointer"
             >
               {currentTheme === 'dark' ? (
                 <Sun className="w-4 h-4 text-amber-400" />
@@ -457,136 +219,72 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
                 <Moon className="w-4 h-4 text-slate-700" />
               )}
             </button>
-
-            {/* User Pill */}
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-gray-800">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-white font-bold text-xs flex items-center justify-center">
-                {cleanName.charAt(0)}
-              </div>
-              <div className="hidden lg:block text-left text-xs leading-tight">
-                <div className="font-bold text-slate-900 dark:text-white">{cleanName}</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
-                  {user.studentId || 'K72 CNTT'}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={onLogout}
-                title={isVie ? 'Đăng xuất' : 'Sign out'}
-                className="p-1.5 rounded-md text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors ml-1"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* 2. MAIN CONTENT AREA */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-        {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-          <button
-            type="button"
-            onClick={onBackToDashboard}
-            className="hover:text-slate-900 dark:hover:text-white transition-colors"
-          >
-            Dashboard
-          </button>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-emerald-600 dark:text-[#00EA64] font-semibold">
-            {isVie ? 'Lịch sử nộp bài' : 'Submissions'}
-          </span>
-        </nav>
-
-        {/* Hero Header & Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {isVie ? 'Lịch sử nộp bài của tôi' : 'My Submission History'}
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+          {/* Header Title (Clean, no subtitle, no Open IDE button) */}
+          <div className="pb-1">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+              {isVie ? 'Lịch sử nộp bài' : 'Submission History'}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-              {isVie
-                ? 'Theo dõi toàn bộ mã nguồn, tỷ lệ test case vượt qua và hiệu năng thực thi của các lần giải bài tập trên nền tảng.'
-                : 'Review your complete submission log, test case pass rates, runtime performance, and source codes.'}
-            </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => onOpenIDE(1)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1BA94C] hover:bg-[#168a3e] text-white font-bold text-xs shadow-md shadow-emerald-700/20 transition active:scale-95 self-start sm:self-auto cursor-pointer"
-          >
-            <Code2 className="w-4 h-4" />
-            <span>{isVie ? 'Mở Web IDE Luyện tập' : 'Open Web IDE'}</span>
-          </button>
-        </div>
+          {/* 3. KPI SUMMARY CARDS (CLEAN TASTE-SKILL, NO SUBTITLES) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Card 1: Total Submissions */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400 font-sans">
+                  {isVie ? 'Tổng bài nộp' : 'Total Submissions'}
+                </span>
+                <Layers className="w-4 h-4 text-emerald-500" />
+              </div>
+              <div className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-2 font-sans">
+                {totalSubmissions}
+              </div>
+            </div>
 
-        {/* 3. KPI SUMMARY CARDS */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {isVie ? 'Tổng bài nộp' : 'Total Submissions'}
-              </span>
-              <Layers className="w-4 h-4 text-emerald-500" />
+            {/* Card 2: Accepted */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400 font-sans">
+                  {isVie ? 'Bài đạt chuẩn (Accepted)' : 'Accepted'}
+                </span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              </div>
+              <div className="text-3xl font-bold tracking-tight text-emerald-600 dark:text-[#00EA64] mt-2 font-sans">
+                {acceptedCount}
+              </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-2">
-              {totalSubmissions}
-            </div>
-            <span className="text-[11px] text-slate-400 mt-1 block">
-              {isVie ? 'Tất cả các chủ đề' : 'Across all tracks'}
-            </span>
-          </div>
 
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {isVie ? 'Bài đạt chuẩn (Accepted)' : 'Accepted'}
-              </span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            {/* Card 3: Problems Solved */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400 font-sans">
+                  {isVie ? 'Bài tập đã giải' : 'Problems Solved'}
+                </span>
+                <Code2 className="w-4 h-4 text-cyan-500" />
+              </div>
+              <div className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-2 font-sans">
+                {solvedUniqueCount} <span className="text-sm font-semibold text-slate-400 font-sans">/ 75</span>
+              </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-[#00EA64] mt-2">
-              {acceptedCount}
-            </div>
-            <span className="text-[11px] text-emerald-600/80 dark:text-emerald-400 mt-1 block">
-              {accuracyRate}% {isVie ? 'tỷ lệ chính xác' : 'accuracy rate'}
-            </span>
-          </div>
 
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {isVie ? 'Thời gian chạy TB' : 'Avg Execution Time'}
-              </span>
-              <Cpu className="w-4 h-4 text-cyan-500" />
+            {/* Card 4: Accuracy Rate */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400 font-sans">
+                  {isVie ? 'Tỷ lệ chính xác' : 'Accuracy Rate'}
+                </span>
+                <BarChart3 className="w-4 h-4 text-amber-500" />
+              </div>
+              <div className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-2 font-sans">
+                {totalSubmissions > 0 ? `${accuracyRate}%` : '-'}
+              </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-2">
-              {avgExecutionTime} ms
-            </div>
-            <span className="text-[11px] text-cyan-600 dark:text-cyan-400 mt-1 block">
-              {totalSubmissions > 0 ? (isVie ? 'Rất nhanh và tối ưu' : 'Highly optimized') : (isVie ? 'Chưa có dữ liệu' : 'No runtime data')}
-            </span>
           </div>
-
-          <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {isVie ? 'Xếp hạng lớp K72' : 'Class Ranking'}
-              </span>
-              <BarChart3 className="w-4 h-4 text-amber-500" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-2">
-              {totalSubmissions > 0 ? `Top ${Math.max(5, 100 - accuracyRate)}%` : '-'}
-            </div>
-            <span className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 block">
-              {totalSubmissions > 0
-                ? (isVie ? `Đã đạt ${acceptedCount}/${totalSubmissions} bài` : `Passed ${acceptedCount}/${totalSubmissions} submissions`)
-                : (isVie ? 'Chưa xếp hạng' : 'Unranked')}
-            </span>
-          </div>
-        </div>
 
         {/* 4. FILTERS & SEARCH CONTROLS */}
         <div className="p-4 rounded-2xl bg-white dark:bg-[#121926] border border-slate-200 dark:border-gray-800 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
@@ -742,6 +440,8 @@ export const SubmissionsPage: React.FC<SubmissionsPageProps> = ({
           </div>
         </div>
       </main>
+      <BackToTopButton currentLang={currentLang} position="above-chat" />
+    </div>
 
       {/* 6. HACKERRANK-STYLE CODE REVIEW MODAL */}
       {activeCodeModal && (

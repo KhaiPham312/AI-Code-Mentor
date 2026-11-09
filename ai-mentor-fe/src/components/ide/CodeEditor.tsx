@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
-import { RotateCcw, Code, Sun, Moon, ChevronDown } from 'lucide-react';
+import { RotateCcw, Code, ChevronDown } from 'lucide-react';
 import {
   LanguageOption,
   getLanguageOptionsForContext,
@@ -38,7 +38,6 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   onLanguageChange,
   onResetBoilerplate,
   systemTheme = 'dark',
-  onThemeToggle,
   currentLang = 'vie',
 }) => {
   const t = ideTranslations[currentLang];
@@ -158,33 +157,6 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             </select>
             <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-2 pointer-events-none" />
           </div>
-
-          {/* Theme Dropdown / Toggle (vs-dark / vs-light) */}
-          <button
-            type="button"
-            onClick={() => {
-              if (onThemeToggle) {
-                onThemeToggle();
-              } else if (typeof document !== 'undefined') {
-                const currentlyDark = document.documentElement.classList.contains('dark');
-                if (currentlyDark) {
-                  document.documentElement.classList.remove('dark');
-                  setEditorTheme('vs-light');
-                } else {
-                  document.documentElement.classList.add('dark');
-                  setEditorTheme('vs-dark');
-                }
-              }
-            }}
-            title={isDark ? t.themeToggleTooltipLight : t.themeToggleTooltipDark}
-            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-              isDark
-                ? 'text-amber-400 hover:text-amber-300 bg-slate-800/80 border-slate-700 hover:bg-slate-700'
-                : 'text-slate-700 hover:text-slate-900 bg-gray-200/80 border-gray-300 hover:bg-gray-300'
-            }`}
-          >
-            {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-          </button>
 
           {/* Icon-only Reset Boilerplate Button */}
           {onResetBoilerplate && (

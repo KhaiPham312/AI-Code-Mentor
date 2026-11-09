@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ExecutionResult } from '../../types/exercise';
 import { CheckCircle2, XCircle, AlertTriangle, Loader2, Bot, Play, Copy, Check, FileCode } from 'lucide-react';
 import { Language, ideTranslations } from './ideI18n';
@@ -23,6 +23,13 @@ export const TerminalPanel: React.FC<TerminalPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'tests' | 'compiler' | 'console'>('tests');
   const [selectedTestCaseIdx, setSelectedTestCaseIdx] = useState(0);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   const isDark = theme
     ? theme === 'dark'
@@ -31,7 +38,8 @@ export const TerminalPanel: React.FC<TerminalPanelProps> = ({
   const handleCopy = (text: string, idx: number) => {
     navigator.clipboard.writeText(text);
     setCopiedIndex(idx);
-    setTimeout(() => setCopiedIndex(null), 2000);
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopiedIndex(null), 2000);
   };
 
   const hasCompilerError = result?.status === 'error' || Boolean(result?.errorMessage);
@@ -134,6 +142,13 @@ export const TerminalPanel: React.FC<TerminalPanelProps> = ({
           )}
         </div>
       </div>
+
+      {/* Offline Demo Grader Banner */}
+      {result?.isOfflineEvaluator && (
+        <div className="px-3 py-1 bg-amber-500/10 border-b border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px] font-mono flex items-center justify-between">
+          <span>{t.offlineBanner}</span>
+        </div>
+      )}
 
       {/* 2. TERMINAL BODY */}
       <div className="flex-1 overflow-y-auto p-4 text-xs font-mono select-text bg-white dark:bg-[#0d1117] transition-colors">

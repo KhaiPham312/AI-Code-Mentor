@@ -46,10 +46,23 @@ import {
   markExerciseAsSolved,
 } from '../../services/userStorage';
 
+export const CORE_COURSES: Record<string, { vie: string; eng: string }> = {
+  algorithms: { vie: 'Thuật toán', eng: 'Algorithms' },
+  'data-structures': { vie: 'Cấu trúc dữ liệu', eng: 'Data Structures' },
+  mathematics: { vie: 'Toán học', eng: 'Mathematics' },
+  ai: { vie: 'Trí tuệ nhân tạo', eng: 'Artificial Intelligence' },
+  c: { vie: 'Lập trình C', eng: 'C' },
+  cpp: { vie: 'Lập trình C++', eng: 'C++' },
+  java: { vie: 'Lập trình Java', eng: 'Java' },
+  python: { vie: 'Lập trình Python', eng: 'Python' },
+  sql: { vie: 'Cơ sở dữ liệu SQL', eng: 'SQL' },
+};
+
 interface StudentWorkspaceProps {
   user: User;
   onBackToDashboard: (trackId?: string) => void;
   initialExerciseId?: number;
+  selectedCourseId?: string | null;
   currentTheme?: ThemeMode;
   onThemeToggle?: () => void;
   currentLang?: Language;
@@ -60,6 +73,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
   user,
   onBackToDashboard,
   initialExerciseId = 1,
+  selectedCourseId,
   currentTheme = 'dark',
   onThemeToggle,
   currentLang = 'vie',
@@ -235,11 +249,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
 
   // Reset boilerplate
   const handleResetBoilerplate = () => {
-    if (
-      window.confirm(
-        'Bạn có chắc muốn khôi phục lại mã nguồn ban đầu? Các thay đổi chưa lưu sẽ bị mất.'
-      )
-    ) {
+    if (window.confirm(t.confirmResetCode || t.resetConfirm)) {
       if (currentLanguageOption && currentLanguageOption.monacoLang !== currentExercise.language) {
         setCode(currentLanguageOption.starterCode);
       } else {
@@ -329,7 +339,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
 
       const finalScore = isAllPassed ? 10 : Math.round((subRecord.passedTests / subRecord.totalTests) * 10);
       const studentIdStr = user.studentId ? String(user.studentId) : user.id ? String(user.id) : undefined;
-      const cleanStudentName = user.name ? user.name.replace(/\s*\([^)]*\)/g, '').trim() : 'Học viên';
+      const cleanStudentName = user.name ? user.name.replace(/\s*\([^)]*\)/g, '').trim() : t.studentDefaultName;
 
       saveUserSubmission(userKey, {
         id: subRecord.id,
@@ -483,7 +493,28 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
     };
   }, [isDraggingVertical, isDraggingHorizontal, handleMouseMove, handleMouseUp]);
 
-  const primaryTrack = currentExercise.trackIds?.[0] || 'python';
+  // Resolve core course trackId and display name for Breadcrumb
+  const activeTrackId = useMemo(() => {
+    if (selectedCourseId && CORE_COURSES[selectedCourseId]) {
+      return selectedCourseId;
+    }
+    const matched = currentExercise.trackIds?.find((id) => CORE_COURSES[id]);
+    if (matched) return matched;
+
+    const lang = (currentExercise.language || '').toLowerCase();
+    if (lang === 'c') return 'c';
+    if (lang === 'cpp' || lang === 'c++') return 'cpp';
+    if (lang === 'java') return 'java';
+    if (lang === 'python') return 'python';
+    if (lang === 'sql') return 'sql';
+
+    return 'algorithms';
+  }, [selectedCourseId, currentExercise]);
+
+  const courseDisplayName = useMemo(() => {
+    const course = CORE_COURSES[activeTrackId] || CORE_COURSES.algorithms;
+    return currentLang === 'vie' ? course.vie : course.eng;
+  }, [activeTrackId, currentLang]);
 
   return (
     <div
@@ -524,11 +555,11 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
             </span>
             <span>&gt;</span>
             <span
-              onClick={() => onBackToDashboard(primaryTrack)}
-              className="hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer font-medium transition-colors truncate max-w-[120px] sm:max-w-[160px]"
-              title={t.viewCourseExercises(localizedExercise.category)}
+              onClick={() => onBackToDashboard(activeTrackId)}
+              className="hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer font-medium transition-colors truncate max-w-[140px] sm:max-w-[200px]"
+              title={currentLang === 'vie' ? `Xem khóa học: ${courseDisplayName}` : `View course: ${courseDisplayName}`}
             >
-              {localizedExercise.category}
+              {courseDisplayName}
             </span>
             <span>&gt;</span>
             <span className="text-slate-950 dark:text-slate-100 font-bold truncate max-w-[160px] sm:max-w-[280px] lg:max-w-[360px]">
@@ -690,7 +721,7 @@ export const StudentWorkspace: React.FC<StudentWorkspaceProps> = ({
               exerciseLanguage={currentExercise.language}
               category={currentExercise.category}
               trackIds={currentExercise.trackIds}
-              courseId={primaryTrack}
+              courseId={activeTrackId}
               selectedLanguageId={currentLanguageOption?.id}
               onLanguageChange={handleLanguageChange}
               onResetBoilerplate={handleResetBoilerplate}

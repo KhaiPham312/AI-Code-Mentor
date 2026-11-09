@@ -63,7 +63,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
           }`}
         >
           <div className="flex items-center space-x-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-sm shadow-md shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-sm shadow-md shrink-0">
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div className="min-w-0">
@@ -118,7 +118,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
               <div>
                 <span
                   className={`text-[11px] font-semibold uppercase tracking-wider block ${
-                    isDark ? 'text-indigo-400' : 'text-indigo-600'
+                    isDark ? 'text-emerald-400' : 'text-emerald-600'
                   }`}
                 >
                   {isVie ? 'Bài tập đang thực hành' : 'Current Exercise'}
@@ -129,7 +129,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
                 <button
                   type="button"
                   onClick={() => onPreviewStudentIDE(log.exerciseId)}
-                  className="px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1 shrink-0"
+                  className="px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1 shrink-0 cursor-pointer"
                 >
                   <Code className="w-3.5 h-3.5" />
                   <span>{isVie ? 'Xem bài' : 'Open IDE'}</span>
@@ -185,7 +185,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 font-sans">
-                <Code className="w-3.5 h-3.5 text-indigo-500" />
+                <Code className="w-3.5 h-3.5 text-emerald-500" />
                 <span>{isVie ? 'Đoạn mã lúc phát sinh lỗi' : 'Code Snapshot at Error'}</span>
               </span>
               <span className="text-[11px] font-sans text-slate-500 font-medium">Python 3.11</span>
@@ -240,7 +240,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
                   <div
                     className={`max-w-[88%] p-3.5 rounded-2xl text-xs leading-relaxed ${
                       msg.sender === 'student'
-                        ? 'bg-indigo-600 text-white rounded-tr-xs shadow-sm'
+                        ? 'bg-emerald-600 text-white rounded-tr-xs shadow-sm'
                         : isDark
                         ? 'bg-[#15233c] text-slate-100 border border-slate-800 rounded-tl-xs shadow-sm'
                         : 'bg-slate-100 text-neutral-900 border border-slate-200 rounded-tl-xs shadow-sm'
@@ -251,7 +251,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
                       <pre
                         className={`mt-2 p-2 rounded-lg text-[11px] font-mono whitespace-pre-wrap ${
                           msg.sender === 'student'
-                            ? 'bg-indigo-800/70 text-indigo-100'
+                            ? 'bg-emerald-800/70 text-emerald-100'
                             : isDark
                             ? 'bg-[#0c121d] text-emerald-400 border border-slate-800'
                             : 'bg-white text-emerald-700 border border-slate-300'
@@ -300,7 +300,7 @@ export const TeacherAITranscriptDrawer: React.FC<TeacherAITranscriptDrawerProps>
                     : `Guidance feedback sent to student ${log.studentName}!`
                 );
               }}
-              className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1.5 shadow-sm"
+              className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
               <span>{isVie ? 'Gửi lời khuyên' : 'Send Feedback'}</span>

@@ -168,7 +168,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
           }`}
         >
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white flex items-center justify-center font-bold text-sm shadow-md">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-sm shadow-md">
               <Plus className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -210,10 +210,10 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
             <input
               type="text"
               required
-              placeholder={isVie ? 'VD: Bài 06: Tìm kiếm chuỗi con KMP tối ưu' : 'e.g. Problem 06: KMP Substring Search'}
+              placeholder={isVie ? 'VD: Tìm kiếm chuỗi con KMP tối ưu' : 'e.g. KMP Substring Search'}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+              className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
                 isDark
                   ? 'bg-slate-800/80 border-slate-700 text-white placeholder-slate-500'
                   : 'bg-slate-50 border-slate-300 text-neutral-900 placeholder-slate-400'
@@ -231,7 +231,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               <select
                 value={category}
                 onChange={(e) => handleCategoryChange(e.target.value)}
-                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
+                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans ${
                   isDark
                     ? 'bg-slate-800/80 border-slate-700 text-white'
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
@@ -252,7 +252,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value as Difficulty)}
-                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
+                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans ${
                   isDark
                     ? 'bg-slate-800/80 border-slate-700 text-white'
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
@@ -271,7 +271,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               <select
                 value={targetClass}
                 onChange={(e) => setTargetClass(e.target.value)}
-                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
+                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans ${
                   isDark
                     ? 'bg-slate-800/80 border-slate-700 text-white'
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
@@ -290,14 +290,14 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-bold mb-1 flex items-center gap-1.5 font-sans">
-                <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                <Calendar className="w-3.5 h-3.5 text-emerald-500" />
                 <span>{isVie ? 'Hạn chót nộp bài (Deadline):' : 'Submission Deadline:'}</span>
               </label>
               <input
                 type="datetime-local"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans ${
+                className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans ${
                   isDark
                     ? 'bg-slate-800/80 border-slate-700 text-white'
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
@@ -314,7 +314,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
                 value={primaryLanguage}
                 onChange={(e) => setPrimaryLanguage(e.target.value)}
                 aria-label="Chọn ngôn ngữ lập trình chính"
-                className={`w-full p-2.5 rounded-lg border font-sans font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                className={`w-full p-2.5 rounded-lg border font-sans font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
                   isDark
                     ? 'bg-slate-800/80 border-slate-700 text-white'
                     : 'bg-slate-50 border-slate-300 text-neutral-900'
@@ -339,7 +339,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               placeholder={isVie ? 'Mô tả yêu cầu đầu vào, đầu ra, và các ràng buộc về thời gian / bộ nhớ...' : 'Problem requirements, input/output specifications, time/memory constraints...'}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed ${
+              className={`w-full p-2.5 rounded-lg border font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 leading-relaxed ${
                 isDark
                   ? 'bg-slate-800/80 border-slate-700 text-white placeholder-slate-500'
                   : 'bg-slate-50 border-slate-300 text-neutral-900 placeholder-slate-400'
@@ -353,7 +353,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               isDark ? 'bg-[#15233c]/60 border-slate-800' : 'bg-slate-50 border-slate-200'
             }`}
           >
-            <span className="font-bold text-[11px] uppercase tracking-wider block text-indigo-400">
+            <span className="font-bold text-[11px] uppercase tracking-wider block text-emerald-500 dark:text-emerald-400">
               {isVie ? 'Chính sách giám sát AI & Chống gian lận' : 'AI SUPERVISION & ANTI-CHEATING POLICY'}
             </span>
 
@@ -375,7 +375,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
                 type="checkbox"
                 checked={enableAISocratic}
                 onChange={(e) => setEnableAISocratic(e.target.checked)}
-                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
               />
             </div>
 
@@ -397,7 +397,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
                 type="checkbox"
                 checked={enableAntiPlagiarism}
                 onChange={(e) => setEnableAntiPlagiarism(e.target.checked)}
-                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
               />
             </div>
           </div>
@@ -406,7 +406,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="font-bold flex items-center gap-1.5 font-sans">
-                <Layers className="w-3.5 h-3.5 text-indigo-500" />
+                <Layers className="w-3.5 h-3.5 text-emerald-500" />
                 <span>{isVie ? 'Bộ dữ liệu kiểm thử (Test Cases):' : 'Test Cases Suite:'}</span>
                 <span className="text-[10px] text-slate-400 font-sans font-medium">({testCases.length})</span>
               </span>
@@ -414,7 +414,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
               <button
                 type="button"
                 onClick={handleAddTestCase}
-                className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1 font-sans"
+                className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1 font-sans"
               >
                 <Plus className="w-3 h-3" />
                 <span>{isVie ? 'Thêm Test Case' : 'Add Case'}</span>
@@ -439,7 +439,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
                           onChange={(e) =>
                             handleUpdateTestCase(tc.id, 'isHidden', e.target.checked)
                           }
-                          className="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
+                          className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5"
                         />
                         <span className={tc.isHidden ? 'text-amber-400 font-semibold' : ''}>
                           {isVie ? 'Test Case Ẩn (Chấm điểm)' : 'Hidden Test Case'}
@@ -517,7 +517,7 @@ export const TeacherAssignmentModal: React.FC<TeacherAssignmentModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-lg font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-md shadow-indigo-900/30 flex items-center gap-1.5"
+              className="px-5 py-2 rounded-lg font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-md shadow-emerald-900/30 flex items-center gap-1.5 cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>{isVie ? 'Lưu & Phát hành bài tập' : 'Publish Assignment'}</span>

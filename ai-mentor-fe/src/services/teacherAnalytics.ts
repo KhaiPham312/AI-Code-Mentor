@@ -61,6 +61,35 @@ export interface ExerciseStats {
 }
 
 /**
+ * Largest Remainder Method (Hare-Niemeyer)
+ * Đảm bảo tổng các phần tử nguyên luôn bằng targetSum chính xác 100%, không bao giờ âm.
+ */
+export function distributeIntegerSum(rawValues: number[], targetSum: number): number[] {
+  if (rawValues.length === 0) return [];
+  const totalWeight = rawValues.reduce((acc, v) => acc + Math.max(0, v), 0);
+  if (totalWeight <= 0) {
+    const res = new Array(rawValues.length).fill(0);
+    res[0] = targetSum;
+    return res;
+  }
+
+  const quotas = rawValues.map((v) => (Math.max(0, v) / totalWeight) * targetSum);
+  const floors = quotas.map((q) => Math.floor(q));
+  const remainderIndices = quotas
+    .map((q, idx) => ({ remainder: q - floors[idx], idx }))
+    .sort((a, b) => b.remainder - a.remainder);
+
+  const deficit = targetSum - floors.reduce((acc, f) => acc + f, 0);
+  const result = [...floors];
+  for (let i = 0; i < deficit; i++) {
+    const targetIdx = remainderIndices[i % remainderIndices.length].idx;
+    result[targetIdx] += 1;
+  }
+
+  return result;
+}
+
+/**
  * Deterministic string hasher for reproducible seeding
  */
 function seededHash(str: string): number {
@@ -147,43 +176,49 @@ export function getExerciseStats(exerciseId: number, classId: string): ExerciseS
   const jitter = ((hash % 100) - 50) / 400; // -0.125 .. +0.125
   const passRate = Math.max(0.3, Math.min(0.92, baseRate + jitter));
 
-  let completedCount = Math.max(5, Math.min(total - 4, Math.round(total * passRate)));
-  let inProgressCount = Math.max(2, Math.min(total - completedCount - 1, Math.round((total - completedCount) * 0.45)));
-  let notStartedCount = total - completedCount - inProgressCount;
+  const rawCompleted = Math.max(5, Math.min(total - 4, Math.round(total * passRate)));
+  const rawInProgress = Math.max(2, Math.min(total - rawCompleted - 1, Math.round((total - rawCompleted) * 0.45)));
+  let adjustedCompleted = rawCompleted;
+  let adjustedInProgress = rawInProgress;
+  let adjustedNotStarted = Math.max(0, total - rawCompleted - rawInProgress);
 
   // Tích hợp bài nộp của người dùng thật
   const realSubs = getRealStudentSubmissionsForTeacher().filter((s) => s.exerciseId === exerciseId);
   if (realSubs.length > 0) {
     const hasAccepted = realSubs.some((s) => s.status === 'accepted' || s.score >= 8);
-    if (hasAccepted && notStartedCount > 0) {
-      completedCount++;
-      notStartedCount--;
-    } else if (notStartedCount > 0) {
-      inProgressCount++;
-      notStartedCount--;
+    if (hasAccepted && adjustedNotStarted > 0) {
+      adjustedCompleted++;
+      adjustedNotStarted--;
+    } else if (adjustedNotStarted > 0) {
+      adjustedInProgress++;
+      adjustedNotStarted--;
     }
   }
 
-  // Đảm bảo tổng phần trăm Đạt + Đang làm + Chưa làm = 100%
-  const completedPercent = Math.round((completedCount / total) * 100);
-  const inProgressPercent = Math.round((inProgressCount / total) * 100);
-  const notStartedPercent = 100 - completedPercent - inProgressPercent;
+  // Đảm bảo tổng phần trăm Đạt + Đang làm + Chưa làm = 100% bằng Largest Remainder Method
+  const [completedCount, inProgressCount, notStartedCount] = distributeIntegerSum(
+    [adjustedCompleted, adjustedInProgress, adjustedNotStarted],
+    total
+  );
+  const [completedPercent, inProgressPercent, notStartedPercent] = distributeIntegerSum(
+    [completedCount, inProgressCount, notStartedCount],
+    100
+  );
 
   // Phổ điểm (Giỏi / Khá / TB / Yếu)
-  let gioiCount = Math.max(1, Math.round(completedCount * 0.62));
-  let khaCount = Math.max(1, Math.round(completedCount * 0.28 + inProgressCount * 0.2));
-  let tbCount = Math.max(1, Math.round(inProgressCount * 0.6 + notStartedCount * 0.15));
-  let yeuCount = total - (gioiCount + khaCount + tbCount);
+  const rawGioi = Math.max(1, completedCount * 0.62);
+  const rawKha = Math.max(1, completedCount * 0.28 + inProgressCount * 0.2);
+  const rawTb = Math.max(1, inProgressCount * 0.6 + notStartedCount * 0.15);
+  const rawYeu = Math.max(0, total - (rawGioi + rawKha + rawTb));
 
-  if (yeuCount < 0) {
-    tbCount += yeuCount;
-    yeuCount = 0;
-  }
-
-  const gioiPercent = Math.round((gioiCount / total) * 100);
-  const khaPercent = Math.round((khaCount / total) * 100);
-  const tbPercent = Math.round((tbCount / total) * 100);
-  const yeuPercent = 100 - (gioiPercent + khaPercent + tbPercent);
+  const [gioiCount, khaCount, tbCount, yeuCount] = distributeIntegerSum(
+    [rawGioi, rawKha, rawTb, rawYeu],
+    total
+  );
+  const [gioiPercent, khaPercent, tbPercent, yeuPercent] = distributeIntegerSum(
+    [gioiCount, khaCount, tbCount, yeuCount],
+    100
+  );
 
   // Điểm trung bình bài tập
   const avgScore =
@@ -270,34 +305,40 @@ export function getCourseStats(trackId: string, classId: string): CourseCompleti
   const avgScore = Math.round((sumAvg / totalExercises) * 10) / 10;
 
   // Trung bình số sinh viên Đạt / Đang làm / Chưa làm trên mỗi bài
-  const avgCompleted = Math.round(
-    exStatsList.reduce((acc, s) => acc + s.completedCount, 0) / totalExercises
-  );
-  const avgInProgress = Math.round(
-    exStatsList.reduce((acc, s) => acc + s.inProgressCount, 0) / totalExercises
-  );
-  const notStarted = Math.max(0, total - avgCompleted - avgInProgress);
+  const rawAvgCompleted =
+    exStatsList.reduce((acc, s) => acc + s.completedCount, 0) / totalExercises;
+  const rawAvgInProgress =
+    exStatsList.reduce((acc, s) => acc + s.inProgressCount, 0) / totalExercises;
+  const rawAvgNotStarted =
+    exStatsList.reduce((acc, s) => acc + s.notStartedCount, 0) / totalExercises;
 
-  const passedPercent = Math.round((avgCompleted / total) * 100);
-  const inProgressPercent = Math.round((avgInProgress / total) * 100);
-  const notStartedPercent = 100 - passedPercent - inProgressPercent;
+  const [passedCount, inProgressCount, notStartedCount] = distributeIntegerSum(
+    [rawAvgCompleted, rawAvgInProgress, rawAvgNotStarted],
+    total
+  );
+  const [passedPercent, inProgressPercent, notStartedPercent] = distributeIntegerSum(
+    [passedCount, inProgressCount, notStartedCount],
+    100
+  );
 
   // Phổ điểm trung bình của khóa
-  const avgGioi = Math.round(
-    exStatsList.reduce((acc, s) => acc + s.gradeDistribution.gioiCount, 0) / totalExercises
-  );
-  const avgKha = Math.round(
-    exStatsList.reduce((acc, s) => acc + s.gradeDistribution.khaCount, 0) / totalExercises
-  );
-  const avgTb = Math.round(
-    exStatsList.reduce((acc, s) => acc + s.gradeDistribution.tbCount, 0) / totalExercises
-  );
-  const yeu = Math.max(0, total - (avgGioi + avgKha + avgTb));
+  const rawAvgGioi =
+    exStatsList.reduce((acc, s) => acc + s.gradeDistribution.gioiCount, 0) / totalExercises;
+  const rawAvgKha =
+    exStatsList.reduce((acc, s) => acc + s.gradeDistribution.khaCount, 0) / totalExercises;
+  const rawAvgTb =
+    exStatsList.reduce((acc, s) => acc + s.gradeDistribution.tbCount, 0) / totalExercises;
+  const rawAvgYeu =
+    exStatsList.reduce((acc, s) => acc + s.gradeDistribution.yeuCount, 0) / totalExercises;
 
-  const gioiPercent = Math.round((avgGioi / total) * 100);
-  const khaPercent = Math.round((avgKha / total) * 100);
-  const tbPercent = Math.round((avgTb / total) * 100);
-  const yeuPercent = 100 - (gioiPercent + khaPercent + tbPercent);
+  const [gioiCount, khaCount, tbCount, yeuCount] = distributeIntegerSum(
+    [rawAvgGioi, rawAvgKha, rawAvgTb, rawAvgYeu],
+    total
+  );
+  const [gioiPercent, khaPercent, tbPercent, yeuPercent] = distributeIntegerSum(
+    [gioiCount, khaCount, tbCount, yeuCount],
+    100
+  );
 
   return {
     trackId,
@@ -306,21 +347,21 @@ export function getCourseStats(trackId: string, classId: string): CourseCompleti
     color: track.color,
     totalExercises,
     totalStudents: total,
-    passedCount: avgCompleted,
+    passedCount,
     passedPercent,
-    inProgressCount: avgInProgress,
+    inProgressCount,
     inProgressPercent,
-    notStartedCount: notStarted,
+    notStartedCount,
     notStartedPercent,
     avgScore,
     gradeDistribution: {
-      gioiCount: avgGioi,
+      gioiCount,
       gioiPercent,
-      khaCount: avgKha,
-      khaPercent: avgTb,
-      tbCount: avgTb,
+      khaCount,
+      khaPercent, // Đã sửa hoàn toàn lỗi typo (từng gán nhầm avgTb)
+      tbCount,
       tbPercent,
-      yeuCount: yeu,
+      yeuCount,
       yeuPercent,
     },
   };
@@ -392,29 +433,39 @@ export function getOverallClassStats(classId: string): {
       (allCourses.reduce((acc, c) => acc + c.avgScore, 0) / allCourses.length) * 10
     ) / 10;
 
-  const passedPercent = Math.round(
-    allCourses.reduce((acc, c) => acc + c.passedPercent, 0) / allCourses.length
-  );
-  const inProgressPercent = Math.round(
-    allCourses.reduce((acc, c) => acc + c.inProgressPercent, 0) / allCourses.length
-  );
-  const notStartedPercent = 100 - passedPercent - inProgressPercent;
+  const rawPassed =
+    allCourses.reduce((acc, c) => acc + c.passedCount, 0) / allCourses.length;
+  const rawInProgress =
+    allCourses.reduce((acc, c) => acc + c.inProgressCount, 0) / allCourses.length;
+  const rawNotStarted =
+    allCourses.reduce((acc, c) => acc + c.notStartedCount, 0) / allCourses.length;
 
-  const gioiPercent = Math.round(
-    allCourses.reduce((acc, c) => acc + c.gradeDistribution.gioiPercent, 0) / allCourses.length
+  const [passedCount, inProgressCount, notStartedCount] = distributeIntegerSum(
+    [rawPassed, rawInProgress, rawNotStarted],
+    total
   );
-  const khaPercent = Math.round(
-    allCourses.reduce((acc, c) => acc + c.gradeDistribution.khaPercent, 0) / allCourses.length
+  const [passedPercent, inProgressPercent, notStartedPercent] = distributeIntegerSum(
+    [passedCount, inProgressCount, notStartedCount],
+    100
   );
-  const tbPercent = Math.round(
-    allCourses.reduce((acc, c) => acc + c.gradeDistribution.tbPercent, 0) / allCourses.length
-  );
-  const yeuPercent = 100 - (gioiPercent + khaPercent + tbPercent);
 
-  const gioiCount = Math.round((gioiPercent / 100) * total);
-  const khaCount = Math.round((khaPercent / 100) * total);
-  const tbCount = Math.round((tbPercent / 100) * total);
-  const yeuCount = total - (gioiCount + khaCount + tbCount);
+  const rawGioi =
+    allCourses.reduce((acc, c) => acc + c.gradeDistribution.gioiCount, 0) / allCourses.length;
+  const rawKha =
+    allCourses.reduce((acc, c) => acc + c.gradeDistribution.khaCount, 0) / allCourses.length;
+  const rawTb =
+    allCourses.reduce((acc, c) => acc + c.gradeDistribution.tbCount, 0) / allCourses.length;
+  const rawYeu =
+    allCourses.reduce((acc, c) => acc + c.gradeDistribution.yeuCount, 0) / allCourses.length;
+
+  const [gioiCount, khaCount, tbCount, yeuCount] = distributeIntegerSum(
+    [rawGioi, rawKha, rawTb, rawYeu],
+    total
+  );
+  const [gioiPercent, khaPercent, tbPercent, yeuPercent] = distributeIntegerSum(
+    [gioiCount, khaCount, tbCount, yeuCount],
+    100
+  );
 
   return {
     totalStudents: total,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   LiveSubmission,
   translateExerciseTitle,
@@ -32,6 +32,13 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
   currentTheme,
 }) => {
   const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   if (!isOpen || !submission) return null;
 
@@ -41,7 +48,8 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
   const handleCopyCode = () => {
     navigator.clipboard.writeText(submission.submittedCode);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   const codeLines = submission.submittedCode.split('\n');
@@ -135,7 +143,7 @@ export const TeacherCodeReviewModal: React.FC<TeacherCodeReviewModalProps> = ({
                 isDark ? 'bg-[#15233c] border-slate-800' : 'bg-slate-50 border-slate-200'
               }`}
             >
-              <Layers className="w-4 h-4 text-indigo-500 shrink-0" />
+              <Layers className="w-4 h-4 text-emerald-500 shrink-0" />
               <div>
                 <span className="text-[10px] text-slate-400 block font-medium">
                   {isVie ? 'Bộ nhớ tiêu thụ' : 'Memory Peak'}

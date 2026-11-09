@@ -34,7 +34,7 @@ interface CourseDetailViewProps {
   exercises: Exercise[];
   currentLang: Language;
   onBack: () => void;
-  onOpenIDE: (exerciseId: number) => void;
+  onOpenIDE: (exerciseId: number, trackId?: string) => void;
   user?: User;
 }
 
@@ -252,7 +252,6 @@ export const CourseDetailView: React.FC<CourseDetailViewProps> = ({
   };
 
   const trackTitle = currentLang === 'vie' ? track.nameVie : track.nameEng;
-  const trackDesc = currentLang === 'vie' ? track.descVie : track.descEng;
 
   return (
     <div className="space-y-6">
@@ -298,9 +297,6 @@ export const CourseDetailView: React.FC<CourseDetailViewProps> = ({
                 <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">
                   {trackTitle}
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
-                  {trackDesc}
-                </p>
               </div>
             </div>
 
@@ -569,7 +565,7 @@ export const CourseDetailView: React.FC<CourseDetailViewProps> = ({
                     <div className="flex-shrink-0 self-end md:self-center">
                       <button
                         type="button"
-                        onClick={() => onOpenIDE(exercise.id)}
+                        onClick={() => onOpenIDE(exercise.id, trackId)}
                         className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all duration-150 active:scale-95 shadow-sm ${
                           isSolved
                             ? 'bg-emerald-50 dark:bg-emerald-950/40 text-[#1BA94C] dark:text-[#00EA64] border border-emerald-200 dark:border-emerald-800/50 hover:bg-[#1BA94C] hover:text-white dark:hover:bg-[#1BA94C] dark:hover:text-white'

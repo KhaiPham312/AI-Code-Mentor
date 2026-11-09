@@ -12,6 +12,7 @@ export interface User {
   department?: string;
   bio?: string;
   isActive?: boolean;
+  status?: 'active' | 'locked';
   createdAt?: string;
 }
 

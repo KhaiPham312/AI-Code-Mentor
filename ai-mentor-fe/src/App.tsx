@@ -1,11 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { LoginPage } from './components/LoginPage';
 import { DashboardPreview } from './components/DashboardPreview';
-import { TeacherDashboard } from './components/teacher/TeacherDashboard';
-import { AdminDashboard } from './components/admin/AdminDashboard';
-import { StudentWorkspace } from './components/ide/StudentWorkspace';
 import { SettingsPage } from './components/settings/SettingsPage';
 import { SubmissionsPage } from './components/submissions/SubmissionsPage';
+
+// Lazy-loaded heavy modules for code-splitting and zero layout shift
+const TeacherDashboard = lazy(() =>
+  import('./components/teacher/TeacherDashboard').then((m) => ({ default: m.TeacherDashboard }))
+);
+const AdminDashboard = lazy(() =>
+  import('./components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
+);
+const StudentWorkspace = lazy(() =>
+  import('./components/ide/StudentWorkspace').then((m) => ({ default: m.StudentWorkspace }))
+);
+
+const ViewLoadingFallback = () => (
+  <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 dark:bg-[#0b0f17] text-slate-500 dark:text-slate-400 select-none transition-colors">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-8 h-8 rounded-full border-2 border-emerald-500/30 border-t-emerald-500 animate-spin" />
+      <span className="text-xs font-medium tracking-wide">Loading workspace...</span>
+    </div>
+  </div>
+);
 import { User } from './types/auth';
 import { Language, ThemeMode } from './components/dashboard/dashboardI18n';
 import {
@@ -224,8 +241,8 @@ export function App() {
     }
   };
 
-  const handleOpenIDE = (exerciseId: number = 1) => {
-    navigateTo('ide', { exerciseId });
+  const handleOpenIDE = (exerciseId: number = 1, trackId?: string) => {
+    navigateTo('ide', { exerciseId, trackId: trackId || selectedTrackId });
   };
 
   const handleTeacherPreviewIDE = (exerciseId: number = 1) => {
@@ -357,6 +374,7 @@ export function App() {
         currentTheme={currentTheme}
         onThemeToggle={handleThemeToggle}
         onLogout={handleLogout}
+        onOpenSettings={handleOpenSettings}
       />
     );
   }
@@ -364,46 +382,53 @@ export function App() {
   // 3. 1:1 HackerRank Student Workspace IDE (/ide)
   if (currentView === 'ide') {
     return (
-      <StudentWorkspace
-        user={currentUser}
-        initialExerciseId={selectedExerciseId}
-        onBackToDashboard={handleBackToDashboard}
-        currentTheme={currentTheme}
-        onThemeToggle={handleThemeToggle}
-        currentLang={currentLang}
-        onLanguageChange={handleLanguageChange}
-      />
+      <Suspense fallback={<ViewLoadingFallback />}>
+        <StudentWorkspace
+          user={currentUser}
+          initialExerciseId={selectedExerciseId}
+          selectedCourseId={selectedTrackId}
+          onBackToDashboard={handleBackToDashboard}
+          currentTheme={currentTheme}
+          onThemeToggle={handleThemeToggle}
+          currentLang={currentLang}
+          onLanguageChange={handleLanguageChange}
+        />
+      </Suspense>
     );
   }
 
   // 4. Role-based views: Admin Dashboard (/admin)
   if (currentView === 'admin' || (currentUser.role === 'admin' && currentView !== 'dashboard' && currentView !== 'teacher')) {
     return (
-      <AdminDashboard
-        user={currentUser}
-        currentLang={currentLang}
-        onLanguageChange={handleLanguageChange}
-        currentTheme={currentTheme}
-        onThemeToggle={handleThemeToggle}
-        onLogout={handleLogout}
-        onNavigateView={(view) => navigateTo(view)}
-      />
+      <Suspense fallback={<ViewLoadingFallback />}>
+        <AdminDashboard
+          user={currentUser}
+          currentLang={currentLang}
+          onLanguageChange={handleLanguageChange}
+          currentTheme={currentTheme}
+          onThemeToggle={handleThemeToggle}
+          onLogout={handleLogout}
+          onNavigateView={(view) => navigateTo(view)}
+        />
+      </Suspense>
     );
   }
 
   // 5. Role-based views: Teacher Dashboard (/teacher)
   if (currentUser.role === 'teacher') {
     return (
-      <TeacherDashboard
-        user={currentUser}
-        onLogout={handleLogout}
-        onOpenSettings={handleOpenSettings}
-        onPreviewStudentIDE={handleTeacherPreviewIDE}
-        currentTheme={currentTheme}
-        onThemeToggle={handleThemeToggle}
-        currentLang={currentLang}
-        onLanguageChange={handleLanguageChange}
-      />
+      <Suspense fallback={<ViewLoadingFallback />}>
+        <TeacherDashboard
+          user={currentUser}
+          onLogout={handleLogout}
+          onOpenSettings={handleOpenSettings}
+          onPreviewStudentIDE={handleTeacherPreviewIDE}
+          currentTheme={currentTheme}
+          onThemeToggle={handleThemeToggle}
+          currentLang={currentLang}
+          onLanguageChange={handleLanguageChange}
+        />
+      </Suspense>
     );
   }
 
