@@ -22,3 +22,4 @@ celery_app.conf.update(
     worker_concurrency=int(os.getenv("CELERY_CONCURRENCY", 4)),
     worker_prefetch_multiplier=1,  # Fair distribution among judging workers
 )
+

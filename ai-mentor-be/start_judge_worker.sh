@@ -14,3 +14,4 @@ echo "🔌 Broker / Backend: Redis (redis://localhost:6379/0)"
 echo "🧵 Concurrency: ${CELERY_CONCURRENCY:-4} worker processes"
 
 exec celery -A app.core.celery_app worker --loglevel=info --concurrency=${CELERY_CONCURRENCY:-4}
+

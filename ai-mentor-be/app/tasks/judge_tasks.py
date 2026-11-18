@@ -82,3 +82,4 @@ def grade_submission_task(self, submission_id: int):
         raise exc
     finally:
         db.close()
+

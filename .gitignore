@@ -15,3 +15,5 @@ __pycache__/
 *.tsbuildinfo
 sample.txt
 Bao_cao_thda.docx
+datasets/
+
