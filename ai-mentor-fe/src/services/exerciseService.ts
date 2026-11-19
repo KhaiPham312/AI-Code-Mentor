@@ -535,7 +535,8 @@ export async function executeStudentCode(
       results: mappedResults,
       isOfflineEvaluator: false,
     };
-  } catch {
+  } catch (err) {
+    console.warn(`[Runner] Lỗi khi gọi Backend /submissions/run cho bài #${exerciseId}:`, err);
     // Backend offline / network failed -> Seamless Smart Local Evaluator
     // Absolutely NEVER print "Failed to fetch" in compiler output!
     return evaluateCodeLocally(exercise, code, language, false, uiLang);
@@ -604,7 +605,8 @@ export async function submitStudentCodeBackend(
       executionTimeMs: data.execution_time_ms,
       code: data.source_code || code,
     };
-  } catch {
+  } catch (err) {
+    console.warn(`[Submit] Lỗi khi nộp bài #${exerciseId} lên Backend:`, err);
     // Backend offline / network failed -> Seamless Smart Local Evaluator
     const localResult = evaluateCodeLocally(exercise, code, language, true, uiLang);
     const verdict: 'accepted' | 'wrong_answer' | 'time_limit' | 'compile_error' =
